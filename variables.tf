@@ -1,0 +1,10 @@
+variable "cloudflare" {}
+variable "github" {}
+variable "oci" {}
+variable "proxmox" {}
+variable "root_domain" {}
+variable "root_email" {}
+variable "routers" {}
+variable "servers" {}
+variable "virtual_machines" {}
+variable "websites" {}
