@@ -1,6 +1,7 @@
-data "oci_identity_availability_domain" "au" {
-  ad_number      = 1
-  compartment_id = var.oci.tenancy_ocid
+data "oci_core_ipv6s" "config" {
+  for_each = data.oci_core_vnic_attachments.config
+
+  vnic_id = each.value.vnic_attachments[0].id
 }
 
 data "oci_core_vnic" "config" {
@@ -16,10 +17,9 @@ data "oci_core_vnic_attachments" "config" {
   instance_id    = each.value.id
 }
 
-data "oci_core_ipv6s" "config" {
-  for_each = data.oci_core_vnic_attachments.config
-
-  vnic_id = each.value.vnic_attachments[0].id
+data "oci_identity_availability_domain" "au" {
+  ad_number      = 1
+  compartment_id = var.oci.tenancy_ocid
 }
 
 resource "oci_core_default_dhcp_options" "au" {
