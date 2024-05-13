@@ -15,6 +15,20 @@ provider "oci" {
   user_ocid        = var.oci.user_ocid
 }
 
+provider "openwrt" {
+  alias    = "au"
+  hostname = var.openwrt.au.hostname
+  password = var.openwrt.au.password
+  port     = var.openwrt.au.port
+}
+
+provider "openwrt" {
+  alias    = "kr"
+  hostname = var.openwrt.kr.hostname
+  password = var.openwrt.kr.password
+  port     = var.openwrt.kr.port
+}
+
 provider "proxmox" {
   alias     = "gen8"
   api_token = var.proxmox.gen8.api_token

@@ -9,6 +9,9 @@ terraform {
     oci = {
       source = "oracle/oci"
     }
+    openwrt = {
+      source = "joneshf/openwrt"
+    }
     proxmox = {
       source = "bpg/proxmox"
     }

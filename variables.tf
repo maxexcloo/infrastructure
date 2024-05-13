@@ -1,6 +1,7 @@
 variable "cloudflare" {}
 variable "github" {}
 variable "oci" {}
+variable "openwrt" {}
 variable "proxmox" {}
 variable "root_domain" {}
 variable "root_email" {}
