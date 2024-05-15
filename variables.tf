@@ -1,11 +1,4 @@
-variable "cloudflare" {}
-variable "github" {}
-variable "oci" {}
-variable "openwrt" {}
-variable "proxmox" {}
-variable "root_domain" {}
-variable "root_email" {}
-variable "routers" {}
+variable "root" {}
 variable "servers" {}
-variable "virtual_machines" {}
+variable "terraform" {}
 variable "websites" {}

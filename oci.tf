@@ -13,19 +13,19 @@ data "oci_core_vnic" "config" {
 data "oci_core_vnic_attachments" "config" {
   for_each = oci_core_instance.config
 
-  compartment_id = var.oci.tenancy_ocid
+  compartment_id = var.terraform.oci.tenancy_ocid
   instance_id    = each.value.id
 }
 
-data "oci_identity_availability_domain" "au" {
+data "oci_identity_availability_domain" "config" {
   ad_number      = 1
-  compartment_id = var.oci.tenancy_ocid
+  compartment_id = var.terraform.oci.tenancy_ocid
 }
 
-resource "oci_core_default_dhcp_options" "au" {
-  compartment_id             = var.oci.tenancy_ocid
-  display_name               = "${var.oci.location}.${var.root_domain}"
-  manage_default_resource_id = oci_core_vcn.au.default_dhcp_options_id
+resource "oci_core_default_dhcp_options" "config" {
+  compartment_id             = var.terraform.oci.tenancy_ocid
+  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  manage_default_resource_id = oci_core_vcn.config.default_dhcp_options_id
 
   options {
     server_type = "VcnLocalPlusInternet"
@@ -33,32 +33,32 @@ resource "oci_core_default_dhcp_options" "au" {
   }
 
   options {
-    search_domain_names = [oci_core_vcn.au.vcn_domain_name]
+    search_domain_names = [oci_core_vcn.config.vcn_domain_name]
     type                = "SearchDomain"
   }
 }
 
-resource "oci_core_default_route_table" "au" {
-  display_name               = "${var.oci.location}.${var.root_domain}"
-  manage_default_resource_id = oci_core_vcn.au.default_route_table_id
+resource "oci_core_default_route_table" "config" {
+  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  manage_default_resource_id = oci_core_vcn.config.default_route_table_id
 
   route_rules {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_internet_gateway.au.id
+    network_entity_id = oci_core_internet_gateway.config.id
   }
 
   route_rules {
     destination       = "::/0"
     destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_internet_gateway.au.id
+    network_entity_id = oci_core_internet_gateway.config.id
   }
 }
 
-resource "oci_core_default_security_list" "au" {
-  compartment_id             = var.oci.tenancy_ocid
-  display_name               = "${var.oci.location}.${var.root_domain}"
-  manage_default_resource_id = oci_core_vcn.au.default_security_list_id
+resource "oci_core_default_security_list" "config" {
+  compartment_id             = var.terraform.oci.tenancy_ocid
+  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  manage_default_resource_id = oci_core_vcn.config.default_security_list_id
 
   egress_security_rules {
     destination = "0.0.0.0/0"
@@ -87,12 +87,12 @@ resource "oci_core_default_security_list" "au" {
 
 resource "oci_core_instance" "config" {
   for_each = {
-    for i, server in var.servers : "${server.hostname}.${server.location}.${var.root_domain}" => server
-    if server.type == "oci"
+    for i, server in var.servers : "${server.hostname}.${var.terraform.oci.location}.${var.root.domain}" => server
+    if try(server.parent, "") == "oci"
   }
 
-  availability_domain = data.oci_identity_availability_domain.au.name
-  compartment_id      = var.oci.tenancy_ocid
+  availability_domain = data.oci_identity_availability_domain.config.name
+  compartment_id      = var.terraform.oci.tenancy_ocid
   display_name        = each.key
   shape               = each.value.config.shape
 
@@ -106,7 +106,7 @@ resource "oci_core_instance" "config" {
     assign_public_ip          = true
     display_name              = each.key
     hostname_label            = each.value.hostname
-    subnet_id                 = oci_core_subnet.au.id
+    subnet_id                 = oci_core_subnet.config.id
   }
 
   shape_config {
@@ -116,30 +116,30 @@ resource "oci_core_instance" "config" {
 
   source_details {
     boot_volume_size_in_gbs = each.value.config.disk_size
-    source_id               = each.value.config.disk_image_id
-    source_type             = each.value.config.disk_image_type
+    source_id               = each.value.config.boot_image_id
+    source_type             = each.value.config.boot_image_type
   }
 }
 
-resource "oci_core_internet_gateway" "au" {
-  compartment_id = var.oci.tenancy_ocid
-  display_name   = "${var.oci.location}.${var.root_domain}"
-  vcn_id         = oci_core_vcn.au.id
+resource "oci_core_internet_gateway" "config" {
+  compartment_id = var.terraform.oci.tenancy_ocid
+  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
+  vcn_id         = oci_core_vcn.config.id
 }
 
-resource "oci_core_subnet" "au" {
+resource "oci_core_subnet" "config" {
   cidr_block     = "10.0.0.0/24"
-  compartment_id = var.oci.tenancy_ocid
-  display_name   = "${var.oci.location}.${var.root_domain}"
-  dns_label      = var.oci.location
-  ipv6cidr_block = replace(oci_core_vcn.au.ipv6cidr_blocks[0], "/56", "/64")
-  vcn_id         = oci_core_vcn.au.id
+  compartment_id = var.terraform.oci.tenancy_ocid
+  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
+  dns_label      = var.terraform.oci.location
+  ipv6cidr_block = replace(oci_core_vcn.config.ipv6cidr_blocks[0], "/56", "/64")
+  vcn_id         = oci_core_vcn.config.id
 }
 
-resource "oci_core_vcn" "au" {
+resource "oci_core_vcn" "config" {
   cidr_blocks    = ["10.0.0.0/16"]
-  compartment_id = var.oci.tenancy_ocid
-  display_name   = "${var.oci.location}.${var.root_domain}"
-  dns_label      = replace(var.root_domain, "/\\.[^.]*$/", "")
+  compartment_id = var.terraform.oci.tenancy_ocid
+  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
+  dns_label      = replace(var.root.domain, "/\\.[^.]*$/", "")
   is_ipv6enabled = true
 }

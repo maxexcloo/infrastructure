@@ -1,60 +1,58 @@
 resource "cloudflare_account" "root" {
-  name = var.root_email
+  name = var.terraform.cloudflare.email
 }
 
-resource "cloudflare_record" "routers" {
+resource "cloudflare_record" "oci_ipv4" {
+  for_each = data.oci_core_vnic.config
+
+  name    = replace(each.key, ".${var.root.domain}", "")
+  type    = "A"
+  value   = each.value.public_ip_address
+  zone_id = cloudflare_zone.root[var.root.domain].id
+}
+
+resource "cloudflare_record" "oci_ipv6" {
+  for_each = data.oci_core_vnic.config
+
+  name    = replace(each.key, ".${var.root.domain}", "")
+  type    = "AAAA"
+  value   = each.value.ipv6addresses[0]
+  zone_id = cloudflare_zone.root[var.root.domain].id
+}
+
+resource "cloudflare_record" "router" {
   for_each = {
-    for i, router in var.routers : "${router.location}.${var.root_domain}" => router
+    for i, server in var.servers : "${server.location}.${var.root.domain}" => server
+    if try(server.location, "") != ""
   }
 
   name    = each.value.location
-  type    = try(each.value.ddns, false) == false ? "A" : "CNAME"
-  value   = try(each.value.ddns, each.value.ip)
-  zone_id = cloudflare_zone.root[var.root_domain].id
+  type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
+  value   = each.value.network.public_address
+  zone_id = cloudflare_zone.root[var.root.domain].id
 }
 
-resource "cloudflare_record" "servers" {
-  for_each = {
-    for i, server in var.servers : "${server.hostname}.${server.location}.${var.root_domain}" => server
-    if server.type != "oci"
-  }
+resource "cloudflare_record" "server" {
+  for_each = merge([
+    for i, server in var.servers : {
+      for i, parent in var.servers : "${server.hostname}.${try(parent.location, parent.parent)}.${var.root.domain}" => merge(
+        server,
+        {
+          location = try(parent.location, parent.parent),
+        }
+      )
+      if try(parent.hostname, "") == server.parent
+    }
+    if try(server.parent, "") != ""
+  ]...)
 
   name    = "${each.value.hostname}.${each.value.location}"
   type    = "CNAME"
-  value   = try(each.value.ddns, cloudflare_record.routers["${each.value.location}.${var.root_domain}"].hostname)
-  zone_id = cloudflare_zone.root[var.root_domain].id
+  value   = try(each.value.network.public_address, cloudflare_record.router["${each.value.location}.${var.root.domain}"].hostname)
+  zone_id = cloudflare_zone.root[var.root.domain].id
 }
 
-resource "cloudflare_record" "servers_oci_ipv4" {
-  for_each = data.oci_core_vnic.config
-
-  name    = replace(each.key, ".${var.root_domain}", "")
-  type    = "A"
-  value   = each.value.public_ip_address
-  zone_id = cloudflare_zone.root[var.root_domain].id
-}
-
-resource "cloudflare_record" "servers_oci_ipv6" {
-  for_each = data.oci_core_vnic.config
-
-  name    = replace(each.key, ".${var.root_domain}", "")
-  type    = "AAAA"
-  value   = each.value.ipv6addresses[0]
-  zone_id = cloudflare_zone.root[var.root_domain].id
-}
-
-resource "cloudflare_record" "virtual_machines" {
-  for_each = {
-    for i, virtual_machine in var.virtual_machines : "${virtual_machine.hostname}.${virtual_machine.location}.${var.root_domain}" => virtual_machine
-  }
-
-  name    = "${each.value.hostname}.${each.value.location}"
-  type    = "CNAME"
-  value   = try(each.value.ddns, cloudflare_record.servers["${each.value.parent}.${each.value.location}.${var.root_domain}"].hostname)
-  zone_id = cloudflare_zone.root[var.root_domain].id
-}
-
-resource "cloudflare_record" "websites" {
+resource "cloudflare_record" "website" {
   for_each = merge([
     for zone, records in var.websites : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
@@ -76,12 +74,11 @@ resource "cloudflare_record" "websites" {
 resource "cloudflare_record" "wildcard" {
   for_each = {
     for k, v in merge(
-      cloudflare_record.routers,
-      cloudflare_record.servers,
-      cloudflare_record.servers_oci_ipv4,
-      cloudflare_record.servers_oci_ipv6,
-      cloudflare_record.virtual_machines,
-      cloudflare_record.websites
+      cloudflare_record.oci_ipv4,
+      cloudflare_record.oci_ipv6,
+      cloudflare_record.router,
+      cloudflare_record.server,
+      cloudflare_record.website
     ) : k => v
     if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
   }

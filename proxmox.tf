@@ -1,36 +1,50 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
-  for_each = {
-    for i, virtual_machine in var.virtual_machines : "${virtual_machine.hostname}.${virtual_machine.location}.${var.root_domain}" => virtual_machine
-    if virtual_machine.disk_url != "" && virtual_machine.parent == "gen8"
-  }
+  for_each = merge([
+    for i, server in var.servers : {
+      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => server
+      if try(parent.hostname, "") == server.parent
+    }
+    if try(server.parent, "") == "gen8"
+  ]...)
 
   content_type        = "iso"
   datastore_id        = "local"
   node_name           = each.value.parent
   overwrite_unmanaged = true
   provider            = proxmox.gen8
-  url                 = each.value.disk_url
+  url                 = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
-  for_each = {
-    for i, virtual_machine in var.virtual_machines : "${virtual_machine.hostname}.${virtual_machine.location}.${var.root_domain}" => virtual_machine
-    if virtual_machine.disk_url != "" && virtual_machine.parent == "kimbap"
-  }
+  for_each = merge([
+    for i, server in var.servers : {
+      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => server
+      if try(parent.hostname, "") == server.parent
+    }
+    if try(server.parent, "") == "kimbap"
+  ]...)
 
   content_type        = "iso"
   datastore_id        = "local"
   node_name           = each.value.parent
   overwrite_unmanaged = true
   provider            = proxmox.kimbap
-  url                 = each.value.disk_url
+  url                 = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_vm" "gen8" {
-  for_each = {
-    for i, virtual_machine in var.virtual_machines : "${virtual_machine.hostname}.${virtual_machine.location}.${var.root_domain}" => virtual_machine
-    if virtual_machine.parent == "gen8"
-  }
+  for_each = merge([
+    for i, server in var.servers : {
+      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => merge(
+        server,
+        {
+          location = parent.parent,
+        }
+      )
+      if try(parent.hostname, "") == server.parent
+    }
+    if try(server.parent, "") == "gen8"
+  ]...)
 
   bios          = "ovmf"
   machine       = "q35"
@@ -48,7 +62,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(each.value.disk_url, ".img") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -69,11 +83,11 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   operating_system {
-    type = each.value.config.operating_system
+    type = try(each.value.config.operating_system, "l26")
   }
 
   dynamic "cdrom" {
-    for_each = endswith(each.value.disk_url, ".iso") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
 
     content {
       enabled   = true
@@ -83,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   # dynamic "disk" {
-  #   for_each = try(each.value.physical_disks, [])
+  #   for_each = try(each.value.config.physical_disks, [])
 
   #   content {
   #     backup            = false
@@ -95,7 +109,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(each.value.disk_url, ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       datastore_id = "local-zfs"
@@ -103,7 +117,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
       upgrade      = true
 
       dns {
-        domain  = "${each.value.location}.${var.root_domain}"
+        domain  = "${each.value.location}.${var.root.domain}"
         servers = ["192.168.0.1"]
       }
 
@@ -128,10 +142,18 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
-  for_each = {
-    for i, virtual_machine in var.virtual_machines : "${virtual_machine.hostname}.${virtual_machine.location}.${var.root_domain}" => virtual_machine
-    if virtual_machine.parent == "kimbap"
-  }
+  for_each = merge([
+    for i, server in var.servers : {
+      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => merge(
+        server,
+        {
+          location = parent.parent,
+        }
+      )
+      if try(parent.hostname, "") == server.parent
+    }
+    if try(server.parent, "") == "kimbap"
+  ]...)
 
   bios          = "ovmf"
   machine       = "q35"
@@ -149,7 +171,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(each.value.disk_url, ".img") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -170,11 +192,11 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   operating_system {
-    type = each.value.config.operating_system
+    type = try(each.value.config.operating_system, "l26")
   }
 
   dynamic "cdrom" {
-    for_each = endswith(each.value.disk_url, ".iso") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
 
     content {
       enabled   = true
@@ -184,7 +206,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   # dynamic "disk" {
-  #   for_each = try(each.value.physical_disks, [])
+  #   for_each = try(each.value.onfig.physical_disks, [])
 
   #   content {
   #     backup            = false
@@ -196,7 +218,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(each.value.disk_url, ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       datastore_id = "local-zfs"
@@ -204,7 +226,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
       upgrade      = true
 
       dns {
-        domain  = "${each.value.location}.${var.root_domain}"
+        domain  = "${each.value.location}.${var.root.domain}"
         servers = ["192.168.0.1"]
       }
 

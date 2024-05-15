@@ -6,31 +6,31 @@ d-i debian-installer/locale string en_AU
 ### Network configuration
 d-i netcfg/choose_interface select auto
 
-%{ if virtual_machine.network != "dhcp" }
+%{ if server.network != "dhcp" }
 d-i netcfg/disable_autoconfig boolean true
 
-%{ if virtual_machine.network.ipv4 != false }
+%{ if server.network.ipv4 != false }
 # IPv4
-d-i netcfg/get_ipaddress string ${virtual_machine.network.ipv4.address}
-d-i netcfg/get_netmask string ${virtual_machine.network.ipv4.netmask}
-d-i netcfg/get_gateway string ${virtual_machine.network.ipv4.gateway}
-d-i netcfg/get_nameservers string ${virtual_machine.network.ipv4.nameservers}
+d-i netcfg/get_ipaddress string ${server.network.ipv4.address}
+d-i netcfg/get_netmask string ${server.network.ipv4.netmask}
+d-i netcfg/get_gateway string ${server.network.ipv4.gateway}
+d-i netcfg/get_nameservers string ${server.network.ipv4.nameservers}
 d-i netcfg/confirm_static boolean true
 %{ endif }
 
-%{ if virtual_machine.network.ipv6 != false }
+%{ if server.network.ipv6 != false }
 # IPv6
-d-i netcfg/get_ipaddress string ${virtual_machine.network.ipv6.address}
-d-i netcfg/get_netmask string ${virtual_machine.network.ipv6.netmask}
-d-i netcfg/get_gateway string ${virtual_machine.network.ipv6.gateway}
-d-i netcfg/get_nameservers string ${virtual_machine.network.ipv6.nameservers}
+d-i netcfg/get_ipaddress string ${server.network.ipv6.address}
+d-i netcfg/get_netmask string ${server.network.ipv6.netmask}
+d-i netcfg/get_gateway string ${server.network.ipv6.gateway}
+d-i netcfg/get_nameservers string ${server.network.ipv6.nameservers}
 d-i netcfg/confirm_static boolean true
 %{ endif }
 %{ endif }
 
-d-i netcfg/get_hostname string ${virtual_machine.hostname}
-d-i netcfg/get_domain string ${virtual_machine.location}.${root_domain}
-d-i netcfg/hostname string ${virtual_machine.hostname}
+d-i netcfg/get_hostname string ${server.hostname}
+d-i netcfg/get_domain string ${server.location}.${root_domain}
+d-i netcfg/hostname string ${server.hostname}
 d-i netcfg/wireless_wep string
 
 ### Mirror settings
