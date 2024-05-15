@@ -55,7 +55,7 @@ resource "onepassword_item" "server" {
     field {
       label = "hostname"
       type  = "URL"
-      value = each.value.hostname
+      value = "${each.value.location}-${each.value.hostname}"
     }
 
     field {
