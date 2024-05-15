@@ -1,11 +1,8 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
-  for_each = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => server
-      if try(parent.hostname, "") == server.parent
-    }
-    if try(server.parent, "") == "gen8"
-  ]...)
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "gen8"
+  }
 
   content_type        = "iso"
   datastore_id        = "local"
@@ -16,13 +13,10 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
-  for_each = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => server
-      if try(parent.hostname, "") == server.parent
-    }
-    if try(server.parent, "") == "kimbap"
-  ]...)
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "kimbap"
+  }
 
   content_type        = "iso"
   datastore_id        = "local"
@@ -33,18 +27,10 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
 }
 
 resource "proxmox_virtual_environment_vm" "gen8" {
-  for_each = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => merge(
-        server,
-        {
-          location = parent.parent,
-        }
-      )
-      if try(parent.hostname, "") == server.parent
-    }
-    if try(server.parent, "") == "gen8"
-  ]...)
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "gen8"
+  }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -142,18 +128,10 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
-  for_each = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${parent.parent}.${var.root.domain}" => merge(
-        server,
-        {
-          location = parent.parent,
-        }
-      )
-      if try(parent.hostname, "") == server.parent
-    }
-    if try(server.parent, "") == "kimbap"
-  ]...)
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "kimbap"
+  }
 
   bios          = "ovmf"
   machine       = "q35"

@@ -4,8 +4,8 @@ data "github_user" "config" {
 
 resource "github_repository_file" "server-debian" {
   for_each = {
-    for i, server in var.servers : "${server.location}-${server.hostname}" => server
-    if server.type == "debian"
+    for k, v in local.merged_servers : k => v
+    if v.type == "debian"
   }
 
   file                = "debian/${each.key}"

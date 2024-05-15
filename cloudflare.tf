@@ -21,10 +21,7 @@ resource "cloudflare_record" "oci_ipv6" {
 }
 
 resource "cloudflare_record" "router" {
-  for_each = {
-    for i, server in var.servers : "${server.location}.${var.root.domain}" => server
-    if try(server.location, "") != ""
-  }
+  for_each = local.merged_routers
 
   name    = each.value.location
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
@@ -33,18 +30,7 @@ resource "cloudflare_record" "router" {
 }
 
 resource "cloudflare_record" "server" {
-  for_each = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${try(parent.location, parent.parent)}.${var.root.domain}" => merge(
-        server,
-        {
-          location = try(parent.location, parent.parent),
-        }
-      )
-      if try(parent.hostname, "") == server.parent
-    }
-    if try(server.parent, "") != ""
-  ]...)
+  for_each = local.merged_servers
 
   name    = "${each.value.hostname}.${each.value.location}"
   type    = "CNAME"
@@ -53,16 +39,7 @@ resource "cloudflare_record" "server" {
 }
 
 resource "cloudflare_record" "website" {
-  for_each = merge([
-    for zone, records in var.websites : {
-      for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
-        record,
-        {
-          zone = zone,
-        }
-      )
-    }
-  ]...)
+  for_each = local.merged_websites
 
   name     = each.value.name == "@" ? each.value.zone : each.value.name
   priority = try(each.value.priority, null)
