@@ -14,7 +14,7 @@ resource "github_repository_file" "server-debian" {
 
   content = replace(
     templatefile(
-      "${path.module}/templates/debian.tftpl",
+      "${path.module}/templates/debian_preseed.tftpl",
       {
         root_domain = var.root.domain
         ssh_keys    = data.github_user.config.ssh_keys

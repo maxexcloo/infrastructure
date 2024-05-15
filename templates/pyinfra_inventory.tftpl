@@ -1,0 +1,7 @@
+hosts = [
+%{ for host in hosts ~}
+    ("${host.hostname}", {"ssh_username": "${host.username}", "tag": "${host.tag}", "type": "${host.type}"}),
+%{ endfor ~}
+]
+
+print(hosts)

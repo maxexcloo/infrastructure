@@ -12,12 +12,11 @@ resource "tailscale_acl" "config" {
     nodeAttrs = [
       {
         attr   = ["nextdns:65188d"]
-        target = ["tag:router", "tag:server"]
+        target = [for i, tag in local.merged_tags : "tag:${tag}"]
       }
     ],
     tagOwners = {
-      "tag:router" = [var.root.email]
-      "tag:server" = [var.root.email]
+      for i, tag in local.merged_tags : "tag:${tag}" => [var.root.email]
     }
   })
 }
@@ -34,7 +33,7 @@ resource "tailscale_device_key" "config" {
 resource "tailscale_device_subnet_routes" "config" {
   for_each = {
     for i, device in data.tailscale_devices.config.devices : device.name => device
-    if length(device.tags) > 0
+    if contains(device.tags, "tag:router") || contains(device.tags, "tag:server")
   }
 
   device_id = each.value.id
@@ -45,20 +44,11 @@ resource "tailscale_device_subnet_routes" "config" {
   ]
 }
 
-resource "tailscale_tailnet_key" "router" {
-  for_each = local.merged_routers
+resource "tailscale_tailnet_key" "config" {
+  for_each = local.merged_hosts
 
-  description   = each.value.location
+  description   = each.value.hostname
   preauthorized = true
   reusable      = true
-  tags          = ["tag:router"]
-}
-
-resource "tailscale_tailnet_key" "server" {
-  for_each = local.merged_servers
-
-  description   = "${each.value.location}-${each.value.hostname}"
-  preauthorized = true
-  reusable      = true
-  tags          = ["tag:server"]
+  tags          = ["tag:${each.value.tag}"]
 }

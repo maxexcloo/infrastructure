@@ -1,7 +1,16 @@
 locals {
+  merged_hosts = {
+    for k, v in merge(local.merged_routers, local.merged_servers) : k => {
+      hostname = v.tag == "router" ? v.hostname : "${v.location}-${v.hostname}"
+      tag      = v.tag
+      type     = v.type
+      username = v.username
+    }
+  }
+
   merged_routers = {
     for i, server in var.servers : "${server.location}.${var.root.domain}" => server
-    if try(server.location, "") != ""
+    if server.tag == "router"
   }
 
   merged_servers = merge([
@@ -10,13 +19,16 @@ locals {
         server,
         {
           location = try(parent.location, parent.parent)
-          parent   = try(server.parent, "")
         }
       )
       if try(parent.hostname, "") == server.parent
     }
-    if try(server.parent, "") != ""
+    if server.tag != "router"
   ]...)
+
+  merged_tags = distinct([
+    for i, server in var.servers : server.tag
+  ])
 
   merged_websites = merge([
     for zone, records in var.websites : {
