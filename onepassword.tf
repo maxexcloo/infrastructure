@@ -16,7 +16,7 @@ resource "onepassword_item" "server" {
     field {
       label = "fqdn"
       type  = "URL"
-      value = each.key
+      value = each.value.fqdn
     }
 
     field {
