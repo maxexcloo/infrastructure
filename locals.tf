@@ -53,7 +53,7 @@ locals {
           }
         }
       )
-      if server.tag == "server" && try(server.parent, "") == "oci"
+      if try(server.parent, "") == "oci"
     }
   )
 
