@@ -38,7 +38,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
   provider     = proxmox.gen8
 
   source_raw {
-    file_name = "cloud-config.yaml"
+    file_name = "${each.value.name}.yaml"
 
     data = templatefile(
       "${path.module}/templates/cloud_config.tftpl",
@@ -68,7 +68,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
   provider     = proxmox.kimbap
 
   source_raw {
-    file_name = "cloud-config.yaml"
+    file_name = "${each.value.name}.yaml"
 
     data = templatefile(
       "${path.module}/templates/cloud_config.tftpl",
