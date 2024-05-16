@@ -5,9 +5,9 @@ Include ~/.orbstack/ssh/config
 #############
 
 %{ for host in hosts ~}
-Host ${host.hostname}
-	HostName ${host.hostname}
-	User ${host.username}
+Host ${host.tailscale_name}
+	HostName ${host.tailscale_name}
+	User ${host.user.username}
 
 %{ endfor ~}
 

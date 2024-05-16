@@ -4,10 +4,10 @@ resource "openwrt_dhcp_host" "au" {
     if v.location == "au" && try(proxmox_virtual_environment_vm.gen8[k].mac_addresses[0], v.network.mac_address, "") != ""
   }
 
-  id       = each.value.hostname
+  id       = each.value.name
   ip       = each.value.network.private_address
   mac      = try(proxmox_virtual_environment_vm.gen8[each.key].mac_addresses[0], each.value.network.mac_address)
-  name     = each.value.hostname
+  name     = each.value.name
   provider = openwrt.au
 }
 
@@ -17,9 +17,9 @@ resource "openwrt_dhcp_host" "au" {
 #     if v.location == "kr" && try(proxmox_virtual_environment_vm.kimbap[k].mac_addresses[0], v.network.mac_address, "") != ""
 #   }
 
-#   id       = each.value.hostname
+#   id       = each.value.name
 #   ip       = each.value.network.private_address
 #   mac      = try(proxmox_virtual_environment_vm.kimbap[each.key].mac_addresses[0], each.value.network.mac_address)
-#   name     = each.value.hostname
+#   name     = each.value.name
 #   provider = openwrt.kr
 # }

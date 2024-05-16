@@ -1,6 +1,6 @@
 hosts = [
 %{ for host in hosts ~}
-    ("${host.hostname}", {"ssh_username": "${host.username}", "tag": "${host.tag}", "type": "${host.type}"}),
+    ("${host.tailscale_name}", {"ssh_username": "${host.user.username}", "tag": "${host.tag}", "type": "${host.type}"}),
 %{ endfor ~}
 ]
 

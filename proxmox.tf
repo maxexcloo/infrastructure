@@ -43,6 +43,9 @@ resource "proxmox_virtual_environment_file" "gen8" {
     data = templatefile(
       "${path.module}/templates/cloud_config.tftpl",
       {
+        fqdn           = each.value.fqdn
+        name           = each.value.name
+        packages       = ["qemu-guest-agent"]
         password       = random_password.server[each.key].bcrypt_hash
         ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
@@ -70,6 +73,9 @@ resource "proxmox_virtual_environment_file" "kimbap" {
     data = templatefile(
       "${path.module}/templates/cloud_config.tftpl",
       {
+        fqdn           = each.value.fqdn
+        name           = each.value.name
+        packages       = ["qemu-guest-agent"]
         password       = random_password.server[each.key].bcrypt_hash
         ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
@@ -88,7 +94,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
   bios          = "ovmf"
   machine       = "q35"
-  name          = each.value.hostname
+  name          = each.value.name
   node_name     = each.value.parent
   provider      = proxmox.gen8
   scsi_hardware = "virtio-scsi-single"
@@ -193,7 +199,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
 
   bios          = "ovmf"
   machine       = "q35"
-  name          = each.value.hostname
+  name          = each.value.name
   node_name     = each.value.parent
   provider      = proxmox.kimbap
   scsi_hardware = "virtio-scsi-single"

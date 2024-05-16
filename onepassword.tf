@@ -1,39 +1,6 @@
 data "onepassword_vault" "infrastructure" {
   name = var.terraform.onepassword.vault
 }
-
-resource "onepassword_item" "router" {
-  for_each = local.merged_routers
-
-  category = "login"
-  password = random_password.router[each.key].result
-  title    = each.key
-  username = each.value.user.username
-  vault    = data.onepassword_vault.infrastructure.uuid
-
-  section {
-    label = ""
-
-    field {
-      label = "fqdn"
-      type  = "URL"
-      value = each.key
-    }
-
-    field {
-      label = "hostname"
-      type  = "URL"
-      value = each.value.location
-    }
-
-    field {
-      label = "private address"
-      type  = "URL"
-      value = each.value.network.private_address
-    }
-  }
-}
-
 resource "onepassword_item" "server" {
   for_each = local.merged_servers
 
@@ -55,7 +22,7 @@ resource "onepassword_item" "server" {
     field {
       label = "hostname"
       type  = "URL"
-      value = "${each.value.location}-${each.value.hostname}"
+      value = each.value.tailscale_name
     }
 
     dynamic "field" {
@@ -82,13 +49,6 @@ resource "onepassword_item" "website" {
   url      = cloudflare_record.website[each.key].hostname
   username = each.value.username
   vault    = data.onepassword_vault.infrastructure.uuid
-}
-
-resource "random_password" "router" {
-  for_each = local.merged_routers
-
-  length  = 24
-  special = false
 }
 
 resource "random_password" "server" {

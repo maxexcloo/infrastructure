@@ -21,7 +21,10 @@ resource "cloudflare_record" "oci_ipv6" {
 }
 
 resource "cloudflare_record" "router" {
-  for_each = local.merged_routers
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.tag == "router"
+  }
 
   name    = each.value.location
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
@@ -32,12 +35,12 @@ resource "cloudflare_record" "router" {
 resource "cloudflare_record" "server" {
   for_each = {
     for k, v in local.merged_servers : k => v
-    if v.parent != "oci"
+    if v.tag != "router" && v.parent != "oci"
   }
 
-  name    = "${each.value.hostname}.${each.value.location}"
+  name    = "${each.value.name}.${each.value.location}"
   type    = "CNAME"
-  value   = try(each.value.network.public_address, cloudflare_record.router["${each.value.location}.${var.root.domain}"].hostname)
+  value   = try(each.value.network.public_address, cloudflare_record.router["${each.value.location}.${var.root.domain}"].name)
   zone_id = cloudflare_zone.root[var.root.domain].id
 }
 
@@ -65,7 +68,7 @@ resource "cloudflare_record" "wildcard" {
 
   name    = "*.${each.value.name}"
   type    = "CNAME"
-  value   = each.value.hostname
+  value   = each.value.name
   zone_id = each.value.zone_id
 }
 

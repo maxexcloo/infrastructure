@@ -1,13 +1,22 @@
 #cloud-config
-
+fqdn: ${fqdn}
+hostname: ${name}
 package_update: true
 package_upgrade: true
+%{ if length(packages) > 0 }
 packages:
-  - qemu-guest-agent
+%{ for package in packages ~}
+  - ${package}
+%{ endfor ~}
+%{ endif }
 runcmd:
   - sh -c "curl -fsLS https://tailscale.com/install.sh | sh"
   - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf"
   - sysctl -p /etc/sysctl.d/99-tailscale.conf
+%{ if contains(packages, "qemu-guest-agent") }
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+%{ endif }
   - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${tailscale_name}
 users:
   - name: ${user.username}

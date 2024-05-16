@@ -28,9 +28,9 @@ d-i netcfg/confirm_static boolean true
 %{ endif }
 %{ endif }
 
-d-i netcfg/get_hostname string ${server.hostname}
+d-i netcfg/get_hostname string ${server.name}
 d-i netcfg/get_domain string ${server.location}.${root_domain}
-d-i netcfg/hostname string ${server.hostname}
+d-i netcfg/hostname string ${server.name}
 d-i netcfg/wireless_wep string
 
 ### Mirror settings

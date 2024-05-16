@@ -1,11 +1,3 @@
-output "hosts" {
-  value = local.merged_hosts
-}
-
-output "routers" {
-  value = local.merged_routers
-}
-
 output "servers" {
   value = local.merged_servers
 }
@@ -20,19 +12,19 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "${path.module}/templates/pyinfra_inventory.tftpl",
     {
-      hosts = local.merged_hosts
+      hosts = local.merged_servers
     }
   )
 }
 
 resource "local_file" "ssh_config" {
-  filename = "${var.root.path}/.ssh/config"
+  filename = "${var.root.home}/.ssh/config"
 
   content = replace(
     templatefile(
       "${path.module}/templates/ssh_config.tftpl",
       {
-        hosts = local.merged_hosts
+        hosts = local.merged_servers
       }
     ),
     "/[\n]{3,}/",

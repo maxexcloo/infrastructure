@@ -100,6 +100,9 @@ resource "oci_core_instance" "config" {
     user_data = base64encode(templatefile(
       "${path.module}/templates/cloud_config.tftpl",
       {
+        fqdn           = each.value.fqdn
+        name           = each.value.name
+        packages       = []
         password       = random_password.server[each.key].bcrypt_hash
         ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
@@ -114,7 +117,7 @@ resource "oci_core_instance" "config" {
     assign_private_dns_record = true
     assign_public_ip          = true
     display_name              = each.key
-    hostname_label            = each.value.hostname
+    hostname_label            = each.value.name
     subnet_id                 = oci_core_subnet.config.id
   }
 
