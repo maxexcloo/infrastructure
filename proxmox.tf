@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
         fqdn           = each.value.fqdn
         name           = each.value.name
         packages       = ["qemu-guest-agent"]
-        password       = random_password.server[each.key].bcrypt_hash
+        password       = htpasswd_password.server[each.key].sha512
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
         timezone       = var.default.timezone
@@ -76,7 +76,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
         fqdn           = each.value.fqdn
         name           = each.value.name
         packages       = ["qemu-guest-agent"]
-        password       = random_password.server[each.key].bcrypt_hash
+        password       = htpasswd_password.server[each.key].sha512
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
         timezone       = var.default.timezone

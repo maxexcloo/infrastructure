@@ -80,6 +80,9 @@ terraform {
     github = {
       source = "integrations/github"
     }
+    htpasswd = {
+      source = "loafoe/htpasswd"
+    }
     oci = {
       source = "oracle/oci"
     }
