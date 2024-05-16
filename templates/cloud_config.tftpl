@@ -3,6 +3,7 @@ fqdn: ${fqdn}
 hostname: ${name}
 package_update: true
 package_upgrade: true
+timezone: ${timezone}
 %{ if length(packages) > 0 }
 packages:
 %{ for package in packages ~}
@@ -18,6 +19,7 @@ runcmd:
   - systemctl start qemu-guest-agent
 %{ endif }
   - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${tailscale_name}
+  - tailscale set --auto-update
 users:
   - name: ${user.username}
     gecos: ${user.fullname}
@@ -25,6 +27,6 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL) ALL
     ssh-authorized-keys:
-%{ for ssh_key in ssh_keys ~}
+%{ for ssh_key in user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}

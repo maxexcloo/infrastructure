@@ -2,15 +2,16 @@ locals {
   merged_servers = merge(
     merge(
       {
-        for i, server in var.servers : "${server.location}.${var.root.domain}" => merge(
+        for i, server in var.servers : "${server.location}.${var.default.domain}" => merge(
           server,
           {
-            fqdn           = "${server.location}.${var.root.domain}"
+            fqdn           = "${server.location}.${var.default.domain}"
             parent         = ""
             tailscale_name = server.location
             tailscale_tag  = "tag:${server.tag}"
             user = {
               fullname = try(server.user.fullname, "root")
+              ssh_keys = data.github_user.config.ssh_keys
               username = try(server.user.username, "root")
             }
           }
@@ -19,15 +20,16 @@ locals {
       },
       [
         for i, server in var.servers : {
-          for i, parent in var.servers : "${server.name}.${try(parent.location, parent.parent)}.${var.root.domain}" => merge(
+          for i, parent in var.servers : "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}" => merge(
             server,
             {
-              fqdn           = "${server.name}.${try(parent.location, parent.parent)}.${var.root.domain}"
+              fqdn           = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
               location       = try(parent.location, parent.parent)
               tailscale_name = "${try(parent.location, parent.parent)}-${server.name}"
               tailscale_tag  = "tag:${server.tag}"
               user = {
                 fullname = try(server.user.fullname, "root")
+                ssh_keys = data.github_user.config.ssh_keys
                 username = try(server.user.username, "root")
               }
             }
@@ -37,15 +39,16 @@ locals {
         if server.tag != "router"
     ]...),
     {
-      for i, server in var.servers : "${server.name}.${var.terraform.oci.location}.${var.root.domain}" => merge(
+      for i, server in var.servers : "${server.name}.${var.terraform.oci.location}.${var.default.domain}" => merge(
         server,
         {
-          fqdn           = "${server.name}.${var.terraform.oci.location}.${var.root.domain}"
+          fqdn           = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
           location       = var.terraform.oci.location
           tailscale_name = "${var.terraform.oci.location}-${server.name}"
           tailscale_tag  = "tag:${server.tag}"
           user = {
             fullname = try(server.user.fullname, "root")
+            ssh_keys = data.github_user.config.ssh_keys
             username = try(server.user.username, "root")
           }
         }

@@ -29,7 +29,7 @@ d-i netcfg/confirm_static boolean true
 %{ endif }
 
 d-i netcfg/get_hostname string ${server.name}
-d-i netcfg/get_domain string ${server.location}.${root_domain}
+d-i netcfg/get_domain string ${server.location}.${default.domain}
 d-i netcfg/hostname string ${server.name}
 d-i netcfg/wireless_wep string
 
@@ -89,7 +89,7 @@ d-i finish-install/reboot_in_progress note
 #### Advanced options
 d-i preseed/late_command string \
 in-target mkdir -p /root/.ssh; \
-%{ for ssh_key in ssh_keys ~}
+%{ for ssh_key in server.user.ssh_keys ~}
 in-target /bin/sh -c "echo '${ssh_key}' >> /root/.ssh/authorized_keys"; \
 %{ endfor ~}
 in-target chown -R root:root /root/.ssh; \

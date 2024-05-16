@@ -16,9 +16,8 @@ resource "github_repository_file" "server-debian" {
     templatefile(
       "${path.module}/templates/debian_preseed.tftpl",
       {
-        root_domain = var.root.domain
-        ssh_keys    = data.github_user.config.ssh_keys
-        server      = each.value
+        default = var.default
+        server  = each.value
       }
     ),
     "/[\n]+/",

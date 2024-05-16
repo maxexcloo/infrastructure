@@ -1,23 +1,23 @@
-resource "cloudflare_account" "root" {
+resource "cloudflare_account" "default" {
   name = var.terraform.cloudflare.email
 }
 
 resource "cloudflare_record" "oci_ipv4" {
   for_each = data.oci_core_vnic.config
 
-  name    = replace(each.key, ".${var.root.domain}", "")
+  name    = replace(each.key, ".${var.default.domain}", "")
   type    = "A"
   value   = each.value.public_ip_address
-  zone_id = cloudflare_zone.root[var.root.domain].id
+  zone_id = cloudflare_zone.default[var.default.domain].id
 }
 
 resource "cloudflare_record" "oci_ipv6" {
   for_each = data.oci_core_vnic.config
 
-  name    = replace(each.key, ".${var.root.domain}", "")
+  name    = replace(each.key, ".${var.default.domain}", "")
   type    = "AAAA"
   value   = each.value.ipv6addresses[0]
-  zone_id = cloudflare_zone.root[var.root.domain].id
+  zone_id = cloudflare_zone.default[var.default.domain].id
 }
 
 resource "cloudflare_record" "router" {
@@ -29,7 +29,7 @@ resource "cloudflare_record" "router" {
   name    = each.value.location
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
   value   = each.value.network.public_address
-  zone_id = cloudflare_zone.root[var.root.domain].id
+  zone_id = cloudflare_zone.default[var.default.domain].id
 }
 
 resource "cloudflare_record" "server" {
@@ -40,8 +40,8 @@ resource "cloudflare_record" "server" {
 
   name    = "${each.value.name}.${each.value.location}"
   type    = "CNAME"
-  value   = try(each.value.network.public_address, cloudflare_record.router["${each.value.location}.${var.root.domain}"].name)
-  zone_id = cloudflare_zone.root[var.root.domain].id
+  value   = try(each.value.network.public_address, cloudflare_record.router["${each.value.location}.${var.default.domain}"].name)
+  zone_id = cloudflare_zone.default[var.default.domain].id
 }
 
 resource "cloudflare_record" "website" {
@@ -51,7 +51,7 @@ resource "cloudflare_record" "website" {
   priority = try(each.value.priority, null)
   type     = each.value.type
   value    = each.value.value
-  zone_id  = cloudflare_zone.root[each.value.zone].id
+  zone_id  = cloudflare_zone.default[each.value.zone].id
 }
 
 resource "cloudflare_record" "wildcard" {
@@ -72,9 +72,9 @@ resource "cloudflare_record" "wildcard" {
   zone_id = each.value.zone_id
 }
 
-resource "cloudflare_zone" "root" {
+resource "cloudflare_zone" "default" {
   for_each = var.websites
 
-  account_id = cloudflare_account.root.id
+  account_id = cloudflare_account.default.id
   zone       = each.key
 }

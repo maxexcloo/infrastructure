@@ -16,7 +16,7 @@ resource "tailscale_acl" "config" {
       }
     ],
     tagOwners = {
-      for i, tag in local.merged_tags : "tag:${tag}" => [var.root.email]
+      for i, tag in local.merged_tags : "tag:${tag}" => [var.default.email]
     }
   })
 }

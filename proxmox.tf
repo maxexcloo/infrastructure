@@ -47,9 +47,9 @@ resource "proxmox_virtual_environment_file" "gen8" {
         name           = each.value.name
         packages       = ["qemu-guest-agent"]
         password       = random_password.server[each.key].bcrypt_hash
-        ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
+        timezone       = var.default.timezone
         user           = each.value.user
       }
     )
@@ -77,9 +77,9 @@ resource "proxmox_virtual_environment_file" "kimbap" {
         name           = each.value.name
         packages       = ["qemu-guest-agent"]
         password       = random_password.server[each.key].bcrypt_hash
-        ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
+        timezone       = var.default.timezone
         user           = each.value.user
       }
     )
@@ -170,11 +170,6 @@ resource "proxmox_virtual_environment_vm" "gen8" {
       datastore_id      = "local-zfs"
       interface         = "ide0"
       user_data_file_id = proxmox_virtual_environment_file.gen8[each.key].id
-
-      dns {
-        domain  = "${each.value.location}.${var.root.domain}"
-        servers = ["192.168.0.1"]
-      }
 
       ip_config {
         ipv4 {
@@ -275,11 +270,6 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
       datastore_id      = "local-zfs"
       interface         = "ide0"
       user_data_file_id = proxmox_virtual_environment_file.kimbap[each.key].id
-
-      dns {
-        domain  = "${each.value.location}.${var.root.domain}"
-        servers = ["192.168.0.1"]
-      }
 
       ip_config {
         ipv4 {

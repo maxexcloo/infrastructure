@@ -18,7 +18,7 @@ resource "local_file" "pyinfra_inventory" {
 }
 
 resource "local_file" "ssh_config" {
-  filename = "${var.root.home}/.ssh/config"
+  filename = "${var.default.home}/.ssh/config"
 
   content = replace(
     templatefile(

@@ -24,7 +24,7 @@ data "oci_identity_availability_domain" "config" {
 
 resource "oci_core_default_dhcp_options" "config" {
   compartment_id             = var.terraform.oci.tenancy_ocid
-  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
   manage_default_resource_id = oci_core_vcn.config.default_dhcp_options_id
 
   options {
@@ -39,7 +39,7 @@ resource "oci_core_default_dhcp_options" "config" {
 }
 
 resource "oci_core_default_route_table" "config" {
-  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
   manage_default_resource_id = oci_core_vcn.config.default_route_table_id
 
   route_rules {
@@ -57,7 +57,7 @@ resource "oci_core_default_route_table" "config" {
 
 resource "oci_core_default_security_list" "config" {
   compartment_id             = var.terraform.oci.tenancy_ocid
-  display_name               = "${var.terraform.oci.location}.${var.root.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
   manage_default_resource_id = oci_core_vcn.config.default_security_list_id
 
   egress_security_rules {
@@ -104,9 +104,9 @@ resource "oci_core_instance" "config" {
         name           = each.value.name
         packages       = []
         password       = random_password.server[each.key].bcrypt_hash
-        ssh_keys       = data.github_user.config.ssh_keys
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
+        timezone       = var.default.timezone
         user           = each.value.user
       }
     ))
@@ -135,14 +135,14 @@ resource "oci_core_instance" "config" {
 
 resource "oci_core_internet_gateway" "config" {
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
+  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
   vcn_id         = oci_core_vcn.config.id
 }
 
 resource "oci_core_subnet" "config" {
   cidr_block     = "10.0.0.0/24"
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
+  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
   dns_label      = var.terraform.oci.location
   ipv6cidr_block = replace(oci_core_vcn.config.ipv6cidr_blocks[0], "/56", "/64")
   vcn_id         = oci_core_vcn.config.id
@@ -151,7 +151,7 @@ resource "oci_core_subnet" "config" {
 resource "oci_core_vcn" "config" {
   cidr_blocks    = ["10.0.0.0/16"]
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.root.domain}"
-  dns_label      = replace(var.root.domain, "/\\.[^.]*$/", "")
+  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
+  dns_label      = replace(var.default.domain, "/\\.[^.]*$/", "")
   is_ipv6enabled = true
 }
