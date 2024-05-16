@@ -2,24 +2,6 @@ resource "cloudflare_account" "default" {
   name = var.terraform.cloudflare.email
 }
 
-resource "cloudflare_record" "oci_ipv4" {
-  for_each = data.oci_core_vnic.config
-
-  name    = replace(each.key, ".${var.default.domain}", "")
-  type    = "A"
-  value   = each.value.public_ip_address
-  zone_id = cloudflare_zone.default[var.default.domain].id
-}
-
-resource "cloudflare_record" "oci_ipv6" {
-  for_each = data.oci_core_vnic.config
-
-  name    = replace(each.key, ".${var.default.domain}", "")
-  type    = "AAAA"
-  value   = each.value.ipv6addresses[0]
-  zone_id = cloudflare_zone.default[var.default.domain].id
-}
-
 resource "cloudflare_record" "router" {
   for_each = {
     for k, v in local.merged_servers : k => v
@@ -44,6 +26,30 @@ resource "cloudflare_record" "server" {
   zone_id = cloudflare_zone.default[var.default.domain].id
 }
 
+resource "cloudflare_record" "server_oci_ipv4" {
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "oci"
+  }
+
+  name    = replace(each.key, ".${var.default.domain}", "")
+  type    = "A"
+  value   = data.oci_core_vnic.config[each.key].public_ip_address
+  zone_id = cloudflare_zone.default[var.default.domain].id
+}
+
+resource "cloudflare_record" "server_oci_ipv6" {
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "oci"
+  }
+
+  name    = replace(each.key, ".${var.default.domain}", "")
+  type    = "AAAA"
+  value   = data.oci_core_vnic.config[each.key].ipv6addresses[0]
+  zone_id = cloudflare_zone.default[var.default.domain].id
+}
+
 resource "cloudflare_record" "website" {
   for_each = local.merged_websites
 
@@ -57,10 +63,10 @@ resource "cloudflare_record" "website" {
 resource "cloudflare_record" "wildcard" {
   for_each = {
     for k, v in merge(
-      cloudflare_record.oci_ipv4,
-      cloudflare_record.oci_ipv6,
       cloudflare_record.router,
       cloudflare_record.server,
+      cloudflare_record.server_oci_ipv4,
+      cloudflare_record.server_oci_ipv6,
       cloudflare_record.website
     ) : k => v
     if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
