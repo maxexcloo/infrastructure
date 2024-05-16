@@ -98,7 +98,7 @@ resource "oci_core_instance" "config" {
 
   metadata = {
     user_data = base64encode(templatefile(
-      "${path.module}/templates/cloud_config.tftpl",
+      "./templates/cloud_config.tftpl",
       {
         fqdn           = each.value.fqdn
         name           = each.value.name

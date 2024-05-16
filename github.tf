@@ -14,7 +14,7 @@ resource "github_repository_file" "server-debian" {
 
   content = replace(
     templatefile(
-      "${path.module}/templates/debian_preseed.tftpl",
+      "./templates/debian_preseed.tftpl",
       {
         default = var.default
         server  = each.value

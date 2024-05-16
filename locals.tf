@@ -9,6 +9,10 @@ locals {
             parent         = ""
             tailscale_name = server.location
             tailscale_tag  = "tag:${server.tag}"
+            provider = {
+              password = var.terraform.openwrt[server.name].password
+              port     = try(var.terraform.openwrt[server.name].port, 81)
+            }
             user = {
               fullname = try(server.user.fullname, "root")
               ssh_keys = data.github_user.config.ssh_keys
@@ -32,7 +36,14 @@ locals {
                 ssh_keys = data.github_user.config.ssh_keys
                 username = try(server.user.username, "root")
               }
-            }
+            },
+            server.type == "proxmox" ? {
+              provider = {
+                api_token = var.terraform.proxmox[server.name].api_token
+                insecure  = try(var.terraform.proxmox[server.name].insecure, true)
+                port      = try(var.terraform.proxmox[server.name].port, 8006)
+              }
+            } : {}
           )
           if try(parent.name, "") == server.parent
         }

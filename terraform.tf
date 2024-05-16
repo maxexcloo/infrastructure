@@ -21,48 +21,48 @@ provider "onepassword" {
 
 provider "openwrt" {
   alias    = "au"
-  hostname = var.terraform.openwrt.au.hostname
-  password = var.terraform.openwrt.au.password
-  port     = var.terraform.openwrt.au.port
+  hostname = local.merged_servers["au.excloo.net"].tailscale_name
+  password = local.merged_servers["au.excloo.net"].provider.password
+  port     = local.merged_servers["au.excloo.net"].provider.port
 }
 
 provider "openwrt" {
   alias    = "kr"
-  hostname = var.terraform.openwrt.kr.hostname
-  password = var.terraform.openwrt.kr.password
-  port     = var.terraform.openwrt.kr.port
+  hostname = local.merged_servers["kr.excloo.net"].tailscale_name
+  password = local.merged_servers["kr.excloo.net"].provider.password
+  port     = local.merged_servers["kr.excloo.net"].provider.port
 }
 
 provider "proxmox" {
   alias     = "gen8"
-  api_token = var.terraform.proxmox.gen8.api_token
-  endpoint  = var.terraform.proxmox.gen8.endpoint
-  insecure  = var.terraform.proxmox.insecure
+  api_token = local.merged_servers["gen8.au.excloo.net"].provider.api_token
+  endpoint  = "https://${local.merged_servers["gen8.au.excloo.net"].tailscale_name}:${local.merged_servers["gen8.au.excloo.net"].provider.port}/"
+  insecure  = local.merged_servers["gen8.au.excloo.net"].provider.insecure
 
   ssh {
     agent    = true
-    username = var.terraform.proxmox.username
+    username = local.merged_servers["gen8.au.excloo.net"].user.username
 
     node {
-      name    = var.terraform.proxmox.gen8.name
-      address = var.terraform.proxmox.gen8.ssh_address
+      name    = local.merged_servers["gen8.au.excloo.net"].name
+      address = local.merged_servers["gen8.au.excloo.net"].tailscale_name
     }
   }
 }
 
 provider "proxmox" {
   alias     = "kimbap"
-  api_token = var.terraform.proxmox.kimbap.api_token
-  endpoint  = var.terraform.proxmox.kimbap.endpoint
-  insecure  = var.terraform.proxmox.insecure
+  api_token = local.merged_servers["kimbap.kr.excloo.net"].provider.api_token
+  endpoint  = "https://${local.merged_servers["kimbap.kr.excloo.net"].tailscale_name}:${local.merged_servers["kimbap.kr.excloo.net"].provider.port}/"
+  insecure  = local.merged_servers["kimbap.kr.excloo.net"].provider.insecure
 
   ssh {
     agent    = true
-    username = var.terraform.proxmox.username
+    username = local.merged_servers["kimbap.kr.excloo.net"].user.username
 
     node {
-      name    = var.terraform.proxmox.kimbap.name
-      address = var.terraform.proxmox.kimbap.ssh_address
+      name    = local.merged_servers["kimbap.kr.excloo.net"].name
+      address = local.merged_servers["kimbap.kr.excloo.net"].tailscale_name
     }
   }
 }
@@ -87,7 +87,7 @@ terraform {
       source = "oracle/oci"
     }
     onepassword = {
-      source = "1Password/onepassword"
+      source = "1password/onepassword"
     }
     openwrt = {
       source = "joneshf/openwrt"
