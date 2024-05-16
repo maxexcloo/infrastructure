@@ -1,0 +1,21 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+runcmd:
+  - sh -c "curl -fsLS https://tailscale.com/install.sh | sh"
+  - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf"
+  - sysctl -p /etc/sysctl.d/99-tailscale.conf
+  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${tailscale_name}
+users:
+  - name: ${user.username}
+    gecos: ${user.fullname}
+    passwd: ${password}
+    shell: /bin/bash
+    sudo: ALL=(ALL) ALL
+    ssh-authorized-keys:
+%{ for ssh_key in ssh_keys ~}
+      - ${ssh_key}
+%{ endfor ~}

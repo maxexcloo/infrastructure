@@ -8,7 +8,7 @@ resource "onepassword_item" "router" {
   category = "login"
   password = random_password.router[each.key].result
   title    = each.key
-  username = each.value.username
+  username = each.value.user.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
   section {
@@ -40,7 +40,7 @@ resource "onepassword_item" "server" {
   category = "login"
   password = random_password.server[each.key].result
   title    = each.key
-  username = each.value.username
+  username = each.value.user.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
   section {
@@ -58,10 +58,14 @@ resource "onepassword_item" "server" {
       value = "${each.value.location}-${each.value.hostname}"
     }
 
-    field {
-      label = "private address"
-      type  = "URL"
-      value = each.value.network.private_address
+    dynamic "field" {
+      for_each = try(each.value.network.private_address, "") != "" ? [true] : []
+
+      content {
+        label = "private address"
+        type  = "URL"
+        value = each.value.network.private_address
+      }
     }
   }
 }

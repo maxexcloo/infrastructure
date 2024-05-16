@@ -87,8 +87,8 @@ resource "oci_core_default_security_list" "config" {
 
 resource "oci_core_instance" "config" {
   for_each = {
-    for i, server in var.servers : "${server.hostname}.${var.terraform.oci.location}.${var.root.domain}" => server
-    if try(server.parent, "") == "oci"
+    for k, v in local.merged_servers : k => v
+    if v.parent == "oci"
   }
 
   availability_domain = data.oci_identity_availability_domain.config.name
@@ -97,7 +97,16 @@ resource "oci_core_instance" "config" {
   shape               = each.value.config.shape
 
   metadata = {
-    ssh_authorized_keys = join("\n", data.github_user.config.ssh_keys)
+    user_data = base64encode(templatefile(
+      "${path.module}/templates/cloud_config.tftpl",
+      {
+        password       = random_password.server[each.key].bcrypt_hash
+        ssh_keys       = data.github_user.config.ssh_keys
+        tailscale_key  = tailscale_tailnet_key.config[each.key].key
+        tailscale_name = tailscale_tailnet_key.config[each.key].description
+        user           = each.value.user
+      }
+    ))
   }
 
   create_vnic_details {

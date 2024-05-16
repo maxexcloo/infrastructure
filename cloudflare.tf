@@ -30,7 +30,10 @@ resource "cloudflare_record" "router" {
 }
 
 resource "cloudflare_record" "server" {
-  for_each = local.merged_servers
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent != "oci"
+  }
 
   name    = "${each.value.hostname}.${each.value.location}"
   type    = "CNAME"

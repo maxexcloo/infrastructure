@@ -4,7 +4,7 @@ locals {
       hostname = v.tag == "router" ? v.hostname : "${v.location}-${v.hostname}"
       tag      = v.tag
       type     = v.type
-      username = v.username
+      username = v.user.username
     }
   }
 
@@ -13,18 +13,29 @@ locals {
     if server.tag == "router"
   }
 
-  merged_servers = merge([
-    for i, server in var.servers : {
-      for i, parent in var.servers : "${server.hostname}.${try(parent.location, parent.parent)}.${var.root.domain}" => merge(
+  merged_servers = merge(
+    merge([
+      for i, server in var.servers : {
+        for i, parent in var.servers : "${server.hostname}.${try(parent.location, parent.parent)}.${var.root.domain}" => merge(
+          server,
+          {
+            location = try(parent.location, parent.parent)
+          }
+        )
+        if try(parent.hostname, "") == server.parent
+      }
+      if server.tag != "router"
+    ]...),
+    {
+      for i, server in var.servers : "${server.hostname}.${var.terraform.oci.location}.${var.root.domain}" => merge(
         server,
         {
-          location = try(parent.location, parent.parent)
+          location = var.terraform.oci.location
         }
       )
-      if try(parent.hostname, "") == server.parent
+      if try(server.parent, "") == "oci"
     }
-    if server.tag != "router"
-  ]...)
+  )
 
   merged_tags = distinct([
     for i, server in var.servers : server.tag

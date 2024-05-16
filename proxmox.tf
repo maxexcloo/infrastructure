@@ -26,6 +26,60 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
   url                 = each.value.config.boot_image_url
 }
 
+resource "proxmox_virtual_environment_file" "gen8" {
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "gen8" && endswith(try(v.config.boot_image_url, ""), ".img")
+  }
+
+  content_type = "snippets"
+  datastore_id = "local"
+  node_name    = each.value.parent
+  provider     = proxmox.gen8
+
+  source_raw {
+    file_name = "cloud-config.yaml"
+
+    data = templatefile(
+      "${path.module}/templates/cloud_config.tftpl",
+      {
+        password       = random_password.server[each.key].bcrypt_hash
+        ssh_keys       = data.github_user.config.ssh_keys
+        tailscale_key  = tailscale_tailnet_key.config[each.key].key
+        tailscale_name = tailscale_tailnet_key.config[each.key].description
+        user           = each.value.user
+      }
+    )
+  }
+}
+
+resource "proxmox_virtual_environment_file" "kimbap" {
+  for_each = {
+    for k, v in local.merged_servers : k => v
+    if v.parent == "kimbap" && endswith(try(v.config.boot_image_url, ""), ".img")
+  }
+
+  content_type = "snippets"
+  datastore_id = "local"
+  node_name    = each.value.parent
+  provider     = proxmox.kimbap
+
+  source_raw {
+    file_name = "cloud-config.yaml"
+
+    data = templatefile(
+      "${path.module}/templates/cloud_config.tftpl",
+      {
+        password       = random_password.server[each.key].bcrypt_hash
+        ssh_keys       = data.github_user.config.ssh_keys
+        tailscale_key  = tailscale_tailnet_key.config[each.key].key
+        tailscale_name = tailscale_tailnet_key.config[each.key].description
+        user           = each.value.user
+      }
+    )
+  }
+}
+
 resource "proxmox_virtual_environment_vm" "gen8" {
   for_each = {
     for k, v in local.merged_servers : k => v
@@ -72,6 +126,15 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     type = try(each.value.config.operating_system, "l26")
   }
 
+  dynamic "agent" {
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+
+    content {
+      enabled = true
+      trim    = true
+    }
+  }
+
   dynamic "cdrom" {
     for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
 
@@ -98,9 +161,9 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
-      datastore_id = "local-zfs"
-      interface    = "ide0"
-      upgrade      = true
+      datastore_id      = "local-zfs"
+      interface         = "ide0"
+      user_data_file_id = proxmox_virtual_environment_file.gen8[each.key].id
 
       dns {
         domain  = "${each.value.location}.${var.root.domain}"
@@ -116,11 +179,6 @@ resource "proxmox_virtual_environment_vm" "gen8" {
           address = each.value.network.ipv6 == "dhcp" ? each.value.network.ipv6 : each.value.network.ipv6.address
           gateway = each.value.network.ipv6 == "dhcp" ? null : each.value.network.ipv6.gateway
         }
-      }
-
-      user_account {
-        keys     = data.github_user.config.ssh_keys
-        username = each.value.username
       }
     }
   }
@@ -173,6 +231,15 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     type = try(each.value.config.operating_system, "l26")
   }
 
+  dynamic "agent" {
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+
+    content {
+      enabled = true
+      trim    = true
+    }
+  }
+
   dynamic "cdrom" {
     for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
 
@@ -199,9 +266,9 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
-      datastore_id = "local-zfs"
-      interface    = "ide0"
-      upgrade      = true
+      datastore_id      = "local-zfs"
+      interface         = "ide0"
+      user_data_file_id = proxmox_virtual_environment_file.kimbap[each.key].id
 
       dns {
         domain  = "${each.value.location}.${var.root.domain}"
@@ -217,11 +284,6 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
           address = each.value.network.ipv6 == "dhcp" ? each.value.network.ipv6 : each.value.network.ipv6.address
           gateway = each.value.network.ipv6 == "dhcp" ? null : each.value.network.ipv6.gateway
         }
-      }
-
-      user_account {
-        keys     = data.github_user.config.ssh_keys
-        username = each.value.username
       }
     }
   }

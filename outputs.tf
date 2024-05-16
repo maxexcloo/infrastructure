@@ -14,10 +14,6 @@ output "tags" {
   value = local.merged_tags
 }
 
-output "websites" {
-  value = local.merged_websites
-}
-
 resource "local_file" "pyinfra_inventory" {
   filename = "../PyInfra/inventory.py"
 

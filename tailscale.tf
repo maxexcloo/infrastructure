@@ -23,7 +23,7 @@ resource "tailscale_acl" "config" {
 
 resource "tailscale_device_key" "config" {
   for_each = {
-    for i, device in data.tailscale_devices.config.devices : device.name => device
+    for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
   }
 
   device_id           = each.value.id
@@ -32,7 +32,7 @@ resource "tailscale_device_key" "config" {
 
 resource "tailscale_device_subnet_routes" "config" {
   for_each = {
-    for i, device in data.tailscale_devices.config.devices : device.name => device
+    for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
     if contains(device.tags, "tag:router") || contains(device.tags, "tag:server")
   }
 
@@ -41,6 +41,19 @@ resource "tailscale_device_subnet_routes" "config" {
   routes = [
     "0.0.0.0/0",
     "::/0"
+  ]
+}
+
+resource "tailscale_device_tags" "config" {
+  for_each = {
+    for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
+  }
+
+  device_id = each.value.id
+
+  tags = [
+    for i, v in local.merged_hosts : "tag:${v.tag}"
+    if v.hostname == each.key
   ]
 }
 
