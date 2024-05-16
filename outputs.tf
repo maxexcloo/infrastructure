@@ -1,10 +1,10 @@
-output "servers" {
-  value = local.merged_servers
-}
+# output "servers" {
+#   value = local.merged_servers
+# }
 
-output "tags" {
-  value = local.merged_tags
-}
+# output "tags" {
+#   value = local.merged_tags
+# }
 
 resource "local_file" "pyinfra_inventory" {
   filename = "../PyInfra/inventory.py"
