@@ -4,12 +4,12 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
     if v.parent == "gen8"
   }
 
-  content_type        = "iso"
-  datastore_id        = "local"
-  node_name           = each.value.parent
-  file_name           = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
-  provider            = proxmox.gen8
-  url                 = each.value.config.boot_image_url
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = each.value.parent
+  file_name    = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
+  provider     = proxmox.gen8
+  url          = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
@@ -18,12 +18,12 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
     if v.parent == "kimbap"
   }
 
-  content_type        = "iso"
-  datastore_id        = "local"
-  file_name           = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
-  node_name           = each.value.parent
-  provider            = proxmox.kimbap
-  url                 = each.value.config.boot_image_url
+  content_type = "iso"
+  datastore_id = "local"
+  file_name    = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
+  node_name    = each.value.parent
+  provider     = proxmox.kimbap
+  url          = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_file" "gen8" {
@@ -41,17 +41,26 @@ resource "proxmox_virtual_environment_file" "gen8" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "${path.module}/templates/cloud_config.tftpl",
-      {
-        fqdn           = each.value.fqdn
-        name           = each.value.name
-        packages       = ["qemu-guest-agent"]
-        password       = random_password.server[each.key].bcrypt_hash
-        tailscale_key  = tailscale_tailnet_key.config[each.key].key
-        tailscale_name = tailscale_tailnet_key.config[each.key].description
-        timezone       = var.default.timezone
-        user           = each.value.user
-      }
+      "${path.module}/templates/cloud_config.yaml.tftpl",
+      merge(
+        each.value,
+        {
+          tailscale_key = tailscale_tailnet_key.config[each.key].key
+          config = merge(
+            try(each.value.config, {}),
+            {
+              packages = ["qemu-guest-agent"]
+              timezone = var.default.timezone
+            }
+          )
+          user = merge(
+            try(each.value.user, {}),
+            {
+              password = htpasswd_password.server[each.key].sha512
+            }
+          )
+        }
+      )
     )
   }
 }
@@ -71,17 +80,26 @@ resource "proxmox_virtual_environment_file" "kimbap" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "${path.module}/templates/cloud_config.tftpl",
-      {
-        fqdn           = each.value.fqdn
-        name           = each.value.name
-        packages       = ["qemu-guest-agent"]
-        password       = random_password.server[each.key].bcrypt_hash
-        tailscale_key  = tailscale_tailnet_key.config[each.key].key
-        tailscale_name = tailscale_tailnet_key.config[each.key].description
-        timezone       = var.default.timezone
-        user           = each.value.user
-      }
+      "${path.module}/templates/cloud_config.yaml.tftpl",
+      merge(
+        each.value,
+        {
+          tailscale_key = tailscale_tailnet_key.config[each.key].key
+          config = merge(
+            try(each.value.config, {}),
+            {
+              packages = ["qemu-guest-agent"]
+              timezone = var.default.timezone
+            }
+          )
+          user = merge(
+            try(each.value.user, {}),
+            {
+              password = htpasswd_password.server[each.key].sha512
+            }
+          )
+        }
+      )
     )
   }
 }

@@ -98,17 +98,26 @@ resource "oci_core_instance" "config" {
 
   metadata = {
     user_data = base64encode(templatefile(
-      "./templates/cloud_config.tftpl",
-      {
-        fqdn           = each.value.fqdn
-        name           = each.value.name
-        packages       = []
-        password       = random_password.server[each.key].bcrypt_hash
-        tailscale_key  = tailscale_tailnet_key.config[each.key].key
-        tailscale_name = tailscale_tailnet_key.config[each.key].description
-        timezone       = var.default.timezone
-        user           = each.value.user
-      }
+      "./templates/cloud_config.yaml.tftpl",
+      merge(
+        each.value,
+        {
+          tailscale_key = tailscale_tailnet_key.config[each.key].key
+          config = merge(
+            try(each.value.config, {}),
+            {
+              packages = []
+              timezone = var.default.timezone
+            }
+          )
+          user = merge(
+            try(each.value.user, {}),
+            {
+              password = htpasswd_password.server[each.key].sha512
+            }
+          )
+        }
+      )
     ))
   }
 

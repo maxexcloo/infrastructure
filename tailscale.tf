@@ -61,7 +61,6 @@ resource "tailscale_tailnet_key" "config" {
   for_each = local.merged_servers
 
   description   = each.value.tailscale_name
-  ephemeral     = true
   preauthorized = true
   reusable      = true
   tags          = ["tag:${each.value.tag}"]

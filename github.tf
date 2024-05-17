@@ -12,15 +12,11 @@ resource "github_repository_file" "server-debian" {
   overwrite_on_create = true
   repository          = var.terraform.github.repository
 
-  content = replace(
-    templatefile(
-      "./templates/debian_preseed.tftpl",
-      {
-        default = var.default
-        server  = each.value
-      }
-    ),
-    "/[\n]+/",
-    "\n"
+  content = templatefile(
+    "./templates/debian_preseed.tftpl",
+    {
+      default = var.default
+      server  = each.value
+    }
   )
 }

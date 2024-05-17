@@ -1,0 +1,17 @@
+Vagrant.configure("2") do |config|
+%{ for server in servers ~}
+  config.vm.define "${server.name}" do |instance|
+    instance.vm.box = "${server.config.boot_image}"
+    instance.vm.cloud_init :user_data, content_type: "text/cloud-config", path: "${server.name}.yaml"
+    instance.vm.network "public_network"
+    instance.vm.synced_folder ".", "/vagrant", disabled: true
+    instance.vm.provider "parallels" do |parallels|
+      parallels.cpus = ${server.config.cpus}
+      parallels.customize ["set", :id, "--device-set", "net1", "--mac", "${server.network.mac_address}"]
+      parallels.memory = ${server.config.memory * 1024}
+      parallels.name = "${server.name}"
+      parallels.update_guest_tools = true
+    end
+  end
+%{ endfor ~}
+end

@@ -6,10 +6,10 @@ d-i debian-installer/locale string en_AU
 ### Network configuration
 d-i netcfg/choose_interface select auto
 
-%{ if server.network != "dhcp" }
+%{ if server.network != "dhcp" ~}
 d-i netcfg/disable_autoconfig boolean true
 
-%{ if server.network.ipv4 != false }
+%{ if server.network.ipv4 != false ~}
 # IPv4
 d-i netcfg/get_ipaddress string ${server.network.ipv4.address}
 d-i netcfg/get_netmask string ${server.network.ipv4.netmask}
@@ -18,15 +18,15 @@ d-i netcfg/get_nameservers string ${server.network.ipv4.nameservers}
 d-i netcfg/confirm_static boolean true
 %{ endif }
 
-%{ if server.network.ipv6 != false }
+%{ if server.network.ipv6 != false ~}
 # IPv6
 d-i netcfg/get_ipaddress string ${server.network.ipv6.address}
 d-i netcfg/get_netmask string ${server.network.ipv6.netmask}
 d-i netcfg/get_gateway string ${server.network.ipv6.gateway}
 d-i netcfg/get_nameservers string ${server.network.ipv6.nameservers}
 d-i netcfg/confirm_static boolean true
-%{ endif }
-%{ endif }
+%{ endif ~}
+%{ endif ~}
 
 d-i netcfg/get_hostname string ${server.name}
 d-i netcfg/get_domain string ${server.location}.${default.domain}

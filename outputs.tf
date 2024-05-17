@@ -10,7 +10,7 @@ resource "local_file" "pyinfra_inventory" {
   filename = "../PyInfra/inventory.py"
 
   content = templatefile(
-    "./templates/pyinfra_inventory.tftpl",
+    "./templates/pyinfra_inventory.py.tftpl",
     {
       hosts = local.merged_servers
     }
@@ -20,14 +20,10 @@ resource "local_file" "pyinfra_inventory" {
 resource "local_file" "ssh_config" {
   filename = "${var.default.home}/.ssh/config"
 
-  content = replace(
-    templatefile(
-      "./templates/ssh_config.tftpl",
-      {
-        hosts = local.merged_servers
-      }
-    ),
-    "/[\n]{3,}/",
-    "\n\n"
+  content = templatefile(
+    "./templates/ssh_config.tftpl",
+    {
+      hosts = local.merged_servers
+    }
   )
 }

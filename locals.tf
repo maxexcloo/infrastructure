@@ -7,17 +7,23 @@ locals {
           {
             fqdn           = "${server.location}.${var.default.domain}"
             parent         = ""
+            parent_type    = ""
             tailscale_name = server.location
-            tailscale_tag  = "tag:${server.tag}"
-            provider = {
-              password = var.terraform.openwrt[server.name].password
-              port     = try(var.terraform.openwrt[server.name].port, 81)
-            }
-            user = {
-              fullname = try(server.user.fullname, "root")
-              ssh_keys = data.github_user.config.ssh_keys
-              username = try(server.user.username, "root")
-            }
+            provider = merge(
+              {
+                password = var.terraform.openwrt[server.name].password
+                port     = try(var.terraform.openwrt[server.name].port, 81)
+              },
+              try(server.provider, {})
+            )
+            user = merge(
+              {
+                fullname = "root"
+                ssh_keys = data.github_user.config.ssh_keys
+                username = "root"
+              },
+              try(server.user, {})
+            )
           }
         )
         if server.tag == "router"
@@ -29,20 +35,26 @@ locals {
             {
               fqdn           = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
               location       = try(parent.location, parent.parent)
+              parent_type    = parent.type
               tailscale_name = "${try(parent.location, parent.parent)}-${server.name}"
-              tailscale_tag  = "tag:${server.tag}"
-              user = {
-                fullname = try(server.user.fullname, "root")
-                ssh_keys = data.github_user.config.ssh_keys
-                username = try(server.user.username, "root")
-              }
+              user = merge(
+                {
+                  fullname = "root"
+                  ssh_keys = data.github_user.config.ssh_keys
+                  username = "root"
+                },
+                try(server.user, {})
+              )
             },
             server.type == "proxmox" ? {
-              provider = {
-                api_token = var.terraform.proxmox[server.name].api_token
-                insecure  = try(var.terraform.proxmox[server.name].insecure, true)
-                port      = try(var.terraform.proxmox[server.name].port, 8006)
-              }
+              provider = merge(
+                {
+                  api_token = var.terraform.proxmox[server.name].api_token
+                  insecure  = try(var.terraform.proxmox[server.name].insecure, true)
+                  port      = try(var.terraform.proxmox[server.name].port, 8006)
+                },
+                try(server.provider, {})
+              )
             } : {}
           )
           if try(parent.name, "") == server.parent
@@ -55,13 +67,17 @@ locals {
         {
           fqdn           = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
           location       = var.terraform.oci.location
+          parent_type    = "oci"
           tailscale_name = "${var.terraform.oci.location}-${server.name}"
-          tailscale_tag  = "tag:${server.tag}"
-          user = {
-            fullname = try(server.user.fullname, "root")
-            ssh_keys = data.github_user.config.ssh_keys
-            username = try(server.user.username, "root")
-          }
+
+          user = merge(
+            try(server.user, {}),
+            {
+              fullname = try(server.user.fullname, "root")
+              ssh_keys = data.github_user.config.ssh_keys
+              username = try(server.user.username, "root")
+            }
+          )
         }
       )
       if try(server.parent, "") == "oci"
