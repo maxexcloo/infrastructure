@@ -103,7 +103,7 @@ resource "oci_core_instance" "config" {
         fqdn           = each.value.fqdn
         name           = each.value.name
         packages       = []
-        password       = htpasswd_password.server[each.key].sha512
+        password       = random_password.server[each.key].bcrypt_hash
         tailscale_key  = tailscale_tailnet_key.config[each.key].key
         tailscale_name = tailscale_tailnet_key.config[each.key].description
         timezone       = var.default.timezone

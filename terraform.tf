@@ -80,9 +80,6 @@ terraform {
     github = {
       source = "integrations/github"
     }
-    htpasswd = {
-      source = "loafoe/htpasswd"
-    }
     oci = {
       source = "oracle/oci"
     }
@@ -94,6 +91,9 @@ terraform {
     }
     proxmox = {
       source = "bpg/proxmox"
+    }
+    random = {
+      source = "hashicorp/random"
     }
     tailscale = {
       source = "tailscale/tailscale"

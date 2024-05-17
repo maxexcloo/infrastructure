@@ -2,11 +2,6 @@ data "onepassword_vault" "infrastructure" {
   name = var.terraform.onepassword.vault
 }
 
-resource "htpasswd_password" "server" {
-  for_each = local.merged_servers
-
-  password = random_password.server[each.key].result
-}
 resource "onepassword_item" "server" {
   for_each = local.merged_servers
 
@@ -17,7 +12,7 @@ resource "onepassword_item" "server" {
   vault    = data.onepassword_vault.infrastructure.uuid
 
   section {
-    label = ""
+    label = "websites"
 
     field {
       label = "fqdn"
