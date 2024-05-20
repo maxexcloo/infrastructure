@@ -27,39 +27,3 @@ resource "tailscale_tailnet_key" "config" {
   reusable      = true
   tags          = ["tag:${each.value.tag}"]
 }
-
-# resource "tailscale_device_key" "config" {
-#   for_each = {
-#     for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
-#   }
-
-#   device_id           = each.value.id
-#   key_expiry_disabled = true
-# }
-
-# resource "tailscale_device_subnet_routes" "config" {
-#   for_each = {
-#     for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
-#     if contains(device.tags, "tag:router") || contains(device.tags, "tag:server")
-#   }
-
-#   device_id = each.value.id
-
-#   routes = [
-#     "0.0.0.0/0",
-#     "::/0"
-#   ]
-# }
-
-# resource "tailscale_device_tags" "config" {
-#   for_each = {
-#     for i, device in data.tailscale_devices.config.devices : split(".", device.name)[0] => device
-#   }
-
-#   device_id = each.value.id
-
-#   tags = [
-#     for i, v in local.servers : v.tailscale_tag
-#     if v.host == each.key
-#   ]
-# }
