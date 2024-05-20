@@ -1,5 +1,5 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
-  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "gen8" }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "gen8" }
 
   content_type = "iso"
   datastore_id = "local"
@@ -10,7 +10,7 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
-  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "kimbap" }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "kimbap" }
 
   content_type = "iso"
   datastore_id = "local"
@@ -22,7 +22,7 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
 
 resource "proxmox_virtual_environment_file" "gen8" {
   for_each = {
-    for k, v in local.merged_servers : k => v
+    for k, v in local.servers : k => v
     if v.parent_name == "gen8" && endswith(try(v.config.boot_image_url, ""), ".img")
   }
 
@@ -32,36 +32,14 @@ resource "proxmox_virtual_environment_file" "gen8" {
   provider     = proxmox.gen8
 
   source_raw {
+    data      = local.cloud_init_proxmox[each.key]
     file_name = "${each.value.name}.yaml"
-
-    data = templatefile(
-      "${path.module}/templates/cloud_config.tftpl",
-      merge(
-        each.value,
-        {
-          tailscale_key = tailscale_tailnet_key.config[each.key].key
-          config = merge(
-            try(each.value.config, {}),
-            {
-              packages = ["qemu-guest-agent"]
-              timezone = var.default.timezone
-            }
-          )
-          user = merge(
-            try(each.value.user, {}),
-            {
-              password = htpasswd_password.server[each.key].sha512
-            }
-          )
-        }
-      )
-    )
   }
 }
 
 resource "proxmox_virtual_environment_file" "kimbap" {
   for_each = {
-    for k, v in local.merged_servers : k => v
+    for k, v in local.servers : k => v
     if v.parent_name == "kimbap" && endswith(try(v.config.boot_image_url, ""), ".img")
   }
 
@@ -71,35 +49,13 @@ resource "proxmox_virtual_environment_file" "kimbap" {
   provider     = proxmox.kimbap
 
   source_raw {
+    data      = local.cloud_init_proxmox[each.key]
     file_name = "${each.value.name}.yaml"
-
-    data = templatefile(
-      "${path.module}/templates/cloud_config.tftpl",
-      merge(
-        each.value,
-        {
-          tailscale_key = tailscale_tailnet_key.config[each.key].key
-          config = merge(
-            try(each.value.config, {}),
-            {
-              packages = ["qemu-guest-agent"]
-              timezone = var.default.timezone
-            }
-          )
-          user = merge(
-            try(each.value.user, {}),
-            {
-              password = htpasswd_password.server[each.key].sha512
-            }
-          )
-        }
-      )
-    )
   }
 }
 
 resource "proxmox_virtual_environment_vm" "gen8" {
-  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "gen8" }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "gen8" }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -196,7 +152,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
-  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "kimbap" }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "kimbap" }
 
   bios          = "ovmf"
   machine       = "q35"

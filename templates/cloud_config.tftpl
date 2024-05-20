@@ -20,7 +20,7 @@ runcmd:
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
 %{ endif ~}
-  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${tailscale_name}
+  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${host}
   - tailscale set --auto-update
 users:
   - name: ${user.username}

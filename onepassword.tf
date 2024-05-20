@@ -3,7 +3,7 @@ data "onepassword_vault" "infrastructure" {
 }
 
 resource "onepassword_item" "server" {
-  for_each = local.merged_servers
+  for_each = local.servers
 
   category = "login"
   password = random_password.server[each.key].result
@@ -21,16 +21,16 @@ resource "onepassword_item" "server" {
     }
 
     field {
-      label = "hostname"
+      label = "host"
       type  = "URL"
-      value = each.value.tailscale_name
+      value = each.value.host
     }
 
     dynamic "field" {
       for_each = try(each.value.network.private_address, "") != "" ? [true] : []
 
       content {
-        label = "private address"
+        label = "private"
         type  = "URL"
         value = each.value.network.private_address
       }
@@ -39,7 +39,7 @@ resource "onepassword_item" "server" {
 }
 
 resource "onepassword_item" "website" {
-  for_each = { for k, v in local.merged_websites : k => v if try(v.username, "") != "" }
+  for_each = { for k, v in local.websites : k => v if try(v.username, "") != "" }
 
   category = "login"
   password = random_password.website[each.key].result

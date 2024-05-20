@@ -3,10 +3,7 @@ resource "cloudflare_account" "default" {
 }
 
 resource "cloudflare_record" "router" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.tag == "router"
-  }
+  for_each = { for k, v in local.servers : k => v if v.tag == "router" }
 
   name    = each.value.location
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
@@ -15,10 +12,7 @@ resource "cloudflare_record" "router" {
 }
 
 resource "cloudflare_record" "server" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.tag != "router" && v.parent_name != "oci"
-  }
+  for_each = { for k, v in local.servers : k => v if v.parent_type != "cloud" && v.tag != "router" }
 
   name    = "${each.value.name}.${each.value.location}"
   type    = "CNAME"
@@ -27,10 +21,7 @@ resource "cloudflare_record" "server" {
 }
 
 resource "cloudflare_record" "server_oci_ipv4" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent_name == "oci"
-  }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "oci" }
 
   name    = replace(each.key, ".${var.default.domain}", "")
   type    = "A"
@@ -39,10 +30,7 @@ resource "cloudflare_record" "server_oci_ipv4" {
 }
 
 resource "cloudflare_record" "server_oci_ipv6" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent_name == "oci"
-  }
+  for_each = { for k, v in local.servers : k => v if v.parent_name == "oci" }
 
   name    = replace(each.key, ".${var.default.domain}", "")
   type    = "AAAA"
@@ -51,7 +39,7 @@ resource "cloudflare_record" "server_oci_ipv6" {
 }
 
 resource "cloudflare_record" "website" {
-  for_each = local.merged_websites
+  for_each = local.websites
 
   name     = each.value.name == "@" ? each.value.zone : each.value.name
   priority = try(each.value.priority, null)
@@ -61,16 +49,7 @@ resource "cloudflare_record" "website" {
 }
 
 resource "cloudflare_record" "wildcard" {
-  for_each = {
-    for k, v in merge(
-      cloudflare_record.router,
-      cloudflare_record.server,
-      cloudflare_record.server_oci_ipv4,
-      cloudflare_record.server_oci_ipv6,
-      cloudflare_record.website
-    ) : k => v
-    if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
-  }
+  for_each = local.cloudflare_websites_merged
 
   name    = "*.${each.value.name}"
   type    = "CNAME"

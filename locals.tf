@@ -1,14 +1,123 @@
 locals {
-  merged_servers = merge(
+  cloud_init_mac = { for k, v in local.servers : k => templatefile(
+    "./templates/cloud_config.tftpl",
+    merge(
+      v,
+      {
+        tailscale_key = tailscale_tailnet_key.config[k].key
+        config = merge(
+          try(v.config, {}),
+          {
+            packages = []
+            timezone = var.default.timezone
+          }
+        )
+        user = merge(
+          try(v.user, {}),
+          {
+            password = htpasswd_password.server[k].sha512
+          }
+        )
+      }
+    )
+    )
+  if v.parent_type == "mac" }
+
+  cloud_init_oci = { for k, v in local.servers : k => templatefile(
+    "./templates/cloud_config.tftpl",
+    merge(
+      v,
+      {
+        tailscale_key = tailscale_tailnet_key.config[k].key
+        config = merge(
+          try(v.config, {}),
+          {
+            packages = []
+            timezone = var.default.timezone
+          }
+        )
+        user = merge(
+          try(v.user, {}),
+          {
+            password = htpasswd_password.server[k].sha512
+          }
+        )
+      }
+    )
+  ) if v.parent_name == "oci" }
+
+  cloud_init_proxmox = {
+    for k, v in local.servers : k => templatefile(
+      "./templates/cloud_config.tftpl",
+      merge(
+        v,
+        {
+          tailscale_key = tailscale_tailnet_key.config[k].key
+          config = merge(
+            try(v.config, {}),
+            {
+              packages = ["qemu-guest-agent"]
+              timezone = var.default.timezone
+            }
+          )
+          user = merge(
+            try(v.user, {}),
+            {
+              password = htpasswd_password.server[k].sha512
+            }
+          )
+        }
+      )
+    )
+    if v.parent_type == "proxmox"
+  }
+
+  cloudflare_websites_merged = {
+    for k, v in merge(
+      cloudflare_record.router,
+      cloudflare_record.server,
+      cloudflare_record.server_oci_ipv4,
+      cloudflare_record.server_oci_ipv6,
+      cloudflare_record.website
+    ) : k => v
+    if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
+  }
+
+  mac_servers = {
+    for k, v in local.servers : k => merge(
+      v,
+      {
+        network = merge(
+          try(v.network, {}),
+          {
+            mac_address = try(macaddress.config[k].address, "")
+          }
+        )
+      }
+    )
+  }
+
+  openwrt_websites_merged = merge([
+    for i, website in local.cloudflare_websites_merged : {
+      for k, server in local.servers : i => {
+        fqdn     = website.hostname
+        host     = server.host
+        location = server.location
+      }
+      if(server.fqdn == website.hostname || server.fqdn == website.value) && server.parent_type != "cloud" && server.tag != "router"
+    }
+  ]...)
+
+  servers = merge(
     merge(
       {
         for i, server in var.servers : "${server.location}.${var.default.domain}" => merge(
           server,
           {
-            fqdn           = "${server.location}.${var.default.domain}"
-            parent_name    = ""
-            parent_type    = ""
-            tailscale_name = server.location
+            fqdn        = "${server.location}.${var.default.domain}"
+            host        = server.location
+            parent_name = ""
+            parent_type = ""
             provider = merge(
               {
                 password = var.terraform.openwrt[server.name].password
@@ -33,11 +142,11 @@ locals {
           for i, parent in var.servers : "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}" => merge(
             server,
             {
-              fqdn           = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
-              location       = try(parent.location, parent.parent)
-              parent_name    = parent.name
-              parent_type    = parent.type
-              tailscale_name = "${try(parent.location, parent.parent)}-${server.name}"
+              fqdn        = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
+              host        = "${try(parent.location, parent.parent)}-${server.name}"
+              location    = try(parent.location, parent.parent)
+              parent_name = parent.name
+              parent_type = parent.type
               user = merge(
                 {
                   fullname = "root"
@@ -66,11 +175,11 @@ locals {
       for i, server in var.servers : "${server.name}.${var.terraform.oci.location}.${var.default.domain}" => merge(
         server,
         {
-          fqdn           = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
-          location       = var.terraform.oci.location
-          parent_name    = "oci"
-          parent_type    = "oci"
-          tailscale_name = "${var.terraform.oci.location}-${server.name}"
+          fqdn        = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
+          host        = "${var.terraform.oci.location}-${server.name}"
+          location    = var.terraform.oci.location
+          parent_name = "oci"
+          parent_type = "cloud"
           user = merge(
             try(server.user, {}),
             {
@@ -85,11 +194,11 @@ locals {
     }
   )
 
-  merged_tags = distinct([
+  tags = distinct([
     for i, server in var.servers : server.tag
   ])
 
-  merged_websites = merge([
+  websites = merge([
     for zone, records in var.websites : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
         record,

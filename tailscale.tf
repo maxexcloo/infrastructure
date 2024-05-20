@@ -10,19 +10,19 @@ resource "tailscale_acl" "config" {
     nodeAttrs = [
       {
         attr   = ["nextdns:65188d"]
-        target = [for i, tag in local.merged_tags : "tag:${tag}"]
+        target = [for i, tag in local.tags : "tag:${tag}"]
       }
     ],
     tagOwners = {
-      for i, tag in local.merged_tags : "tag:${tag}" => [var.default.email]
+      for i, tag in local.tags : "tag:${tag}" => [var.default.email]
     }
   })
 }
 
 resource "tailscale_tailnet_key" "config" {
-  for_each = local.merged_servers
+  for_each = local.servers
 
-  description   = each.value.tailscale_name
+  description   = each.value.host
   preauthorized = true
   reusable      = true
   tags          = ["tag:${each.value.tag}"]
@@ -59,7 +59,7 @@ resource "tailscale_tailnet_key" "config" {
 #   device_id = each.value.id
 
 #   tags = [
-#     for i, v in local.merged_servers : v.tailscale_tag
-#     if v.tailscale_name == each.key
+#     for i, v in local.servers : v.tailscale_tag
+#     if v.host == each.key
 #   ]
 # }
