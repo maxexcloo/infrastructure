@@ -13,11 +13,11 @@ provider "github" {
 }
 
 provider "oci" {
-  fingerprint      = var.terraform.oci.fingerprint
-  private_key_path = var.terraform.oci.private_key_path
-  region           = var.terraform.oci.region
-  tenancy_ocid     = var.terraform.oci.tenancy_ocid
-  user_ocid        = var.terraform.oci.user_ocid
+  fingerprint  = var.terraform.oci.fingerprint
+  private_key  = base64decode(var.terraform.oci.private_key)
+  region       = var.terraform.oci.region
+  tenancy_ocid = var.terraform.oci.tenancy_ocid
+  user_ocid    = var.terraform.oci.user_ocid
 }
 
 provider "onepassword" {

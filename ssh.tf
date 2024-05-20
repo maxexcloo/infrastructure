@@ -1,22 +1,44 @@
-resource "ssh_resource" "config" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.type == "mac"
-  }
+resource "ssh_resource" "mac" {
+  for_each = { for k, v in local.merged_servers : k => v if v.type == "mac" }
 
   agent = true
   host  = each.value.tailscale_name
   user  = each.value.user.username
 
   commands = [
-    "bash -l -c 'cd ${var.default.home}/Parallels; vagrant up'"
+    "sh -l ${each.value.config.parallels_path}/vagrant.sh"
   ]
 
   file {
-    destination = "${var.default.home}/Parallels/Vagrantfile"
+    destination = "${each.value.config.parallels_path}/vagrant.sh"
 
     content = templatefile(
-      "./templates/vagrantfile.tftpl",
+      "./templates/mac/vagrant.sh.tftpl",
+      {
+        parallels_path = each.value.config.parallels_path
+        servers = {
+          for k, v in local.merged_servers : k => merge(
+            v,
+            {
+              network = merge(
+                try(v.network, {}),
+                {
+                  mac_address = macaddress.config[k].address
+                }
+              )
+            }
+          )
+          if v.parent_name == each.value.name
+        }
+      }
+    )
+  }
+
+  file {
+    destination = "${each.value.config.parallels_path}/Vagrantfile"
+
+    content = templatefile(
+      "./templates/mac/vagrantfile.tftpl",
       {
         servers = {
           for k, v in local.merged_servers : k => merge(
@@ -30,38 +52,35 @@ resource "ssh_resource" "config" {
               )
             }
           )
-          if v.parent_type == "mac"
+          if v.parent_name == each.value.name
         }
       }
     )
   }
 
   dynamic "file" {
-    for_each = {
-      for k, v in local.merged_servers : k => v
-      if v.parent_type == "mac"
-    }
+    for_each = { for k, v in local.merged_servers : k => v if v.parent_name == each.value.name }
 
     content {
-      destination = "${var.default.home}/Parallels/${file.value.name}.yaml"
+      destination = "${each.value.config.parallels_path}/${file.value.name}.yaml"
 
       content = templatefile(
-        "./templates/cloud_config.yaml.tftpl",
+        "./templates/cloud_config.tftpl",
         merge(
-          each.value,
+          file.value,
           {
-            tailscale_key = tailscale_tailnet_key.config[each.key].key
+            tailscale_key = tailscale_tailnet_key.config[file.key].key
             config = merge(
-              try(each.value.config, {}),
+              try(file.value.config, {}),
               {
                 packages = []
                 timezone = var.default.timezone
               }
             )
             user = merge(
-              try(each.value.user, {}),
+              try(file.value.user, {}),
               {
-                password = htpasswd_password.server[each.key].sha512
+                password = htpasswd_password.server[file.key].sha512
               }
             )
           }

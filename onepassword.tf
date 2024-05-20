@@ -39,10 +39,7 @@ resource "onepassword_item" "server" {
 }
 
 resource "onepassword_item" "website" {
-  for_each = {
-    for k, v in local.merged_websites : k => v
-    if try(v.username, "") != ""
-  }
+  for_each = { for k, v in local.merged_websites : k => v if try(v.username, "") != "" }
 
   category = "login"
   password = random_password.website[each.key].result

@@ -1,0 +1,7 @@
+hosts = [
+%{ for host in hosts ~}
+    ("${host.tailscale_name}", {"ssh_username": "${host.user.username}", "parent_name": "${host.parent_name}", "parent_type": "${host.parent_type}", "tag": "${host.tag}", "type": "${host.type}"}),
+%{ endfor ~}
+]
+
+print(hosts)

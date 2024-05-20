@@ -10,7 +10,7 @@ resource "local_file" "pyinfra_inventory" {
   filename = "../PyInfra/inventory.py"
 
   content = templatefile(
-    "./templates/pyinfra_inventory.py.tftpl",
+    "./templates/pyinfra_inventory.tftpl",
     {
       hosts = local.merged_servers
     }

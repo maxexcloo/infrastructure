@@ -86,10 +86,7 @@ resource "oci_core_default_security_list" "config" {
 }
 
 resource "oci_core_instance" "config" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent == "oci"
-  }
+  for_each = { for k, v in local.merged_servers : k => v if v.parent_type == "oci" }
 
   availability_domain = data.oci_identity_availability_domain.config.name
   compartment_id      = var.terraform.oci.tenancy_ocid
@@ -98,7 +95,7 @@ resource "oci_core_instance" "config" {
 
   metadata = {
     user_data = base64encode(templatefile(
-      "./templates/cloud_config.yaml.tftpl",
+      "./templates/cloud_config.tftpl",
       merge(
         each.value,
         {

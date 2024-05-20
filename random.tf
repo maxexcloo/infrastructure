@@ -6,10 +6,7 @@ resource "random_password" "server" {
 }
 
 resource "random_password" "website" {
-  for_each = {
-    for k, v in local.merged_websites : k => v
-    if try(v.username, "") != ""
-  }
+  for_each = { for k, v in local.merged_websites : k => v if try(v.username, "") != "" }
 
   length  = 24
   special = false

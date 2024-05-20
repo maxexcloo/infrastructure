@@ -6,7 +6,7 @@ locals {
           server,
           {
             fqdn           = "${server.location}.${var.default.domain}"
-            parent         = ""
+            parent_name    = ""
             parent_type    = ""
             tailscale_name = server.location
             provider = merge(
@@ -35,6 +35,7 @@ locals {
             {
               fqdn           = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
               location       = try(parent.location, parent.parent)
+              parent_name    = parent.name
               parent_type    = parent.type
               tailscale_name = "${try(parent.location, parent.parent)}-${server.name}"
               user = merge(
@@ -67,9 +68,9 @@ locals {
         {
           fqdn           = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
           location       = var.terraform.oci.location
+          parent_name    = "oci"
           parent_type    = "oci"
           tailscale_name = "${var.terraform.oci.location}-${server.name}"
-
           user = merge(
             try(server.user, {}),
             {

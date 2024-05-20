@@ -1,5 +1,3 @@
-# data "tailscale_devices" "config" {}
-
 resource "tailscale_acl" "config" {
   acl = jsonencode({
     acls = [
@@ -19,6 +17,15 @@ resource "tailscale_acl" "config" {
       for i, tag in local.merged_tags : "tag:${tag}" => [var.default.email]
     }
   })
+}
+
+resource "tailscale_tailnet_key" "config" {
+  for_each = local.merged_servers
+
+  description   = each.value.tailscale_name
+  preauthorized = true
+  reusable      = true
+  tags          = ["tag:${each.value.tag}"]
 }
 
 # resource "tailscale_device_key" "config" {
@@ -56,12 +63,3 @@ resource "tailscale_acl" "config" {
 #     if v.tailscale_name == each.key
 #   ]
 # }
-
-resource "tailscale_tailnet_key" "config" {
-  for_each = local.merged_servers
-
-  description   = each.value.tailscale_name
-  preauthorized = true
-  reusable      = true
-  tags          = ["tag:${each.value.tag}"]
-}

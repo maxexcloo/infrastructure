@@ -1,7 +1,0 @@
-hosts = [
-%{ for host in hosts ~}
-    ("${host.tailscale_name}", {"ssh_username": "${host.user.username}", "tag": "${host.tag}", "type": "${host.type}"}),
-%{ endfor ~}
-]
-
-print(hosts)

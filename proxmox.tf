@@ -1,8 +1,5 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent == "gen8"
-  }
+  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "gen8" }
 
   content_type = "iso"
   datastore_id = "local"
@@ -13,10 +10,7 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent == "kimbap"
-  }
+  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "kimbap" }
 
   content_type = "iso"
   datastore_id = "local"
@@ -29,7 +23,7 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
 resource "proxmox_virtual_environment_file" "gen8" {
   for_each = {
     for k, v in local.merged_servers : k => v
-    if v.parent == "gen8" && (endswith(try(v.config.boot_image_url, ""), ".img") || endswith(try(v.config.boot_image_url, ""), ".qcow2"))
+    if v.parent_name == "gen8" && endswith(try(v.config.boot_image_url, ""), ".img")
   }
 
   content_type = "snippets"
@@ -41,7 +35,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "${path.module}/templates/cloud_config.yaml.tftpl",
+      "${path.module}/templates/cloud_config.tftpl",
       merge(
         each.value,
         {
@@ -68,7 +62,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
 resource "proxmox_virtual_environment_file" "kimbap" {
   for_each = {
     for k, v in local.merged_servers : k => v
-    if v.parent == "kimbap" && (endswith(try(v.config.boot_image_url, ""), ".img") || endswith(try(v.config.boot_image_url, ""), ".qcow2"))
+    if v.parent_name == "kimbap" && endswith(try(v.config.boot_image_url, ""), ".img")
   }
 
   content_type = "snippets"
@@ -80,7 +74,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "${path.module}/templates/cloud_config.yaml.tftpl",
+      "${path.module}/templates/cloud_config.tftpl",
       merge(
         each.value,
         {
@@ -105,10 +99,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
 }
 
 resource "proxmox_virtual_environment_vm" "gen8" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent == "gen8"
-  }
+  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "gen8" }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -126,7 +117,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -151,7 +142,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       enabled = true
@@ -182,7 +173,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       datastore_id      = "local-zfs"
@@ -205,10 +196,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
-  for_each = {
-    for k, v in local.merged_servers : k => v
-    if v.parent == "kimbap"
-  }
+  for_each = { for k, v in local.merged_servers : k => v if v.parent_name == "kimbap" }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -226,7 +214,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -251,7 +239,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       enabled = true
@@ -282,7 +270,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") || endswith(try(each.value.config.boot_image_url, ""), ".qcow2") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
 
     content {
       datastore_id      = "local-zfs"
