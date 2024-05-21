@@ -1,46 +1,44 @@
 resource "ssh_resource" "mac" {
-  for_each = { for k, v in local.servers : k => v if v.type == "mac" }
+  for_each = local.mac_servers_merged
 
   agent = true
-  host  = each.value.host
-  user  = each.value.user.username
+  host  = each.value.config.parent_host
+  user  = each.value.config.parent_user
+  when  = "create"
 
   commands = [
-    "bash -l ${each.value.config.parallels_path}/vagrant.sh"
+    "cd ${each.value.config.parent_path} && /opt/homebrew/bin/mkisofs -joliet -output ${each.value.name}.iso -rock -volid cidata meta-data user-data",
+    "cd ${each.value.config.parent_path} && /usr/local/bin/vagrant up --machine-readable --provision"
+  ]
+
+  pre_commands = [
+    "mkdir -p ${each.value.config.parent_path}",
+    "touch ${each.value.config.parent_path}/meta-data"
   ]
 
   file {
-    destination = "${each.value.config.parallels_path}/vagrant.sh"
-
-    content = templatefile(
-      "./templates/mac/vagrant.sh.tftpl",
-      {
-        parallels_path = each.value.config.parallels_path
-        servers        = { for k, v in local.mac_servers : k => v if v.parent_name == each.value.name }
-      }
-    )
+    content     = templatefile("./templates/mac/vagrantfile.tftpl", each.value)
+    destination = "${each.value.config.parent_path}/Vagrantfile"
   }
 
   file {
-    destination = "${each.value.config.parallels_path}/Vagrantfile"
-
-    content = templatefile(
-      "./templates/mac/vagrantfile.tftpl",
-      {
-        parallels_path = each.value.config.parallels_path
-        servers        = { for k, v in local.mac_servers : k => v if v.parent_name == each.value.name }
-      }
-    )
+    content     = local.cloud_init_mac[each.key]
+    destination = "${each.value.config.parent_path}/user-data"
   }
+}
 
-  dynamic "file" {
-    for_each = { for k, v in local.servers : k => v if v.parent_name == each.value.name }
+resource "ssh_resource" "mac-destroy" {
+  for_each = local.mac_servers_merged
 
-    content {
-      content     = local.cloud_init_mac[file.key]
-      destination = "${each.value.config.parallels_path}/${file.value.name}.yaml"
-    }
-  }
+  agent = true
+  host  = each.value.config.parent_host
+  user  = each.value.config.parent_user
+  when  = "destroy"
+
+  commands = [
+    "cd ${each.value.config.parent_path} && /usr/local/bin/vagrant destroy --force",
+    "rm -rf ${each.value.config.parent_path}"
+  ]
 }
 
 resource "ssh_resource" "openwrt" {

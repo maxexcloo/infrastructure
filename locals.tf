@@ -23,28 +23,31 @@ locals {
     )
   if v.parent_type == "mac" }
 
-  cloud_init_oci = { for k, v in local.servers : k => templatefile(
-    "./templates/cloud_config.tftpl",
-    merge(
-      v,
-      {
-        tailscale_key = tailscale_tailnet_key.config[k].key
-        config = merge(
-          try(v.config, {}),
-          {
-            packages = []
-            timezone = var.default.timezone
-          }
-        )
-        user = merge(
-          try(v.user, {}),
-          {
-            password = htpasswd_password.server[k].sha512
-          }
-        )
-      }
+  cloud_init_oci = {
+    for k, v in local.servers : k => templatefile(
+      "./templates/cloud_config.tftpl",
+      merge(
+        v,
+        {
+          tailscale_key = tailscale_tailnet_key.config[k].key
+          config = merge(
+            try(v.config, {}),
+            {
+              packages = []
+              timezone = var.default.timezone
+            }
+          )
+          user = merge(
+            try(v.user, {}),
+            {
+              password = htpasswd_password.server[k].sha512
+            }
+          )
+        }
+      )
     )
-  ) if v.parent_name == "oci" }
+    if v.parent_name == "oci"
+  }
 
   cloud_init_proxmox = {
     for k, v in local.servers : k => templatefile(
@@ -83,19 +86,31 @@ locals {
     if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
   }
 
-  mac_servers = {
-    for k, v in local.servers : k => merge(
-      v,
-      {
-        network = merge(
-          try(v.network, {}),
-          {
-            mac_address = try(macaddress.config[k].address, "")
-          }
-        )
-      }
-    )
-  }
+  mac_servers_merged = merge([
+    for i, parent in local.servers : {
+      for k, server in local.servers : k => merge(
+        server,
+        {
+          config = merge(
+            try(server.config, {}),
+            {
+              parent_host = parent.host
+              parent_user = parent.user.username
+              parent_path = "${parent.config.parallels_path}/${server.name}"
+            }
+          )
+          network = merge(
+            try(server.network, {}),
+            {
+              mac_address = try(macaddress.config[k].address, "")
+            }
+          )
+        }
+      )
+      if server.parent_name == parent.name
+    }
+    if parent.type == "mac"
+  ]...)
 
   openwrt_websites_merged = merge([
     for i, website in local.cloudflare_websites_merged : {
@@ -118,6 +133,12 @@ locals {
             host        = server.location
             parent_name = ""
             parent_type = ""
+            network = merge(
+              try(server.network, {}),
+              {
+                ssh_port = try(server.network.ssh_port, 21)
+              }
+            )
             provider = merge(
               {
                 password = var.terraform.openwrt[server.name].password
@@ -147,6 +168,12 @@ locals {
               location    = try(parent.location, parent.parent)
               parent_name = parent.name
               parent_type = parent.type
+              network = merge(
+                try(server.network, {}),
+                {
+                  ssh_port = try(server.network.ssh_port, 21)
+                }
+              )
               user = merge(
                 {
                   fullname = "root"
@@ -180,6 +207,12 @@ locals {
           location    = var.terraform.oci.location
           parent_name = "oci"
           parent_type = "cloud"
+          network = merge(
+            try(server.network, {}),
+            {
+              ssh_port = try(server.network.ssh_port, 21)
+            }
+          )
           user = merge(
             try(server.user, {}),
             {

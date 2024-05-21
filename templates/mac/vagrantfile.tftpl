@@ -1,24 +1,20 @@
 Vagrant.configure("2") do |config|
-%{ for server in servers ~}
-  config.vm.define "${server.name}" do |instance|
-    instance.vm.box = "${server.config.boot_image}"
-    instance.vm.network "public_network"
-    instance.vm.synced_folder ".", "/vagrant", disabled: true
-    instance.vm.provision "shell", inline: "cloud-init clean; reboot"
-    instance.vm.provider "parallels" do |parallels|
-      parallels.cpus = ${server.config.cpus}
-      parallels.customize ["set", :id, "--autostart", "start-host"]
-      parallels.customize ["set", :id, "--autostop", "shutdown"]
-      parallels.customize ["set", :id, "--device-set", "cdrom0", "--image", "${server.name}.iso", "--connect"]
-      parallels.customize ["set", :id, "--device-set", "net1", "--mac", "${server.network.mac_address}"]
-      parallels.customize ["set", :id, "--isolate-vm", "on"]
-      parallels.customize ["set", :id, "--on-shutdown", "window"]
-      parallels.customize ["set", :id, "--sync-default-printer", "off"]
-      parallels.customize ["set", :id, "--sync-host-printers", "off"]
-      parallels.memory = ${server.config.memory * 1024}
-      parallels.name = "${server.name}"
-      parallels.update_guest_tools = true
-    end
+  config.vm.box = "${config.boot_image}"
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.provision "shell", inline: "cloud-init clean; reboot"
+  config.vm.provider "parallels" do |parallels|
+    parallels.cpus = ${config.cpus}
+    parallels.customize ["set", :id, "--autostart", "start-host"]
+    parallels.customize ["set", :id, "--autostop", "shutdown"]
+    parallels.customize ["set", :id, "--device-set", "cdrom0", "--image", "${config.parent_path}/${name}.iso", "--connect"]
+    parallels.customize ["set", :id, "--device-set", "net1", "--mac", "${network.mac_address}"]
+    parallels.customize ["set", :id, "--isolate-vm", "on"]
+    parallels.customize ["set", :id, "--on-shutdown", "window"]
+    parallels.customize ["set", :id, "--sync-default-printer", "off"]
+    parallels.customize ["set", :id, "--sync-host-printers", "off"]
+    parallels.memory = ${config.memory * 1024}
+    parallels.name = "${name}"
+    parallels.update_guest_tools = true
   end
-%{ endfor ~}
 end
