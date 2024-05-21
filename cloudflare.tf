@@ -12,7 +12,10 @@ resource "cloudflare_record" "router" {
 }
 
 resource "cloudflare_record" "server" {
-  for_each = { for k, v in local.servers : k => v if v.parent_type != "cloud" && v.tag != "router" }
+  for_each = {
+    for k, v in local.servers : k => v
+    if v.parent_type != "cloud" && v.tag != "router"
+  }
 
   name    = "${each.value.name}.${each.value.location}"
   type    = "CNAME"

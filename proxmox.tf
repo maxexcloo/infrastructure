@@ -1,20 +1,26 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
-  for_each = { for k, v in local.servers : k => v if v.parent_name == "gen8" }
+  for_each = {
+    for k, v in local.servers : k => v
+    if try(v.config.boot_image_url, "") != "" && v.parent_name == "gen8"
+  }
 
   content_type = "iso"
   datastore_id = "local"
   node_name    = each.value.parent
-  file_name    = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
+  file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
   provider     = proxmox.gen8
   url          = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
-  for_each = { for k, v in local.servers : k => v if v.parent_name == "kimbap" }
+  for_each = {
+    for k, v in local.servers : k => v
+    if try(v.config.boot_image_url, "") != "" && v.parent_name == "kimbap"
+  }
 
   content_type = "iso"
   datastore_id = "local"
-  file_name    = "${each.value.name}${endswith(try(each.value.config.boot_image_url, ""), ".iso") ? ".iso" : ".img"}"
+  file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
   node_name    = each.value.parent
   provider     = proxmox.kimbap
   url          = each.value.config.boot_image_url
@@ -23,7 +29,7 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
 resource "proxmox_virtual_environment_file" "gen8" {
   for_each = {
     for k, v in local.servers : k => v
-    if v.parent_name == "gen8" && endswith(try(v.config.boot_image_url, ""), ".img")
+    if !endswith(try(v.config.boot_image_url, ".iso"), ".iso") && v.parent_name == "gen8"
   }
 
   content_type = "snippets"
@@ -40,7 +46,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
 resource "proxmox_virtual_environment_file" "kimbap" {
   for_each = {
     for k, v in local.servers : k => v
-    if v.parent_name == "kimbap" && endswith(try(v.config.boot_image_url, ""), ".img")
+    if !endswith(try(v.config.boot_image_url, ".iso"), ".iso") && v.parent_name == "kimbap"
   }
 
   content_type = "snippets"
@@ -73,7 +79,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? null : proxmox_virtual_environment_download_file.gen8[each.key].id
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -98,7 +104,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
 
     content {
       enabled = true
@@ -117,7 +123,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   # dynamic "disk" {
-  #   for_each = try(each.value.config.physical_disks, [])
+  #   for_each = try(each.value.physical_disks, [])
 
   #   content {
   #     backup            = false
@@ -129,7 +135,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
 
     content {
       datastore_id      = "local-zfs"
@@ -170,7 +176,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ""), ".img") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
+    file_id      = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? null : proxmox_virtual_environment_download_file.kimbap[each.key].id
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -195,7 +201,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
 
     content {
       enabled = true
@@ -214,7 +220,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   # dynamic "disk" {
-  #   for_each = try(each.value.onfig.physical_disks, [])
+  #   for_each = try(each.value.physical_disks, [])
 
   #   content {
   #     backup            = false
@@ -226,7 +232,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".img") ? [true] : []
+    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
 
     content {
       datastore_id      = "local-zfs"

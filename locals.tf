@@ -92,6 +92,7 @@ locals {
         server,
         {
           config = merge(
+            try(parent.config, {}),
             try(server.config, {}),
             {
               parent_host = parent.host

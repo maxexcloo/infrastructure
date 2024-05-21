@@ -7,8 +7,8 @@ resource "ssh_resource" "mac" {
   when  = "create"
 
   commands = [
-    "cd ${each.value.config.parent_path} && /opt/homebrew/bin/mkisofs -joliet -output ${each.value.name}.iso -rock -volid cidata meta-data user-data",
-    "cd ${each.value.config.parent_path} && /usr/local/bin/vagrant up --machine-readable --provision"
+    "cd ${each.value.config.parent_path} && ${each.value.config.mkisofs_path} -joliet -output ${each.value.name}.iso -rock -volid cidata meta-data user-data",
+    "cd ${each.value.config.parent_path} && ${each.value.config.vagrant_path} up --machine-readable --provision"
   ]
 
   pre_commands = [
@@ -36,7 +36,7 @@ resource "ssh_resource" "mac-destroy" {
   when  = "destroy"
 
   commands = [
-    "cd ${each.value.config.parent_path} && /usr/local/bin/vagrant destroy --force",
+    "cd ${each.value.config.parent_path} && ${each.value.config.vagrant_path} destroy --force",
     "rm -rf ${each.value.config.parent_path}"
   ]
 }
