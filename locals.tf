@@ -149,9 +149,10 @@ locals {
             )
             user = merge(
               {
-                fullname = "root"
-                ssh_keys = data.github_user.config.ssh_keys
-                username = "root"
+                fullname            = "root"
+                ssh_keys            = data.github_user.config.ssh_keys
+                username            = "root"
+                username_automation = "root"
               },
               try(server.user, {})
             )
@@ -177,9 +178,10 @@ locals {
               )
               user = merge(
                 {
-                  fullname = "root"
-                  ssh_keys = data.github_user.config.ssh_keys
-                  username = "root"
+                  fullname            = "root"
+                  ssh_keys            = data.github_user.config.ssh_keys
+                  username            = "root"
+                  username_automation = server.type == "mac" ? try(server.user.username, "root") : try(server.user.username, "root") == "root" ? "root" : "automation"
                 },
                 try(server.user, {})
               )
@@ -217,9 +219,10 @@ locals {
           user = merge(
             try(server.user, {}),
             {
-              fullname = try(server.user.fullname, "root")
-              ssh_keys = data.github_user.config.ssh_keys
-              username = try(server.user.username, "root")
+              fullname            = try(server.user.fullname, "root")
+              ssh_keys            = data.github_user.config.ssh_keys
+              username            = try(server.user.username, "root")
+              username_automation = try(server.user.username_automation, "automation")
             }
           )
         }

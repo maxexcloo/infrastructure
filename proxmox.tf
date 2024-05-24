@@ -6,8 +6,9 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
 
   content_type = "iso"
   datastore_id = "local"
-  node_name    = each.value.parent
   file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
+  node_name    = each.value.parent
+  overwrite    = false
   provider     = proxmox.gen8
   url          = each.value.config.boot_image_url
 }
@@ -22,6 +23,7 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
   datastore_id = "local"
   file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
   node_name    = each.value.parent
+  overwrite    = false
   provider     = proxmox.kimbap
   url          = each.value.config.boot_image_url
 }

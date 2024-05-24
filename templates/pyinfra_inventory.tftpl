@@ -1,6 +1,18 @@
 hosts = [
 %{ for server in servers ~}
-    ("${server.host}", {"name": "${server.name}", "parent_name": "${server.parent_name}", "parent_type": "${server.parent_type}", "ssh_username": "${server.user.username}", "tag": "${server.tag}", "type": "${server.type}"}),
+    (
+        "${server.host}", 
+        {
+            "fqdn": "${server.fqdn}",
+            "host": "${server.host}",
+            "name": "${server.name}",
+            "parent_name": "${server.parent_name}",
+            "parent_type": "${server.parent_type}",
+            "ssh_user": "${server.user.username_automation}",
+            "tag": "${server.tag}",
+            "type": "${server.type}"
+        }
+    ),
 %{ endfor ~}
 ]
 

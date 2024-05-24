@@ -24,6 +24,14 @@ runcmd:
   - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${host}
   - tailscale set --auto-update
 users:
+%{ if user.username_automation != "root" ~}
+  - name: ${user.username_automation}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+%{ for ssh_key in user.ssh_keys ~}
+      - ${ssh_key}
+%{ endfor ~}
+%{ endif ~}
   - name: ${user.username}
     gecos: ${user.fullname}
     hashed_passwd: ${user.password}

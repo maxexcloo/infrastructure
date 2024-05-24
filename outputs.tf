@@ -7,23 +7,33 @@
 # }
 
 resource "local_file" "pyinfra_inventory" {
-  filename = "../PyInfra/inventory.py"
+  file_permission = "0644"
+  filename        = "../PyInfra/inventory.py"
 
-  content = templatefile(
-    "./templates/pyinfra_inventory.tftpl",
-    {
-      servers = local.servers
-    }
+
+  content = trim(
+    templatefile(
+      "./templates/pyinfra_inventory.tftpl",
+      {
+        servers           = local.servers
+        onepassword_vault = var.terraform.onepassword.vault
+      }
+    ),
+    "\n"
   )
 }
 
 resource "local_file" "ssh_config" {
-  filename = "${var.default.home}/.ssh/config"
+  file_permission = "0644"
+  filename        = "${var.default.home}/.ssh/config"
 
-  content = templatefile(
-    "./templates/ssh_config.tftpl",
-    {
-      servers = local.servers
-    }
+  content = trim(
+    templatefile(
+      "./templates/ssh_config.tftpl",
+      {
+        servers = local.servers
+      }
+    ),
+    "\n"
   )
 }

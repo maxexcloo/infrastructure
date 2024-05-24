@@ -1,6 +1,18 @@
 Include ~/.orbstack/ssh/config
 
 #############
+## Devices ##
+#############
+
+Host macbook-pro-14
+	HostName macbook-pro-14
+	User max.schaefer
+
+Host steam-deck
+	HostName steam-deck
+	User deck
+
+#############
 ## Servers ##
 #############
 
@@ -10,14 +22,3 @@ Host ${server.host}
 	User ${server.user.username}
 
 %{ endfor ~}
-###################
-## Uncategorised ##
-###################
-
-Host macbook-pro-14
-	HostName macbook-pro-14
-	User max.schaefer
-
-Host steam-deck
-	HostName steam-deck
-	User deck

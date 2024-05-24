@@ -55,7 +55,7 @@ resource "ssh_resource" "openwrt" {
   file {
     destination = "/etc/haproxy.cfg"
 
-    content = trimsuffix(
+    content = trim(
       templatefile(
         "./templates/openwrt/haproxy.cfg.tftpl",
         {
