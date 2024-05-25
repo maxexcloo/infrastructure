@@ -1,10 +1,10 @@
-output "server" {
-  value = local.servers_merged
-}
+# output "server" {
+#   value = local.servers_merged
+# }
 
-output "tags" {
-  value = local.tags
-}
+# output "tags" {
+#   value = local.tags
+# }
 
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
