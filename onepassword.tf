@@ -3,7 +3,7 @@ data "onepassword_vault" "infrastructure" {
 }
 
 resource "onepassword_item" "server" {
-  for_each = local.servers
+  for_each = local.servers_merged
 
   category = "login"
   password = random_password.server[each.key].result
@@ -27,7 +27,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = try(each.value.network.private_address, "") != "" ? [true] : []
+      for_each = each.value.network.private_address != "" ? [true] : []
 
       content {
         label = "private"
@@ -39,10 +39,10 @@ resource "onepassword_item" "server" {
 }
 
 resource "onepassword_item" "website" {
-  for_each = { for k, v in local.websites : k => v if try(v.username, "") != "" }
+  for_each = local.websites
 
   category = "login"
-  password = random_password.website[each.key].result
+  password = each.value.generate_password ? random_password.website[each.key].result : null
   title    = cloudflare_record.website[each.key].hostname
   url      = cloudflare_record.website[each.key].hostname
   username = each.value.username

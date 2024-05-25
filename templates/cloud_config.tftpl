@@ -1,15 +1,15 @@
 #cloud-config
-fqdn: ${fqdn}
-hostname: ${name}
+fqdn: ${server.fqdn}
+hostname: ${server.name}
 locale: en_AU
 package_reboot_if_required: true
 package_update: true
 package_upgrade: true
 ssh_pwauth: false
-timezone: ${config.timezone}
-%{ if length(config.packages) > 0 ~}
+timezone: ${server.config.timezone}
+%{ if length(server.config.packages) > 0 ~}
 packages:
-%{ for package in config.packages ~}
+%{ for package in server.config.packages ~}
   - ${package}
 %{ endfor ~}
 %{ endif ~}
@@ -17,28 +17,28 @@ runcmd:
   - sh -c "curl -fsLS https://tailscale.com/install.sh | sh"
   - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf"
   - sysctl -p /etc/sysctl.d/99-tailscale.conf
-%{ if contains(config.packages, "qemu-guest-agent") ~}
+%{ if contains(server.config.packages, "qemu-guest-agent") ~}
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
 %{ endif ~}
-  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${host}
+  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${server.host}
   - tailscale set --auto-update
 users:
-%{ if user.username_automation != "root" ~}
-  - name: ${user.username_automation}
+%{ if server.user.automation != "root" ~}
+  - name: ${server.user.automation}
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-%{ for ssh_key in user.ssh_keys ~}
+%{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}
 %{ endif ~}
-  - name: ${user.username}
-    gecos: ${user.fullname}
-    hashed_passwd: ${user.password}
+  - name: ${server.user.username}
+    gecos: ${server.user.fullname}
+    hashed_passwd: ${password}
     lock_passwd: false
     shell: /bin/bash
     sudo: ALL=(ALL:ALL) ALL
     ssh_authorized_keys:
-%{ for ssh_key in user.ssh_keys ~}
+%{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}

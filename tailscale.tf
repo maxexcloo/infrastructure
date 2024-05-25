@@ -1,4 +1,4 @@
-resource "tailscale_acl" "config" {
+resource "tailscale_acl" "default" {
   acl = jsonencode({
     acls = [
       {
@@ -19,8 +19,8 @@ resource "tailscale_acl" "config" {
   })
 }
 
-resource "tailscale_tailnet_key" "config" {
-  for_each = local.servers
+resource "tailscale_tailnet_key" "server" {
+  for_each = local.servers_merged
 
   description   = each.value.host
   preauthorized = true

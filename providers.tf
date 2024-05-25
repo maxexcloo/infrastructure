@@ -26,48 +26,48 @@ provider "onepassword" {
 
 provider "openwrt" {
   alias    = "au"
-  hostname = local.servers["au.excloo.net"].host
-  password = local.servers["au.excloo.net"].provider.password
-  port     = local.servers["au.excloo.net"].provider.port
+  hostname = local.routers["au.excloo.net"].host
+  password = local.routers["au.excloo.net"].provider.password
+  port     = local.routers["au.excloo.net"].provider.port
 }
 
 provider "openwrt" {
   alias    = "kr"
-  hostname = local.servers["kr.excloo.net"].host
-  password = local.servers["kr.excloo.net"].provider.password
-  port     = local.servers["kr.excloo.net"].provider.port
+  hostname = local.routers["kr.excloo.net"].host
+  password = local.routers["kr.excloo.net"].provider.password
+  port     = local.routers["kr.excloo.net"].provider.port
 }
 
 provider "proxmox" {
   alias     = "gen8"
-  api_token = local.servers["gen8.au.excloo.net"].provider.api_token
-  endpoint  = "https://${local.servers["gen8.au.excloo.net"].host}:${local.servers["gen8.au.excloo.net"].provider.port}/"
-  insecure  = local.servers["gen8.au.excloo.net"].provider.insecure
+  api_token = local.servers_proxmox["gen8.au.excloo.net"].provider.api_token
+  endpoint  = "https://${local.servers_proxmox["gen8.au.excloo.net"].host}:${local.servers_proxmox["gen8.au.excloo.net"].provider.port}/"
+  insecure  = local.servers_proxmox["gen8.au.excloo.net"].provider.insecure
 
   ssh {
     agent    = true
-    username = local.servers["gen8.au.excloo.net"].user.username
+    username = local.servers_proxmox["gen8.au.excloo.net"].user.username
 
     node {
-      name    = local.servers["gen8.au.excloo.net"].name
-      address = local.servers["gen8.au.excloo.net"].host
+      name    = local.servers_proxmox["gen8.au.excloo.net"].name
+      address = local.servers_proxmox["gen8.au.excloo.net"].host
     }
   }
 }
 
 provider "proxmox" {
   alias     = "kimbap"
-  api_token = local.servers["kimbap.kr.excloo.net"].provider.api_token
-  endpoint  = "https://${local.servers["kimbap.kr.excloo.net"].host}:${local.servers["kimbap.kr.excloo.net"].provider.port}/"
-  insecure  = local.servers["kimbap.kr.excloo.net"].provider.insecure
+  api_token = local.servers_proxmox["kimbap.kr.excloo.net"].provider.api_token
+  endpoint  = "https://${local.servers_proxmox["kimbap.kr.excloo.net"].host}:${local.servers_proxmox["kimbap.kr.excloo.net"].provider.port}/"
+  insecure  = local.servers_proxmox["kimbap.kr.excloo.net"].provider.insecure
 
   ssh {
     agent    = true
-    username = local.servers["kimbap.kr.excloo.net"].user.username
+    username = local.servers_proxmox["kimbap.kr.excloo.net"].user.username
 
     node {
-      name    = local.servers["kimbap.kr.excloo.net"].name
-      address = local.servers["kimbap.kr.excloo.net"].host
+      name    = local.servers_proxmox["kimbap.kr.excloo.net"].name
+      address = local.servers_proxmox["kimbap.kr.excloo.net"].host
     }
   }
 }

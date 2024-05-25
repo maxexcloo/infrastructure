@@ -1,242 +1,18 @@
 locals {
-  cloud_init_mac = { for k, v in local.servers : k => templatefile(
-    "./templates/cloud_config.tftpl",
-    merge(
-      v,
-      {
-        tailscale_key = tailscale_tailnet_key.config[k].key
-        config = merge(
-          try(v.config, {}),
-          {
-            packages = []
-            timezone = var.default.timezone
-          }
-        )
-        user = merge(
-          try(v.user, {}),
-          {
-            password = htpasswd_password.server[k].sha512
-          }
-        )
-      }
-    )
-    )
-  if v.parent_type == "mac" }
-
-  cloud_init_oci = {
-    for k, v in local.servers : k => templatefile(
-      "./templates/cloud_config.tftpl",
-      merge(
-        v,
-        {
-          tailscale_key = tailscale_tailnet_key.config[k].key
-          config = merge(
-            try(v.config, {}),
-            {
-              packages = []
-              timezone = var.default.timezone
-            }
-          )
-          user = merge(
-            try(v.user, {}),
-            {
-              password = htpasswd_password.server[k].sha512
-            }
-          )
-        }
-      )
-    )
-    if v.parent_name == "oci"
-  }
-
-  cloud_init_proxmox = {
-    for k, v in local.servers : k => templatefile(
-      "./templates/cloud_config.tftpl",
-      merge(
-        v,
-        {
-          tailscale_key = tailscale_tailnet_key.config[k].key
-          config = merge(
-            try(v.config, {}),
-            {
-              packages = ["qemu-guest-agent"]
-              timezone = var.default.timezone
-            }
-          )
-          user = merge(
-            try(v.user, {}),
-            {
-              password = htpasswd_password.server[k].sha512
-            }
-          )
-        }
-      )
-    )
-    if v.parent_type == "proxmox"
-  }
-
-  cloudflare_websites_merged = {
+  cloudflare_records_merged = {
     for k, v in merge(
+      cloudflare_record.dns,
       cloudflare_record.router,
       cloudflare_record.server,
-      cloudflare_record.server_oci_ipv4,
-      cloudflare_record.server_oci_ipv6,
+      cloudflare_record.vm_oci_ipv4,
+      cloudflare_record.vm_oci_ipv6,
       cloudflare_record.website
     ) : k => v
     if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
   }
 
-  mac_servers_merged = merge([
-    for i, parent in local.servers : {
-      for k, server in local.servers : k => merge(
-        server,
-        {
-          config = merge(
-            try(parent.config, {}),
-            try(server.config, {}),
-            {
-              parent_host = parent.host
-              parent_user = parent.user.username
-              parent_path = "${parent.config.parallels_path}/${server.name}"
-            }
-          )
-          network = merge(
-            try(server.network, {}),
-            {
-              mac_address = try(macaddress.config[k].address, "")
-            }
-          )
-        }
-      )
-      if server.parent_name == parent.name
-    }
-    if parent.type == "mac"
-  ]...)
-
-  openwrt_websites_merged = merge([
-    for i, website in local.cloudflare_websites_merged : {
-      for k, server in local.servers : i => {
-        fqdn     = website.hostname
-        host     = server.host
-        location = server.location
-      }
-      if(server.fqdn == website.hostname || server.fqdn == website.value) && server.parent_type != "cloud" && server.tag != "router"
-    }
-  ]...)
-
-  servers = merge(
-    merge(
-      {
-        for i, server in var.servers : "${server.location}.${var.default.domain}" => merge(
-          server,
-          {
-            fqdn        = "${server.location}.${var.default.domain}"
-            host        = server.location
-            parent_name = ""
-            parent_type = ""
-            network = merge(
-              try(server.network, {}),
-              {
-                ssh_port = try(server.network.ssh_port, 21)
-              }
-            )
-            provider = merge(
-              {
-                password = var.terraform.openwrt[server.name].password
-                port     = try(var.terraform.openwrt[server.name].port, 81)
-              },
-              try(server.provider, {})
-            )
-            user = merge(
-              {
-                fullname            = "root"
-                ssh_keys            = data.github_user.config.ssh_keys
-                username            = "root"
-                username_automation = "root"
-              },
-              try(server.user, {})
-            )
-          }
-        )
-        if server.tag == "router"
-      },
-      [
-        for i, server in var.servers : {
-          for i, parent in var.servers : "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}" => merge(
-            server,
-            {
-              fqdn        = "${server.name}.${try(parent.location, parent.parent)}.${var.default.domain}"
-              host        = "${try(parent.location, parent.parent)}-${server.name}"
-              location    = try(parent.location, parent.parent)
-              parent_name = parent.name
-              parent_type = parent.type
-              network = merge(
-                try(server.network, {}),
-                {
-                  ssh_port = try(server.network.ssh_port, 21)
-                }
-              )
-              user = merge(
-                {
-                  fullname            = "root"
-                  ssh_keys            = data.github_user.config.ssh_keys
-                  username            = "root"
-                  username_automation = server.type == "mac" ? try(server.user.username, "root") : try(server.user.username, "root") == "root" ? "root" : "automation"
-                },
-                try(server.user, {})
-              )
-            },
-            server.type == "proxmox" ? {
-              provider = merge(
-                {
-                  api_token = var.terraform.proxmox[server.name].api_token
-                  insecure  = try(var.terraform.proxmox[server.name].insecure, true)
-                  port      = try(var.terraform.proxmox[server.name].port, 8006)
-                },
-                try(server.provider, {})
-              )
-            } : {}
-          )
-          if try(parent.name, "") == server.parent
-        }
-        if server.tag != "router"
-    ]...),
-    {
-      for i, server in var.servers : "${server.name}.${var.terraform.oci.location}.${var.default.domain}" => merge(
-        server,
-        {
-          fqdn        = "${server.name}.${var.terraform.oci.location}.${var.default.domain}"
-          host        = "${var.terraform.oci.location}-${server.name}"
-          location    = var.terraform.oci.location
-          parent_name = "oci"
-          parent_type = "cloud"
-          network = merge(
-            try(server.network, {}),
-            {
-              ssh_port = try(server.network.ssh_port, 21)
-            }
-          )
-          user = merge(
-            try(server.user, {}),
-            {
-              fullname            = try(server.user.fullname, "root")
-              ssh_keys            = data.github_user.config.ssh_keys
-              username            = try(server.user.username, "root")
-              username_automation = try(server.user.username_automation, "automation")
-            }
-          )
-        }
-      )
-      if try(server.parent, "") == "oci"
-    }
-  )
-
-  tags = distinct([
-    for i, server in var.servers : server.tag
-  ])
-
-  websites = merge([
-    for zone, records in var.websites : {
+  dns = merge([
+    for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
         record,
         {
@@ -245,4 +21,285 @@ locals {
       )
     }
   ]...)
+
+  routers = merge({
+    for i, router in var.routers : "${router.location}.${var.default.domain}" => merge(
+      router,
+      {
+        fqdn        = "${router.location}.${var.default.domain}"
+        host        = router.location
+        name        = router.location
+        parent_name = ""
+        parent_type = ""
+        tag         = "router"
+        network = merge(
+          {
+            mac_address     = ""
+            private_address = ""
+            public_address  = ""
+            ssh_port        = 22
+          },
+          try(router.network, {})
+        )
+        provider = merge(
+          {
+            port = 81
+          },
+          var.terraform.openwrt[router.location]
+        )
+        user = merge(
+          {
+            automation = "root"
+            fullname   = ""
+            ssh_keys   = data.github_user.default.ssh_keys
+            username   = "root"
+          },
+          try(router.user, {})
+        )
+      }
+    )
+  })
+
+  servers_mac = merge([
+    for i, router in local.routers : {
+      for i, server in var.servers_mac : "${server.name}.${router.location}.${var.default.domain}" => merge(
+        server,
+        {
+          fqdn        = "${server.name}.${router.location}.${var.default.domain}"
+          host        = "${router.location}-${server.name}"
+          location    = router.location
+          parent_name = router.name
+          parent_type = router.type
+          tag         = "server"
+          type        = "mac"
+          network = merge(
+            {
+              mac_address     = ""
+              private_address = ""
+              public_address  = cloudflare_record.router["${router.location}.${var.default.domain}"].name
+              ssh_port        = 22
+            },
+            try(server.network, {})
+          )
+          user = merge(
+            {
+              automation = "root"
+              fullname   = ""
+              ssh_keys   = data.github_user.default.ssh_keys
+              username   = "root"
+            },
+            try(server.user, {})
+          )
+        },
+      )
+      if server.parent == router.name
+    }
+  ]...)
+
+  servers_merged = merge(
+    local.routers,
+    local.servers_mac,
+    local.servers_proxmox,
+    local.vms_mac,
+    local.vms_oci,
+    local.vms_proxmox
+  )
+
+  servers_merged_cloudflare = {
+    for k, v in local.servers_merged : k => v
+    if v.parent_type != "cloud" && v.tag != "router"
+  }
+
+  servers_proxmox = merge([
+    for i, router in local.routers : {
+      for i, server in var.servers_proxmox : "${server.name}.${router.location}.${var.default.domain}" => merge(
+        server,
+        {
+          fqdn        = "${server.name}.${router.location}.${var.default.domain}"
+          host        = "${router.location}-${server.name}"
+          location    = router.location
+          parent_name = router.name
+          parent_type = router.type
+          tag         = "server"
+          type        = "proxmox"
+          network = merge(
+            {
+              mac_address     = ""
+              private_address = ""
+              public_address  = cloudflare_record.router["${router.location}.${var.default.domain}"].name
+              ssh_port        = 22
+            },
+            try(server.network, {})
+          )
+          provider = merge(
+            {
+              api_token = var.terraform.proxmox[server.name].api_token
+              insecure  = try(var.terraform.proxmox[server.name].insecure, true)
+              port      = try(var.terraform.proxmox[server.name].port, 8006)
+            },
+            try(server.provider, {})
+          )
+          user = merge(
+            {
+              automation = "root"
+              fullname   = ""
+              ssh_keys   = data.github_user.default.ssh_keys
+              username   = "root"
+            },
+            try(server.user, {})
+          )
+        },
+      )
+      if server.parent == router.name
+    }
+  ]...)
+
+  vms_mac = merge([
+    for i, server in local.servers_mac : {
+      for i, vm in var.vms_mac : "${vm.name}.${server.location}.${var.default.domain}" => merge(
+        vm,
+        {
+          fqdn        = "${vm.name}.${server.location}.${var.default.domain}"
+          host        = "${server.location}-${vm.name}"
+          location    = server.location
+          parent_name = server.name
+          parent_type = server.type
+          tag         = "vm"
+          config = merge(
+            {
+              packages = []
+              timezone = var.default.timezone
+            },
+            try(vm.config, {})
+          )
+          network = merge(
+            {
+              mac_address     = macaddress.server_mac[i].address
+              private_address = ""
+              public_address  = cloudflare_record.router["${server.location}.${var.default.domain}"].name
+              ssh_port        = 22
+            },
+            try(vm.network, {})
+          )
+          provider = merge(
+            {
+              host     = server.host
+              path     = "${server.config.vms_path}/${vm.name}"
+              port     = server.network.ssh_port
+              username = server.user.username
+            },
+            try(server.config, {})
+          )
+          user = merge(
+            {
+              automation = "root"
+              fullname   = ""
+              ssh_keys   = data.github_user.default.ssh_keys
+              username   = "root"
+            },
+            try(vm.user, {})
+          )
+        },
+      )
+      if vm.parent == server.name
+    }
+  ]...)
+
+  vms_oci = merge({
+    for i, vm in var.vms_oci : "${vm.name}.${vm.location}.${var.default.domain}" => merge(
+      vm,
+      {
+        fqdn        = "${vm.name}.${vm.location}.${var.default.domain}"
+        host        = "${vm.location}-${vm.name}"
+        parent_name = "oci"
+        parent_type = "cloud"
+        tag         = "vm"
+        config = merge(
+          {
+            packages = []
+            timezone = var.default.timezone
+          },
+          try(vm.config, {})
+        )
+        network = merge(
+          {
+            private_address = ""
+            ssh_port        = 22
+          },
+          try(vm.network, {})
+        )
+        user = merge(
+          {
+            automation = "root"
+            fullname   = ""
+            ssh_keys   = data.github_user.default.ssh_keys
+            username   = "root"
+          },
+          try(vm.user, {})
+        )
+      }
+    )
+  })
+
+  vms_proxmox = merge([
+    for i, server in local.servers_proxmox : {
+      for i, vm in var.vms_proxmox : "${vm.name}.${server.location}.${var.default.domain}" => merge(
+        vm,
+        {
+          fqdn        = "${vm.name}.${server.location}.${var.default.domain}"
+          host        = "${server.location}-${vm.name}"
+          location    = server.location
+          parent_name = server.name
+          parent_type = server.type
+          tag         = "vm"
+          config = merge(
+            {
+              boot_image_url = ""
+              packages       = ["qemu-guest-agent"]
+              timezone       = var.default.timezone
+            },
+            try(vm.config, {})
+          )
+          network = merge(
+            {
+              private_address = ""
+              public_address  = cloudflare_record.router["${server.location}.${var.default.domain}"].name
+              ssh_port        = 22
+            },
+            try(vm.network, {})
+          )
+          user = merge(
+            {
+              automation = "root"
+              fullname   = ""
+              ssh_keys   = data.github_user.default.ssh_keys
+              username   = "root"
+            },
+            try(vm.user, {})
+          )
+        },
+      )
+      if vm.parent == server.name
+    }
+  ]...)
+
+  tags = distinct([
+    for i, v in local.servers_merged : v.tag
+  ])
+
+  websites = merge([
+    for zone, websites in var.websites : {
+      for i, website in websites : "${website.name}.${zone}" => merge(
+        website,
+        {
+          zone = zone
+        }
+      )
+    }
+  ]...)
+
+  zones = merge(
+    var.dns,
+    var.websites
+  )
 }

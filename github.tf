@@ -1,3 +1,3 @@
-data "github_user" "config" {
+data "github_user" "default" {
   username = ""
 }

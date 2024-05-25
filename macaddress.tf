@@ -1,5 +1,5 @@
-resource "macaddress" "config" {
-  for_each = { for k, v in local.servers : k => v if v.parent_type == "mac" }
+resource "macaddress" "server_mac" {
+  for_each = { for i, v in var.servers_mac : i => v }
 
   prefix = [0, 28, 66]
 }

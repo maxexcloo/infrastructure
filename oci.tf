@@ -1,17 +1,17 @@
-data "oci_core_ipv6s" "config" {
-  for_each = data.oci_core_vnic_attachments.config
+data "oci_core_ipv6s" "vm" {
+  for_each = data.oci_core_vnic_attachments.vm
 
   vnic_id = each.value.vnic_attachments[0].id
 }
 
-data "oci_core_vnic" "config" {
-  for_each = data.oci_core_vnic_attachments.config
+data "oci_core_vnic" "vm" {
+  for_each = data.oci_core_vnic_attachments.vm
 
   vnic_id = each.value.vnic_attachments[0].vnic_id
 }
 
-data "oci_core_vnic_attachments" "config" {
-  for_each = oci_core_instance.config
+data "oci_core_vnic_attachments" "vm" {
+  for_each = oci_core_instance.vm
 
   compartment_id = var.terraform.oci.tenancy_ocid
   instance_id    = each.value.id
@@ -85,8 +85,8 @@ resource "oci_core_default_security_list" "au" {
   }
 }
 
-resource "oci_core_instance" "config" {
-  for_each = { for k, v in local.servers : k => v if v.parent_name == "oci" }
+resource "oci_core_instance" "vm" {
+  for_each = local.vms_oci
 
   availability_domain = data.oci_identity_availability_domain.au.name
   compartment_id      = var.terraform.oci.tenancy_ocid
@@ -94,7 +94,14 @@ resource "oci_core_instance" "config" {
   shape               = each.value.config.shape
 
   metadata = {
-    user_data = base64encode(local.cloud_init_oci[each.key])
+    user_data = base64encode(templatefile(
+      "./templates/cloud_config.tftpl",
+      {
+        password      = htpasswd_password.server[each.key].sha512
+        server        = each.value
+        tailscale_key = tailscale_tailnet_key.server[each.key].key
+      }
+    ))
   }
 
   create_vnic_details {

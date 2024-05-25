@@ -1,4 +1,11 @@
 variable "default" {}
-variable "servers" {}
+variable "devices" {}
+variable "dns" {}
+variable "routers" {}
+variable "servers_mac" {}
+variable "servers_proxmox" {}
 variable "terraform" {}
+variable "vms_mac" {}
+variable "vms_oci" {}
+variable "vms_proxmox" {}
 variable "websites" {}

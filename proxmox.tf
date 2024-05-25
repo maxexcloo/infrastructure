@@ -1,7 +1,7 @@
 resource "proxmox_virtual_environment_download_file" "gen8" {
   for_each = {
-    for k, v in local.servers : k => v
-    if try(v.config.boot_image_url, "") != "" && v.parent_name == "gen8"
+    for k, vm in local.vms_proxmox : k => vm
+    if vm.config.boot_image_url != "" && vm.parent_name == "gen8"
   }
 
   content_type = "iso"
@@ -15,8 +15,8 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
   for_each = {
-    for k, v in local.servers : k => v
-    if try(v.config.boot_image_url, "") != "" && v.parent_name == "kimbap"
+    for k, vm in local.vms_proxmox : k => vm
+    if vm.config.boot_image_url != "" && vm.parent_name == "kimbap"
   }
 
   content_type = "iso"
@@ -30,8 +30,8 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
 
 resource "proxmox_virtual_environment_file" "gen8" {
   for_each = {
-    for k, v in local.servers : k => v
-    if !endswith(try(v.config.boot_image_url, ".iso"), ".iso") && v.parent_name == "gen8"
+    for k, vm in local.vms_proxmox : k => vm
+    if endswith(vm.config.boot_image_url, ".img") && vm.parent_name == "gen8"
   }
 
   content_type = "snippets"
@@ -40,15 +40,23 @@ resource "proxmox_virtual_environment_file" "gen8" {
   provider     = proxmox.gen8
 
   source_raw {
-    data      = local.cloud_init_proxmox[each.key]
     file_name = "${each.value.name}.yaml"
+
+    data = templatefile(
+      "./templates/cloud_config.tftpl",
+      {
+        password      = htpasswd_password.server[each.key].sha512
+        server        = each.value
+        tailscale_key = tailscale_tailnet_key.server[each.key].key
+      }
+    )
   }
 }
 
 resource "proxmox_virtual_environment_file" "kimbap" {
   for_each = {
-    for k, v in local.servers : k => v
-    if !endswith(try(v.config.boot_image_url, ".iso"), ".iso") && v.parent_name == "kimbap"
+    for k, vm in local.vms_proxmox : k => vm
+    if endswith(vm.config.boot_image_url, ".img") && vm.parent_name == "kimbap"
   }
 
   content_type = "snippets"
@@ -57,13 +65,21 @@ resource "proxmox_virtual_environment_file" "kimbap" {
   provider     = proxmox.kimbap
 
   source_raw {
-    data      = local.cloud_init_proxmox[each.key]
     file_name = "${each.value.name}.yaml"
+
+    data = templatefile(
+      "./templates/cloud_config.tftpl",
+      {
+        password      = htpasswd_password.server[each.key].sha512
+        server        = each.value
+        tailscale_key = tailscale_tailnet_key.server[each.key].key
+      }
+    )
   }
 }
 
 resource "proxmox_virtual_environment_vm" "gen8" {
-  for_each = { for k, v in local.servers : k => v if v.parent_name == "gen8" }
+  for_each = { for k, vm in local.vms_proxmox : k => vm if vm.parent_name == "gen8" }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -81,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? null : proxmox_virtual_environment_download_file.gen8[each.key].id
+    file_id      = endswith(each.value.config.boot_image_url, ".img") ? proxmox_virtual_environment_download_file.gen8[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -106,7 +122,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
+    for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []
 
     content {
       enabled = true
@@ -115,7 +131,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 
   dynamic "cdrom" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
+    for_each = endswith(each.value.config.boot_image_url, ".iso") ? [true] : []
 
     content {
       enabled   = true
@@ -137,7 +153,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
+    for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []
 
     content {
       datastore_id      = "local-zfs"
@@ -160,7 +176,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
-  for_each = { for k, v in local.servers : k => v if v.parent_name == "kimbap" }
+  for_each = { for k, v in local.vms_proxmox : k => v if v.parent_name == "kimbap" }
 
   bios          = "ovmf"
   machine       = "q35"
@@ -178,7 +194,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? null : proxmox_virtual_environment_download_file.kimbap[each.key].id
+    file_id      = endswith(each.value.config.boot_image_url, ".img") ? proxmox_virtual_environment_download_file.kimbap[each.key].id : null
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.disk_size
@@ -203,7 +219,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   dynamic "agent" {
-    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
+    for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []
 
     content {
       enabled = true
@@ -212,7 +228,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   }
 
   dynamic "cdrom" {
-    for_each = endswith(try(each.value.config.boot_image_url, ""), ".iso") ? [true] : []
+    for_each = endswith(each.value.config.boot_image_url, ".iso") ? [true] : []
 
     content {
       enabled   = true
@@ -234,7 +250,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
   # }
 
   dynamic "initialization" {
-    for_each = endswith(try(each.value.config.boot_image_url, ".iso"), ".iso") ? [] : [true]
+    for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []
 
     content {
       datastore_id      = "local-zfs"
