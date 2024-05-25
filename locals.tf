@@ -174,7 +174,7 @@ locals {
           )
           network = merge(
             {
-              mac_address     = macaddress.server_mac[i].address
+              mac_address     = upper(macaddress.server_mac[i].address)
               private_address = ""
               public_address  = cloudflare_record.router["${server.location}.${var.default.domain}"].name
               ssh_port        = 22
@@ -295,6 +295,17 @@ locals {
           zone = zone
         }
       )
+    }
+  ]...)
+
+  websites_merged_openwrt = merge([
+    for k, server in local.servers_merged_cloudflare : {
+      for i, website in local.cloudflare_records_merged : i => {
+        fqdn     = website.hostname
+        host     = server.host
+        location = server.location
+      }
+      if server.fqdn == website.hostname || server.fqdn == website.value
     }
   ]...)
 
