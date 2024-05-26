@@ -159,6 +159,13 @@ locals {
     }
   ]...)
 
+  ssh_keys = {
+    for k, v in tls_private_key.server : k => {
+      private_key = replace(nonsensitive(v.private_key_openssh), "\n", "")
+      public_key  = replace(v.public_key_openssh, "\n", "")
+    }
+  }
+
   vms_mac = merge([
     for i, server in local.servers_mac : {
       for i, vm in var.vms_mac : "${vm.name}.${server.location}.${var.default.domain}" => merge(

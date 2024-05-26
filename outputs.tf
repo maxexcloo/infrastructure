@@ -1,10 +1,10 @@
-# output "server" {
-#   value = local.servers_merged
-# }
+output "server" {
+  value = local.servers_merged
+}
 
-# output "tags" {
-#   value = local.tags
-# }
+output "ssh_keys" {
+  value = local.ssh_keys
+}
 
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
@@ -14,8 +14,10 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "./templates/pyinfra_inventory.tftpl",
     {
-      servers           = local.servers_merged
-      onepassword_vault = var.terraform.onepassword.vault
+      cloudflare_tunnels = cloudflare_tunnel.server
+      onepassword_vault  = var.terraform.onepassword.vault
+      servers            = local.servers_merged
+      tailscale_keys     = tailscale_tailnet_key.server
     }
   )
 }

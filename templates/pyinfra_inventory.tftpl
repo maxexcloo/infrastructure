@@ -5,12 +5,14 @@ hosts = [
         {
             "ssh_port": "${server.network.ssh_port}",
             "ssh_user": "${server.user.automation}",
+            "cloudflare_tunnel_token": "${cloudflare_tunnels[server.fqdn].tunnel_token}",
             "fqdn": "${server.fqdn}",
             "host": "${server.host}",
             "name": "${server.name}",
             "parent_name": "${server.parent_name}",
             "parent_type": "${server.parent_type}",
             "tags": ${jsonencode(server.tags)},
+            "tailscale_key": "${tailscale_keys[server.fqdn].key}",
             "type": "${server.type}",
             "username": "${server.user.username}"
         }
