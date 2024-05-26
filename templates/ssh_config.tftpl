@@ -7,6 +7,7 @@ Include ~/.orbstack/ssh/config
 
 Host ${device.host}
 	HostName ${device.host}
+	Port ${try(device.port, 22)}
 	User ${device.username}
 %{ endfor ~}
 
@@ -17,5 +18,6 @@ Host ${device.host}
 
 Host ${server.host}
 	HostName ${server.host}
+	Port ${server.network.ssh_port}
 	User ${server.user.username}
 %{ endfor ~}

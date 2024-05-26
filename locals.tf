@@ -31,7 +31,7 @@ locals {
         name        = router.location
         parent_name = ""
         parent_type = ""
-        tag         = "router"
+        tags        = concat(["router"], try(router.tags, []))
         network = merge(
           {
             mac_address     = ""
@@ -70,7 +70,7 @@ locals {
           location    = router.location
           parent_name = router.name
           parent_type = router.type
-          tag         = "server"
+          tags        = concat(["server"], try(router.tags, []))
           type        = "mac"
           network = merge(
             {
@@ -107,7 +107,7 @@ locals {
 
   servers_merged_cloudflare = {
     for k, v in local.servers_merged : k => v
-    if v.parent_type != "cloud" && v.tag != "router"
+    if v.parent_type != "cloud" && v.tags[0] != "router"
   }
 
   servers_proxmox = merge([
@@ -120,7 +120,7 @@ locals {
           location    = router.location
           parent_name = router.name
           parent_type = router.type
-          tag         = "server"
+          tags        = concat(["server"], try(server.tags, []))
           type        = "proxmox"
           network = merge(
             {
@@ -164,7 +164,7 @@ locals {
           location    = server.location
           parent_name = server.name
           parent_type = server.type
-          tag         = "vm"
+          tags        = concat(["vm"], try(vm.tags, []))
           config = merge(
             {
               packages = []
@@ -213,7 +213,7 @@ locals {
         host        = "${vm.location}-${vm.name}"
         parent_name = "oci"
         parent_type = "cloud"
-        tag         = "vm"
+        tags        = concat(["vm"], try(vm.tags, []))
         config = merge(
           {
             packages = []
@@ -251,7 +251,7 @@ locals {
           location    = server.location
           parent_name = server.name
           parent_type = server.type
-          tag         = "vm"
+          tags        = concat(["vm"], try(vm.tags, []))
           config = merge(
             {
               boot_image_url = ""
@@ -284,7 +284,7 @@ locals {
   ]...)
 
   tags = distinct([
-    for i, v in local.servers_merged : v.tag
+    for i, v in local.servers_merged : v.tags[0]
   ])
 
   websites = merge([

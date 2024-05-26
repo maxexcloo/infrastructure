@@ -25,5 +25,5 @@ resource "tailscale_tailnet_key" "server" {
   description   = each.value.host
   preauthorized = true
   reusable      = true
-  tags          = ["tag:${each.value.tag}"]
+  tags          = ["tag:${each.value.tags[0]}"]
 }
