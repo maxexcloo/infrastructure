@@ -99,6 +99,7 @@ resource "oci_core_instance" "vm" {
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
+        ssh_keys      = tls_private_key.server
         tailscale_key = tailscale_tailnet_key.server[each.key].key
       }
     ))

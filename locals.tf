@@ -110,6 +110,11 @@ locals {
     if v.parent_type != "cloud" && v.tags[0] != "router"
   }
 
+  servers_merged_ssh = {
+    for k, v in local.servers_merged : k => v
+    if v.tags[0] == "server"
+  }
+
   servers_proxmox = merge([
     for i, router in local.routers : {
       for i, server in var.servers_proxmox : "${server.name}.${router.location}.${var.default.domain}" => merge(

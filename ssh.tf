@@ -1,3 +1,60 @@
+resource "ssh_resource" "router" {
+  for_each = {
+    for k, v in local.routers : k => v
+    if v.name == "au"
+  }
+
+  agent = true
+  host  = each.value.host
+  port  = each.value.network.ssh_port
+  user  = each.value.user.username
+
+  commands = [
+    "/etc/rc.d/S19dropbear restart",
+    "/etc/rc.d/S99haproxy restart"
+  ]
+
+  file {
+    content     = "${join("\n", concat([trimspace(tls_private_key.server[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
+    destination = "/etc/dropbear/authorized_keys"
+  }
+
+  file {
+    destination = "/etc/haproxy.cfg"
+
+    content = trim(
+      templatefile(
+        "./templates/openwrt/haproxy.cfg.tftpl",
+        {
+          servers = {
+            for k, v in local.servers_merged_cloudflare : k => v
+            if v.host != each.value.host && v.location == each.value.location && v.network.private_address != ""
+          }
+          websites = {
+            for k, v in local.websites_merged_openwrt : k => v
+            if v.host != each.value.location && v.location == each.value.location
+          }
+        }
+      ),
+      "\n"
+    )
+  }
+}
+
+resource "ssh_resource" "server" {
+  for_each = local.servers_merged_ssh
+
+  agent = true
+  host  = each.value.host
+  port  = each.value.network.ssh_port
+  user  = each.value.user.username
+
+  file {
+    content     = "${join("\n", concat([trimspace(tls_private_key.server[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
+    destination = "~/.ssh/authorized_keys"
+  }
+}
+
 resource "ssh_resource" "vm_mac" {
   for_each = local.vms_mac
   when     = "create"
@@ -30,6 +87,7 @@ resource "ssh_resource" "vm_mac" {
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
+        ssh_keys      = tls_private_key.server
         tailscale_key = tailscale_tailnet_key.server[each.key].key
       }
     )
@@ -49,41 +107,4 @@ resource "ssh_resource" "vm_mac-destroy" {
     "cd ${each.value.provider.path} && ${each.value.provider.vagrant_path} destroy --force",
     "rm -rf ${each.value.provider.path}"
   ]
-}
-
-resource "ssh_resource" "router" {
-  for_each = {
-    for k, v in local.routers : k => v
-    if v.name == "au"
-  }
-
-  agent = true
-  host  = each.value.host
-  port  = each.value.network.ssh_port
-  user  = each.value.user.username
-
-  commands = [
-    "/etc/rc.d/S99haproxy restart"
-  ]
-
-  file {
-    destination = "/etc/haproxy.cfg"
-
-    content = trim(
-      templatefile(
-        "./templates/openwrt/haproxy.cfg.tftpl",
-        {
-          servers = {
-            for k, v in local.servers_merged_cloudflare : k => v
-            if v.host != each.value.host && v.location == each.value.location && v.network.private_address != ""
-          }
-          websites = {
-            for k, v in local.websites_merged_openwrt : k => v
-            if v.host != each.value.location && v.location == each.value.location
-          }
-        }
-      ),
-      "\n"
-    )
-  }
 }

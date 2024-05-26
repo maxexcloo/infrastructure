@@ -1,4 +1,5 @@
 #cloud-config
+disable_root: false
 fqdn: ${server.fqdn}
 hostname: ${server.name}
 locale: en_AU
@@ -24,14 +25,12 @@ runcmd:
   - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${server.host}
   - tailscale set --auto-update
 users:
-%{ if server.user.automation != "root" ~}
   - name: ${server.user.automation}
-    sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
+      - ${trimspace(ssh_keys[server.fqdn].public_key_openssh)}
 %{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}
-%{ endif ~}
   - name: ${server.user.username}
     gecos: ${server.user.fullname}
     hashed_passwd: ${password}
@@ -39,6 +38,7 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL:ALL) ALL
     ssh_authorized_keys:
+      - ${trimspace(ssh_keys[server.fqdn].public_key_openssh)}
 %{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}

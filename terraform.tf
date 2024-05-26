@@ -27,9 +27,6 @@ terraform {
     proxmox = {
       source = "bpg/proxmox"
     }
-    random = {
-      source = "hashicorp/random"
-    }
     ssh = {
       source = "loafoe/ssh"
     }
