@@ -24,10 +24,9 @@ frontend https
     use_backend ${website.host} if { req.ssl_sni -i ${website.fqdn} }
     use_backend ${website.host} if { req.ssl_sni -m sub ${website.fqdn} }
 %{ endfor ~}
-
 %{ for server in servers ~}
+
 backend ${server.host}
     mode tcp
     server ${server.host} ${server.network.private_address}:443
-
 %{ endfor ~}

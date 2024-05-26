@@ -22,21 +22,18 @@ resource "ssh_resource" "router" {
   file {
     destination = "/etc/haproxy.cfg"
 
-    content = trim(
-      templatefile(
-        "./templates/openwrt/haproxy.cfg.tftpl",
-        {
-          servers = {
-            for k, v in local.servers_merged_cloudflare : k => v
-            if v.host != each.value.host && v.location == each.value.location && v.network.private_address != ""
-          }
-          websites = {
-            for k, v in local.websites_merged_openwrt : k => v
-            if v.host != each.value.location && v.location == each.value.location
-          }
+    content = templatefile(
+      "./templates/openwrt/haproxy.cfg.tftpl",
+      {
+        servers = {
+          for k, v in local.servers_merged_cloudflare : k => v
+          if v.host != each.value.host && v.location == each.value.location && v.network.private_address != ""
         }
-      ),
-      "\n"
+        websites = {
+          for k, v in local.websites_merged_openwrt : k => v
+          if v.host != each.value.location && v.location == each.value.location
+        }
+      }
     )
   }
 }
@@ -48,6 +45,10 @@ resource "ssh_resource" "server" {
   host  = each.value.host
   port  = each.value.network.ssh_port
   user  = each.value.user.username
+
+  commands = [
+    "mkdir -p ~/.ssh"
+  ]
 
   file {
     content     = "${join("\n", concat([trimspace(tls_private_key.server[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
