@@ -180,11 +180,11 @@ locals {
 
   vms_mac = merge([
     for i, server in local.servers_mac : {
-      for i, vm in var.vms_mac : "${vm.name}.${server.location}.${var.default.domain}" => merge(
+      for i, vm in var.vms_mac : "${server.name}-${vm.name}.${server.location}.${var.default.domain}" => merge(
         vm,
         {
-          fqdn        = "${vm.name}.${server.location}.${var.default.domain}"
-          host        = "${server.location}-${vm.name}"
+          fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
+          host        = "${server.location}-${server.name}-${vm.name}"
           location    = server.location
           parent_name = server.name
           parent_type = server.type
@@ -267,11 +267,11 @@ locals {
 
   vms_proxmox = merge([
     for i, server in local.servers_proxmox : {
-      for i, vm in var.vms_proxmox : "${vm.name}.${server.location}.${var.default.domain}" => merge(
+      for i, vm in var.vms_proxmox : "${server.name}-${vm.name}.${server.location}.${var.default.domain}" => merge(
         vm,
         {
-          fqdn        = "${vm.name}.${server.location}.${var.default.domain}"
-          host        = "${server.location}-${vm.name}"
+          fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
+          host        = "${server.location}-${server.name}-${vm.name}"
           location    = server.location
           parent_name = server.name
           parent_type = server.type
