@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
-        ssh_keys      = tls_private_key.server
+        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
         tailscale_key = tailscale_tailnet_key.server[each.key].key
       }
     )
@@ -73,7 +73,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
-        ssh_keys      = tls_private_key.server
+        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
         tailscale_key = tailscale_tailnet_key.server[each.key].key
       }
     )

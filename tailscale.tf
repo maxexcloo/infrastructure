@@ -19,6 +19,20 @@ resource "tailscale_acl" "default" {
   })
 }
 
+resource "tailscale_tailnet_key" "docker" {
+  for_each = local.servers_merged
+
+  description   = "${each.value.host}-docker"
+  ephemeral     = true
+  preauthorized = true
+  reusable      = true
+  tags          = ["tag:docker"]
+
+  depends_on = [
+    tailscale_acl.default
+  ]
+}
+
 resource "tailscale_tailnet_key" "server" {
   for_each = local.servers_merged
 
@@ -26,4 +40,8 @@ resource "tailscale_tailnet_key" "server" {
   preauthorized = true
   reusable      = true
   tags          = ["tag:${each.value.tags[0]}"]
+
+  depends_on = [
+    tailscale_acl.default
+  ]
 }

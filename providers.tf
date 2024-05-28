@@ -72,6 +72,18 @@ provider "proxmox" {
   }
 }
 
+provider "restapi" {
+  alias                 = "resend"
+  create_returns_object = true
+  rate_limit            = 4
+  uri                   = "https://api.resend.com"
+
+  headers = {
+    "Authorization" = "Bearer ${var.terraform.resend.api_key}",
+    "Content-Type"  = "application/json"
+  }
+}
+
 provider "tailscale" {
   api_key = var.terraform.tailscale.api_key
   tailnet = var.terraform.tailscale.tailnet

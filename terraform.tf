@@ -27,6 +27,9 @@ terraform {
     proxmox = {
       source = "bpg/proxmox"
     }
+    restapi = {
+      source = "mastercard/restapi"
+    }
     ssh = {
       source = "loafoe/ssh"
     }

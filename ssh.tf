@@ -15,7 +15,7 @@ resource "ssh_resource" "router" {
   ]
 
   file {
-    content     = "${join("\n", concat([trimspace(tls_private_key.server[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
+    content     = "${join("\n", concat([trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
     destination = "/etc/dropbear/authorized_keys"
   }
 
@@ -51,7 +51,7 @@ resource "ssh_resource" "server" {
   ]
 
   file {
-    content     = "${join("\n", concat([trimspace(tls_private_key.server[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
+    content     = "${join("\n", concat([trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
     destination = "~/.ssh/authorized_keys"
   }
 }
@@ -88,7 +88,7 @@ resource "ssh_resource" "vm_mac" {
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
-        ssh_keys      = tls_private_key.server
+        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
         tailscale_key = tailscale_tailnet_key.server[each.key].key
       }
     )

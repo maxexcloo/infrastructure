@@ -21,3 +21,11 @@ resource "random_password" "website" {
   length  = 24
   special = false
 }
+
+resource "random_string" "b2_bucket" {
+  for_each = local.servers_merged
+
+  length  = 6
+  special = false
+  upper   = false
+}

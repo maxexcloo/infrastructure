@@ -22,6 +22,12 @@ locals {
     }
   ]...)
 
+  resend_keys_merged = {
+    for k, v in restapi_object.server_resend_key : k => {
+      api_key = jsondecode(v.create_response).token
+    }
+  }
+
   routers = merge({
     for i, router in var.routers : "${router.location}.${var.default.domain}" => merge(
       router,
@@ -159,10 +165,16 @@ locals {
     }
   ]...)
 
-  ssh_keys = {
-    for k, v in tls_private_key.server : k => {
-      private_key = replace(nonsensitive(v.private_key_openssh), "\n", "")
-      public_key  = replace(v.public_key_openssh, "\n", "")
+  ssh_keys_merged = {
+    for k, v in tls_private_key.server_ssh_key : k => {
+      private_key = trimspace(nonsensitive(v.private_key_openssh))
+      public_key  = trimspace(v.public_key_openssh)
+    }
+  }
+
+  tailscale_keys_merged = {
+    for k, v in merge(tailscale_tailnet_key.docker, tailscale_tailnet_key.server) : k => {
+      key = nonsensitive(v.key)
     }
   }
 
@@ -295,9 +307,12 @@ locals {
     }
   ]...)
 
-  tags = distinct([
-    for i, v in local.servers_merged : v.tags[0]
-  ])
+  tags = distinct(concat(
+    ["docker"],
+    [
+      for i, v in local.servers_merged : v.tags[0]
+    ]
+  ))
 
   websites = merge([
     for zone, websites in var.websites : {

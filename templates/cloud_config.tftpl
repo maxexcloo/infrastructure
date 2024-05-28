@@ -27,7 +27,7 @@ runcmd:
 users:
   - name: ${server.user.automation}
     ssh_authorized_keys:
-      - ${trimspace(ssh_keys[server.fqdn].public_key_openssh)}
+      - ${ssh_key}
 %{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}
@@ -38,7 +38,7 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL:ALL) ALL
     ssh_authorized_keys:
-      - ${trimspace(ssh_keys[server.fqdn].public_key_openssh)}
+      - ${ssh_key}
 %{ for ssh_key in server.user.ssh_keys ~}
       - ${ssh_key}
 %{ endfor ~}

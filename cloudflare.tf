@@ -15,7 +15,7 @@ resource "cloudflare_record" "dns" {
 resource "cloudflare_record" "router" {
   for_each = local.routers
 
-  name    = each.value.location
+  name    = each.value.fqdn
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
   value   = each.value.network.public_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -24,7 +24,7 @@ resource "cloudflare_record" "router" {
 resource "cloudflare_record" "server" {
   for_each = local.servers_merged_cloudflare
 
-  name    = "${each.value.name}.${each.value.location}"
+  name    = each.value.fqdn
   type    = "CNAME"
   value   = each.value.network.public_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -33,7 +33,7 @@ resource "cloudflare_record" "server" {
 resource "cloudflare_record" "vm_oci_ipv4" {
   for_each = local.vms_oci
 
-  name    = replace(each.key, ".${var.default.domain}", "")
+  name    = each.key
   type    = "A"
   value   = data.oci_core_vnic.vm[each.key].public_ip_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -42,7 +42,7 @@ resource "cloudflare_record" "vm_oci_ipv4" {
 resource "cloudflare_record" "vm_oci_ipv6" {
   for_each = local.vms_oci
 
-  name    = replace(each.key, ".${var.default.domain}", "")
+  name    = each.key
   type    = "AAAA"
   value   = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   zone_id = cloudflare_zone.zone[var.default.domain].id

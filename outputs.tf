@@ -1,9 +1,17 @@
-output "server" {
+output "resend_keys" {
+  value = local.resend_keys_merged
+}
+
+output "servers" {
   value = local.servers_merged
 }
 
 output "ssh_keys" {
-  value = local.ssh_keys
+  value = local.ssh_keys_merged
+}
+
+output "tailscale_keys" {
+  value = local.tailscale_keys_merged
 }
 
 resource "local_file" "pyinfra_inventory" {
@@ -17,7 +25,7 @@ resource "local_file" "pyinfra_inventory" {
       cloudflare_tunnels = cloudflare_tunnel.server
       onepassword_vault  = var.terraform.onepassword.vault
       servers            = local.servers_merged
-      tailscale_keys     = tailscale_tailnet_key.server
+      tailscale_keys     = tailscale_tailnet_key.docker
     }
   )
 }
