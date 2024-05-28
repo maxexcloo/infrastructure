@@ -186,6 +186,7 @@ locals {
           fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
           host        = "${server.location}-${server.name}-${vm.name}"
           location    = server.location
+          name        = "${server.name}-${vm.name}"
           parent_name = server.name
           parent_type = server.type
           tags        = concat(["vm"], try(vm.tags, []))
@@ -208,7 +209,7 @@ locals {
           provider = merge(
             {
               host     = server.host
-              path     = "${server.config.vms_path}/${vm.name}"
+              path     = "${server.config.vms_path}/${server.name}-${vm.name}"
               port     = server.network.ssh_port
               username = server.user.username
             },
@@ -273,6 +274,7 @@ locals {
           fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
           host        = "${server.location}-${server.name}-${vm.name}"
           location    = server.location
+          name        = "${server.name}-${vm.name}"
           parent_name = server.name
           parent_type = server.type
           tags        = concat(["vm"], try(vm.tags, []))
