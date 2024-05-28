@@ -1,3 +1,5 @@
+data "b2_account_info" "default" {}
+
 resource "b2_application_key" "server" {
   for_each = local.servers_merged
 

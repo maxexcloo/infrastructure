@@ -1,5 +1,9 @@
+output "b2_buckets" {
+  value = local.b2_buckets
+}
+
 output "resend_keys" {
-  value = local.resend_keys_merged
+  value = local.resend_keys
 }
 
 output "servers" {
@@ -7,7 +11,7 @@ output "servers" {
 }
 
 output "ssh_keys" {
-  value = local.ssh_keys_merged
+  value = local.ssh_keys
 }
 
 output "tailscale_keys" {

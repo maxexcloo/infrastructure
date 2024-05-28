@@ -1,4 +1,13 @@
 locals {
+  b2_buckets = {
+    for k, v in b2_bucket.server : k => {
+      access_key = b2_application_key.server[k].application_key_id
+      endpoint   = data.b2_account_info.default.s3_api_url
+      name       = v.bucket_name
+      secret_key = nonsensitive(b2_application_key.server[k].application_key)
+    }
+  }
+
   cloudflare_records_merged = {
     for k, v in merge(
       cloudflare_record.dns,
@@ -22,7 +31,7 @@ locals {
     }
   ]...)
 
-  resend_keys_merged = {
+  resend_keys = {
     for k, v in restapi_object.server_resend_key : k => {
       api_key = jsondecode(v.create_response).token
     }
@@ -165,7 +174,7 @@ locals {
     }
   ]...)
 
-  ssh_keys_merged = {
+  ssh_keys = {
     for k, v in tls_private_key.server_ssh_key : k => {
       private_key = trimspace(nonsensitive(v.private_key_openssh))
       public_key  = trimspace(v.public_key_openssh)
