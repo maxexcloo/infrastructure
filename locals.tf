@@ -1,10 +1,10 @@
 locals {
   b2_buckets = {
     for k, v in b2_bucket.server : k => {
-      access_key = b2_application_key.server[k].application_key_id
-      endpoint   = data.b2_account_info.default.s3_api_url
-      name       = v.bucket_name
-      secret_key = nonsensitive(b2_application_key.server[k].application_key)
+      application_key    = nonsensitive(b2_application_key.server[k].application_key)
+      application_key_id = b2_application_key.server[k].application_key_id
+      bucket_name        = v.bucket_name
+      endpoint           = data.b2_account_info.default.s3_api_url
     }
   }
 
