@@ -181,9 +181,16 @@ locals {
     }
   }
 
+  tags = distinct(concat(
+    ["docker"],
+    [
+      for i, v in local.servers_merged : v.tags[0]
+    ]
+  ))
+
   tailscale_keys_merged = {
     for k, v in merge(tailscale_tailnet_key.docker, tailscale_tailnet_key.server) : k => {
-      key = nonsensitive(v.key)
+      tailnet_key = nonsensitive(v.key)
     }
   }
 
@@ -317,13 +324,6 @@ locals {
       if vm.parent == server.name
     }
   ]...)
-
-  tags = distinct(concat(
-    ["docker"],
-    [
-      for i, v in local.servers_merged : v.tags[0]
-    ]
-  ))
 
   websites = merge([
     for zone, websites in var.websites : {
