@@ -75,7 +75,7 @@ provider "proxmox" {
 provider "restapi" {
   alias                 = "resend"
   create_returns_object = true
-  rate_limit            = 4
+  rate_limit            = 1
   uri                   = "https://api.resend.com"
 
   headers = {

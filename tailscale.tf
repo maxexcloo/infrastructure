@@ -10,11 +10,11 @@ resource "tailscale_acl" "default" {
     nodeAttrs = [
       {
         attr   = ["nextdns:65188d"]
-        target = [for i, tag in local.tags : "tag:${tag}"]
+        target = [for k, tag in local.tags : tag.tailscale_tag]
       }
     ],
     tagOwners = {
-      for i, tag in local.tags : "tag:${tag}" => [var.default.email]
+      for k, tag in local.tags : tag.tailscale_tag => [var.default.email]
     }
   })
 }
@@ -26,7 +26,7 @@ resource "tailscale_tailnet_key" "docker" {
   ephemeral     = true
   preauthorized = true
   reusable      = true
-  tags          = ["tag:docker"]
+  tags          = [local.tags["docker"].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default
@@ -39,7 +39,7 @@ resource "tailscale_tailnet_key" "server" {
   description   = each.value.host
   preauthorized = true
   reusable      = true
-  tags          = ["tag:${each.value.tags[0]}"]
+  tags          = [local.tags[each.value.tags[0]].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default

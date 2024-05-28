@@ -15,7 +15,7 @@ resource "random_password" "cloudflare_tunnel" {
 resource "random_password" "website" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.generate_password
+    if website.password
   }
 
   length  = 24

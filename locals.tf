@@ -20,6 +20,12 @@ locals {
     if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
   }
 
+  cloudflare_tunnels = {
+    for k, v in cloudflare_tunnel.server : k => {
+      tunnel_token = nonsensitive(v.tunnel_token)
+    }
+  }
+
   dns = merge([
     for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
@@ -31,8 +37,8 @@ locals {
     }
   ]...)
 
-  resend_keys = {
-    for k, v in restapi_object.server_resend_key : k => {
+  resend_keys_merged = {
+    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : k => {
       api_key = jsondecode(v.create_response).token
     }
   }
@@ -181,12 +187,14 @@ locals {
     }
   }
 
-  tags = distinct(concat(
-    ["docker"],
-    [
-      for i, v in local.servers_merged : v.tags[0]
-    ]
-  ))
+  tags = {
+    for i, tag in var.tags : tag.name => merge(
+      {
+        tailscale_tag = "tag:${tag.name}"
+      },
+      tag
+    )
+  }
 
   tailscale_keys_merged = {
     for k, v in merge(tailscale_tailnet_key.docker, tailscale_tailnet_key.server) : k => {
@@ -328,10 +336,17 @@ locals {
   websites = merge([
     for zone, websites in var.websites : {
       for i, website in websites : "${website.name}.${zone}" => merge(
-        website,
         {
-          zone = zone
-        }
+          fly_app_name    = ""
+          fqdn            = "${website.name}.${zone}"
+          group           = "Websites"
+          password        = false
+          resend_key_name = ""
+          type            = "default"
+          username        = null
+          zone            = zone
+        },
+        website
       )
     }
   ]...)

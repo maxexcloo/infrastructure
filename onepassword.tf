@@ -42,7 +42,7 @@ resource "onepassword_item" "website" {
   for_each = local.websites
 
   category = "login"
-  password = each.value.generate_password ? random_password.website[each.key].result : null
+  password = each.value.password ? random_password.website[each.key].result : null
   title    = cloudflare_record.website[each.key].hostname
   url      = cloudflare_record.website[each.key].hostname
   username = each.value.username
