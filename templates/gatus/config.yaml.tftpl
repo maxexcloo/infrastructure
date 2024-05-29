@@ -18,8 +18,6 @@ endpoints:
       - "[CONNECTED] == true"
     group: "${tags[server.tags[0]].description}"
     name: "${server.host}"
-    ui:
-      hide-url: true
     url: "icmp://${server.host}"
 %{ endfor ~}
 %{ for website in websites ~}
