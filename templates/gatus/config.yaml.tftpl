@@ -17,13 +17,8 @@ endpoints:
   - conditions:
       - "[CONNECTED] == true"
     group: "${tags[server.tags[0]].description}"
-    name: "${server.host} (ICMP)"
+    name: "${server.host}"
     url: "icmp://${server.host}"
-  - conditions:
-      - "[CONNECTED] == true"
-    group: "${tags[server.tags[0]].description}"
-    name: "${server.host} (SSH)"
-    url: "tcp://${server.host}:22"
 %{ endfor ~}
 %{ for website in websites ~}
   - conditions:
