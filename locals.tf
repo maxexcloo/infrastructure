@@ -21,7 +21,7 @@ locals {
   }
 
   cloudflare_tunnels = {
-    for k, v in cloudflare_tunnel.server : k => {
+    for k, v in cloudflare_tunnel.server : local.servers_merged[k].host => {
       tunnel_token = nonsensitive(v.tunnel_token)
     }
   }
@@ -181,7 +181,7 @@ locals {
   ]...)
 
   ssh_keys = {
-    for k, v in tls_private_key.server_ssh_key : k => {
+    for k, v in tls_private_key.server_ssh_key : local.servers_merged[k].host => {
       private_key = trimspace(nonsensitive(v.private_key_openssh))
       public_key  = trimspace(v.public_key_openssh)
     }
