@@ -19,27 +19,30 @@ resource "tailscale_acl" "default" {
   })
 }
 
-resource "tailscale_tailnet_key" "docker" {
+resource "tailscale_tailnet_key" "server" {
   for_each = local.servers_merged
 
-  description   = "${each.value.host}-docker"
-  ephemeral     = true
+  description   = "${each.value.tags[0]}-${each.value.host}"
   preauthorized = true
   reusable      = true
-  tags          = [local.tags["docker"].tailscale_tag]
+  tags          = [local.tags[each.value.tags[0]].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default
   ]
 }
 
-resource "tailscale_tailnet_key" "server" {
-  for_each = local.servers_merged
+resource "tailscale_tailnet_key" "website" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.tailscale_key
+  }
 
-  description   = each.value.host
+  description   = "ephemeral-${each.value.app_name}"
+  ephemeral     = true
   preauthorized = true
   reusable      = true
-  tags          = [local.tags[each.value.tags[0]].tailscale_tag]
+  tags          = [local.tags["ephemeral"].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default

@@ -18,10 +18,10 @@ resource "restapi_object" "server_resend_key" {
 resource "restapi_object" "website_resend_key" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.resend_key_name != ""
+    if website.resend_key
   }
 
-  data         = jsonencode({ name = each.value.resend_key_name })
+  data         = jsonencode({ name = each.value.app_name })
   id_attribute = "id"
   path         = "/api-keys"
   provider     = restapi.resend
@@ -31,6 +31,6 @@ resource "restapi_object" "website_resend_key" {
     query_string = ""
     results_key  = "data"
     search_key   = "name"
-    search_value = each.value.resend_key_name
+    search_value = each.value.app_name
   }
 }

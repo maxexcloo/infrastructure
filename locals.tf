@@ -1,6 +1,6 @@
 locals {
   b2_buckets = {
-    for k, v in b2_bucket.server : k => {
+    for k, v in b2_bucket.server : local.servers_merged[k].host => {
       application_key    = nonsensitive(b2_application_key.server[k].application_key)
       application_key_id = b2_application_key.server[k].application_key_id
       bucket_name        = v.bucket_name
@@ -38,7 +38,7 @@ locals {
   ]...)
 
   resend_keys_merged = {
-    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : k => {
+    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : v.read_search.search_value => {
       api_key = jsondecode(v.create_response).token
     }
   }
@@ -197,7 +197,10 @@ locals {
   }
 
   tailscale_keys_merged = {
-    for k, v in merge(tailscale_tailnet_key.docker, tailscale_tailnet_key.server) : k => {
+    for k, v in merge(
+      tailscale_tailnet_key.server,
+      tailscale_tailnet_key.website
+      ) : v.description => {
       tailnet_key = nonsensitive(v.key)
     }
   }
@@ -337,14 +340,16 @@ locals {
     for zone, websites in var.websites : {
       for i, website in websites : "${website.name}.${zone}" => merge(
         {
-          fly_app_name    = ""
-          fqdn            = "${website.name}.${zone}"
-          group           = "Websites"
-          password        = false
-          resend_key_name = ""
-          type            = "default"
-          username        = null
-          zone            = zone
+          app_name      = website.name
+          fly_app       = false
+          fqdn          = "${website.name}.${zone}"
+          group         = "Websites"
+          password      = false
+          resend_key    = false
+          tailscale_key = false
+          type          = "default"
+          username      = null
+          zone          = zone
         },
         website
       )
