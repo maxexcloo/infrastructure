@@ -35,10 +35,11 @@ resource "local_file" "gatus_config" {
   content = templatefile(
     "./templates/gatus/config.yaml.tftpl",
     {
-      resend_key = jsondecode(restapi_object.website_resend_key[each.key].create_response).token
-      servers    = local.servers_merged
-      tags       = local.tags
-      websites   = local.websites
+      default  = var.default
+      servers  = local.servers_merged
+      tags     = local.tags
+      website  = each.value
+      websites = local.websites
     }
   )
 }

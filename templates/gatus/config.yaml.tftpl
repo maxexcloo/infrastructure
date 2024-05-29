@@ -1,34 +1,40 @@
 alerting:
   email:
     default-alert:
-      description: "Health Check Failed"
+      description: "${website.description} Check Failed"
+      enabled: true
+      failure-threshold: 5
       send-on-resolved: true
-    from: $${FLY_REGION}@excloo.com
-    host: smtp.resend.com
-    password: $${RESEND_API_KEY}
+      success-threshold: 5
+    from: "${default.email}"
+    host: "smtp.resend.com"
+    password: "$${RESEND_API_KEY}"
     port: 587
-    to: max@excloo.com
-    username: resend
+    to: "${default.email}"
+    username: "resend"
 endpoints:
 %{ for server in servers ~}
   - conditions:
-      - "[CERTIFICATE_EXPIRATION] > 48h"
-      - "[RESPONSE_TIME] < 3000"
-      - "[STATUS] == 200"
-    group: ${tags[server.tags[0]].description}
-    name: ${server.host}
-    url: https://${server.fqdn}/
+      - "[CONNECTED] == true"
+    group: "${tags[server.tags[0]].description}"
+    name: "${server.host} (ICMP)"
+    url: "icmp://${server.host}"
+  - conditions:
+      - "[CONNECTED] == true"
+    group: "${tags[server.tags[0]].description}"
+    name: "${server.host} (SSH)"
+    url: "tcp://${server.host}:22"
 %{ endfor ~}
 %{ for website in websites ~}
   - conditions:
       - "[CERTIFICATE_EXPIRATION] > 48h"
       - "[RESPONSE_TIME] < 3000"
       - "[STATUS] == 200"
-    group: ${website.group}
-    name: ${website.description}
-    url: https://${website.fqdn}/
+    group: "${website.group}"
+    name: "${website.description}"
+    url: "https://${website.fqdn}"
 %{ endfor ~}
 ui:
-  description:
-  header: Excloo Uptime
-  title: Excloo Uptime
+  description: ""
+  header: "${website.description}"
+  title: "${website.description}"
