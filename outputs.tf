@@ -10,10 +10,6 @@ output "resend_keys" {
   value = local.resend_keys_merged
 }
 
-output "servers" {
-  value = local.servers_merged
-}
-
 output "ssh_keys" {
   value = local.ssh_keys
 }

@@ -23,7 +23,10 @@ resource "random_password" "website" {
 }
 
 resource "random_string" "b2_bucket" {
-  for_each = local.servers_merged
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.b2_bucket
+  }
 
   length  = 6
   special = false

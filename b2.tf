@@ -1,10 +1,13 @@
 data "b2_account_info" "default" {}
 
-resource "b2_application_key" "server" {
-  for_each = local.servers_merged
+resource "b2_application_key" "website" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.b2_bucket
+  }
 
-  bucket_id = b2_bucket.server[each.key].id
-  key_name  = each.value.host
+  bucket_id = b2_bucket.website[each.key].id
+  key_name  = each.value.app_name
 
   capabilities = [
     "deleteFiles",
@@ -23,9 +26,12 @@ resource "b2_application_key" "server" {
   ]
 }
 
-resource "b2_bucket" "server" {
-  for_each = local.servers_merged
+resource "b2_bucket" "website" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.b2_bucket
+  }
 
-  bucket_name = "${each.value.host}-${random_string.b2_bucket[each.key].result}"
+  bucket_name = "${each.value.app_name}-${random_string.b2_bucket[each.key].result}"
   bucket_type = "allPrivate"
 }

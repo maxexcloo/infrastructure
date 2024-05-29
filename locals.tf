@@ -1,8 +1,8 @@
 locals {
   b2_buckets = {
-    for k, v in b2_bucket.server : local.servers_merged[k].host => {
-      application_key    = nonsensitive(b2_application_key.server[k].application_key)
-      application_key_id = b2_application_key.server[k].application_key_id
+    for k, v in b2_bucket.website : local.websites[k].app_name => {
+      application_key    = nonsensitive(b2_application_key.website[k].application_key)
+      application_key_id = b2_application_key.website[k].application_key_id
       bucket_name        = v.bucket_name
       endpoint           = data.b2_account_info.default.s3_api_url
     }
@@ -197,10 +197,7 @@ locals {
   }
 
   tailscale_keys_merged = {
-    for k, v in merge(
-      tailscale_tailnet_key.server,
-      tailscale_tailnet_key.website
-      ) : v.description => {
+    for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : v.description => {
       tailnet_key = nonsensitive(v.key)
     }
   }
@@ -341,6 +338,7 @@ locals {
       for i, website in websites : "${website.name}.${zone}" => merge(
         {
           app_name      = website.name
+          b2_bucket     = false
           fly_app       = false
           fqdn          = "${website.name}.${zone}"
           group         = "Websites"

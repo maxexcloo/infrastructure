@@ -8,33 +8,14 @@ resource "onepassword_item" "server" {
   category = "login"
   password = random_password.server[each.key].result
   title    = each.key
+  url      = each.value.fqdn
   username = each.value.user.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
-  section {
-    label = "websites"
-
-    field {
-      label = "fqdn"
-      type  = "URL"
-      value = each.value.fqdn
-    }
-
-    field {
-      label = "host"
-      type  = "URL"
-      value = each.value.host
-    }
-
-    dynamic "field" {
-      for_each = each.value.network.private_address != "" ? [true] : []
-
-      content {
-        label = "private"
-        type  = "URL"
-        value = each.value.network.private_address
-      }
-    }
+  lifecycle {
+    ignore_changes = [
+      section
+    ]
   }
 }
 
@@ -47,4 +28,10 @@ resource "onepassword_item" "website" {
   url      = cloudflare_record.website[each.key].hostname
   username = each.value.username
   vault    = data.onepassword_vault.infrastructure.uuid
+
+  lifecycle {
+    ignore_changes = [
+      section
+    ]
+  }
 }
