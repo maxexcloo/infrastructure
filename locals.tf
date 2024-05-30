@@ -1,6 +1,6 @@
 locals {
   b2_buckets = {
-    for k, v in b2_bucket.website : local.websites[k].app_name => {
+    for k, v in b2_bucket.website : k => {
       application_key    = nonsensitive(b2_application_key.website[k].application_key)
       application_key_id = b2_application_key.website[k].application_key_id
       bucket_name        = v.bucket_name
