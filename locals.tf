@@ -21,7 +21,7 @@ locals {
   }
 
   cloudflare_tunnels = {
-    for k, v in cloudflare_tunnel.server : local.servers_merged[k].host => {
+    for k, v in cloudflare_tunnel.server : k => {
       tunnel_token = nonsensitive(v.tunnel_token)
     }
   }
@@ -38,13 +38,13 @@ locals {
   ]...)
 
   resend_keys_merged = {
-    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : v.read_search.search_value => {
+    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : k => {
       api_key = jsondecode(v.create_response).token
     }
   }
 
   routers = merge({
-    for i, router in var.routers : "${router.location}.${var.default.domain}" => merge(
+    for i, router in var.routers : router.location => merge(
       router,
       {
         fqdn        = "${router.location}.${var.default.domain}"
@@ -83,7 +83,7 @@ locals {
 
   servers_mac = merge([
     for i, router in local.routers : {
-      for i, server in var.servers_mac : "${server.name}.${router.location}.${var.default.domain}" => merge(
+      for i, server in var.servers_mac : "${router.location}-${server.name}" => merge(
         server,
         {
           fqdn        = "${server.name}.${router.location}.${var.default.domain}"
@@ -97,7 +97,7 @@ locals {
             {
               mac_address     = ""
               private_address = ""
-              public_address  = cloudflare_record.router["${router.location}.${var.default.domain}"].name
+              public_address  = cloudflare_record.router[router.location].name
               ssh_port        = 22
             },
             try(server.network, {})
@@ -138,7 +138,7 @@ locals {
 
   servers_proxmox = merge([
     for i, router in local.routers : {
-      for i, server in var.servers_proxmox : "${server.name}.${router.location}.${var.default.domain}" => merge(
+      for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
         server,
         {
           fqdn        = "${server.name}.${router.location}.${var.default.domain}"
@@ -152,7 +152,7 @@ locals {
             {
               mac_address     = ""
               private_address = ""
-              public_address  = cloudflare_record.router["${router.location}.${var.default.domain}"].name
+              public_address  = cloudflare_record.router[router.location].name
               ssh_port        = 22
             },
             try(server.network, {})
@@ -181,7 +181,7 @@ locals {
   ]...)
 
   ssh_keys = {
-    for k, v in tls_private_key.server_ssh_key : local.servers_merged[k].host => {
+    for k, v in tls_private_key.server_ssh_key : k => {
       private_key = trimspace(nonsensitive(v.private_key_openssh))
       public_key  = trimspace(v.public_key_openssh)
     }
@@ -197,14 +197,14 @@ locals {
   }
 
   tailscale_keys_merged = {
-    for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : v.description => {
+    for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
       tailnet_key = nonsensitive(v.key)
     }
   }
 
   vms_mac = merge([
     for i, server in local.servers_mac : {
-      for i, vm in var.vms_mac : "${server.name}-${vm.name}.${server.location}.${var.default.domain}" => merge(
+      for i, vm in var.vms_mac : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
           fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
@@ -225,7 +225,7 @@ locals {
             {
               mac_address     = upper(macaddress.server_mac[i].address)
               private_address = ""
-              public_address  = cloudflare_record.router["${server.location}.${var.default.domain}"].name
+              public_address  = cloudflare_record.router[server.location].name
               ssh_port        = 22
             },
             try(vm.network, {})
@@ -255,7 +255,7 @@ locals {
   ]...)
 
   vms_oci = merge({
-    for i, vm in var.vms_oci : "${vm.name}.${vm.location}.${var.default.domain}" => merge(
+    for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
         fqdn        = "${vm.name}.${vm.location}.${var.default.domain}"
@@ -292,7 +292,7 @@ locals {
 
   vms_proxmox = merge([
     for i, server in local.servers_proxmox : {
-      for i, vm in var.vms_proxmox : "${server.name}-${vm.name}.${server.location}.${var.default.domain}" => merge(
+      for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
           fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
@@ -313,7 +313,7 @@ locals {
           network = merge(
             {
               private_address = ""
-              public_address  = cloudflare_record.router["${server.location}.${var.default.domain}"].name
+              public_address  = cloudflare_record.router[server.location].name
               ssh_port        = 22
             },
             try(vm.network, {})

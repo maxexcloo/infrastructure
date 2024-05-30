@@ -70,7 +70,7 @@ resource "cloudflare_tunnel" "server" {
   for_each = local.servers_merged
 
   account_id = cloudflare_account.default.id
-  name       = each.key
+  name       = each.value.fqdn
   secret     = random_password.cloudflare_tunnel[each.key].result
 }
 

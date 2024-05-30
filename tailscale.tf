@@ -22,7 +22,7 @@ resource "tailscale_acl" "default" {
 resource "tailscale_tailnet_key" "server" {
   for_each = local.servers_merged
 
-  description   = "${each.value.tags[0]}-${each.value.host}"
+  description   = "${each.value.tags[0]}-${each.key}"
   preauthorized = true
   reusable      = true
   tags          = [local.tags[each.value.tags[0]].tailscale_tag]

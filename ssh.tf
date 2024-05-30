@@ -5,7 +5,7 @@ resource "ssh_resource" "router" {
   }
 
   agent = true
-  host  = each.value.host
+  host  = each.key
   port  = each.value.network.ssh_port
   user  = each.value.user.username
 
@@ -27,11 +27,11 @@ resource "ssh_resource" "router" {
       {
         servers = {
           for k, v in local.servers_merged_cloudflare : k => v
-          if v.host != each.value.host && v.location == each.value.location && v.network.private_address != ""
+          if k != each.key && v.location == each.value.location && v.network.private_address != ""
         }
         websites = {
           for k, v in local.websites_merged_openwrt : k => v
-          if v.host != each.value.location && v.location == each.value.location
+          if k != each.value.location && v.location == each.value.location
         }
       }
     )
@@ -42,7 +42,7 @@ resource "ssh_resource" "server" {
   for_each = local.servers_merged_ssh
 
   agent = true
-  host  = each.value.host
+  host  = each.key
   port  = each.value.network.ssh_port
   user  = each.value.user.username
 
