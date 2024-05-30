@@ -1,5 +1,5 @@
 resource "htpasswd_password" "server" {
-  for_each = random_password.server
+  for_each = local.servers_merged
 
-  password = each.value.result
+  password = random_password.server[each.key].result
 }

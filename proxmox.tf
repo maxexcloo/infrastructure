@@ -176,7 +176,6 @@ resource "proxmox_virtual_environment_vm" "gen8" {
   }
 }
 
-
 resource "proxmox_virtual_environment_vm" "kimbap" {
   for_each = { for k, v in local.vms_proxmox : k => v if v.parent_name == "kimbap" }
 

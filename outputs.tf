@@ -10,6 +10,10 @@ output "resend_keys" {
   value = local.resend_keys_merged
 }
 
+# output "servers" {
+#   value = local.servers_merged
+# }
+
 output "ssh_keys" {
   value = local.ssh_keys
 }
@@ -27,7 +31,6 @@ resource "local_file" "gatus_config" {
   file_permission = "0644"
   filename        = "../Fly/${each.value.app_name}/config.yaml"
 
-
   content = templatefile(
     "./templates/gatus/config.yaml.tftpl",
     {
@@ -43,7 +46,6 @@ resource "local_file" "gatus_config" {
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
   filename        = "../PyInfra/inventory.py"
-
 
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",

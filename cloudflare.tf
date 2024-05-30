@@ -33,7 +33,7 @@ resource "cloudflare_record" "server" {
 resource "cloudflare_record" "vm_oci_ipv4" {
   for_each = local.vms_oci
 
-  name    = each.key
+  name    = each.value.fqdn
   type    = "A"
   value   = data.oci_core_vnic.vm[each.key].public_ip_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -42,7 +42,7 @@ resource "cloudflare_record" "vm_oci_ipv4" {
 resource "cloudflare_record" "vm_oci_ipv6" {
   for_each = local.vms_oci
 
-  name    = each.key
+  name    = each.value.fqdn
   type    = "AAAA"
   value   = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -62,8 +62,15 @@ resource "cloudflare_record" "wildcard" {
 
   name    = "*.${each.value.name}"
   type    = "CNAME"
-  value   = each.value.name
+  value   = each.value.hostname
   zone_id = each.value.zone_id
+}
+
+resource "cloudflare_tiered_cache" "zone" {
+  for_each = local.zones
+
+  cache_type = "off"
+  zone_id    = cloudflare_zone.zone[each.key].id
 }
 
 resource "cloudflare_tunnel" "server" {
@@ -74,9 +81,23 @@ resource "cloudflare_tunnel" "server" {
   secret     = random_password.cloudflare_tunnel[each.key].result
 }
 
+resource "cloudflare_url_normalization_settings" "zone" {
+  for_each = local.zones
+
+  scope   = "incoming"
+  type    = "cloudflare"
+  zone_id = cloudflare_zone.zone[each.key].id
+}
+
 resource "cloudflare_zone" "zone" {
   for_each = local.zones
 
   account_id = cloudflare_account.default.id
   zone       = each.key
+}
+
+resource "cloudflare_zone_settings_override" "zone" {
+  for_each = local.zones
+
+  zone_id = cloudflare_zone.zone[each.key].id
 }
