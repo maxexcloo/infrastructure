@@ -12,10 +12,19 @@ resource "cloudflare_record" "dns" {
   zone_id  = cloudflare_zone.zone[each.value.zone].id
 }
 
+resource "cloudflare_record" "internal" {
+  for_each = local.servers_merged
+
+  name    = each.value.fqdn_internal
+  type    = "CNAME"
+  value   = "${each.key}.${var.terraform.tailscale.tailnet_domain}"
+  zone_id = cloudflare_zone.zone[var.default.domain].id
+}
+
 resource "cloudflare_record" "router" {
   for_each = local.routers
 
-  name    = each.value.fqdn
+  name    = each.value.fqdn_external
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
   value   = each.value.network.public_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -24,7 +33,7 @@ resource "cloudflare_record" "router" {
 resource "cloudflare_record" "server" {
   for_each = local.servers_merged_cloudflare
 
-  name    = each.value.fqdn
+  name    = each.value.fqdn_external
   type    = "CNAME"
   value   = each.value.network.public_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -33,7 +42,7 @@ resource "cloudflare_record" "server" {
 resource "cloudflare_record" "vm_oci_ipv4" {
   for_each = local.vms_oci
 
-  name    = each.value.fqdn
+  name    = each.value.fqdn_external
   type    = "A"
   value   = data.oci_core_vnic.vm[each.key].public_ip_address
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -42,7 +51,7 @@ resource "cloudflare_record" "vm_oci_ipv4" {
 resource "cloudflare_record" "vm_oci_ipv6" {
   for_each = local.vms_oci
 
-  name    = each.value.fqdn
+  name    = each.value.fqdn_external
   type    = "AAAA"
   value   = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   zone_id = cloudflare_zone.zone[var.default.domain].id
@@ -77,7 +86,7 @@ resource "cloudflare_tunnel" "server" {
   for_each = local.servers_merged
 
   account_id = cloudflare_account.default.id
-  name       = each.value.fqdn
+  name       = each.value.fqdn_external
   secret     = random_password.cloudflare_tunnel[each.key].result
 }
 

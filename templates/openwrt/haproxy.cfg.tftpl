@@ -21,8 +21,8 @@ frontend https
     tcp-request inspect-delay 3s
 
 %{ for website in websites ~}
-    use_backend ${website.host} if { req.ssl_sni -i ${website.fqdn} }
-    use_backend ${website.host} if { req.ssl_sni -m sub ${website.fqdn} }
+    use_backend ${website.host} if { req.ssl_sni -i ${website.fqdn_external} }
+    use_backend ${website.host} if { req.ssl_sni -m sub ${website.fqdn_external} }
 %{ endfor ~}
 %{ for server in servers ~}
 

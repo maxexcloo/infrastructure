@@ -26,14 +26,14 @@ provider "onepassword" {
 
 provider "openwrt" {
   alias    = "au"
-  hostname = local.routers["au"].host
+  hostname = "au"
   password = local.routers["au"].provider.password
   port     = local.routers["au"].provider.port
 }
 
 provider "openwrt" {
   alias    = "kr"
-  hostname = local.routers["kr"].host
+  hostname = "kr"
   password = local.routers["kr"].provider.password
   port     = local.routers["kr"].provider.port
 }
@@ -41,7 +41,7 @@ provider "openwrt" {
 provider "proxmox" {
   alias     = "gen8"
   api_token = local.servers_proxmox["au-gen8"].provider.api_token
-  endpoint  = "https://${local.servers_proxmox["au-gen8"].host}:${local.servers_proxmox["au-gen8"].provider.port}"
+  endpoint  = "https://au-gen8:${local.servers_proxmox["au-gen8"].provider.port}"
   insecure  = local.servers_proxmox["au-gen8"].provider.insecure
 
   ssh {
@@ -49,8 +49,8 @@ provider "proxmox" {
     username = local.servers_proxmox["au-gen8"].user.username
 
     node {
+      address = "au-gen8"
       name    = local.servers_proxmox["au-gen8"].name
-      address = local.servers_proxmox["au-gen8"].host
     }
   }
 }
@@ -58,7 +58,7 @@ provider "proxmox" {
 provider "proxmox" {
   alias     = "kimbap"
   api_token = local.servers_proxmox["kr-kimbap"].provider.api_token
-  endpoint  = "https://${local.servers_proxmox["kr-kimbap"].host}:${local.servers_proxmox["kr-kimbap"].provider.port}"
+  endpoint  = "https://kr-kimbap:${local.servers_proxmox["kr-kimbap"].provider.port}"
   insecure  = local.servers_proxmox["kr-kimbap"].provider.insecure
 
   ssh {
@@ -66,8 +66,8 @@ provider "proxmox" {
     username = local.servers_proxmox["kr-kimbap"].user.username
 
     node {
+      address = "kr-kimbap"
       name    = local.servers_proxmox["kr-kimbap"].name
-      address = local.servers_proxmox["kr-kimbap"].host
     }
   }
 }

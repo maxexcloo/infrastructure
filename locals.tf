@@ -8,17 +8,22 @@ locals {
     }
   }
 
-  cloudflare_records_merged = {
-    for k, v in merge(
-      cloudflare_record.dns,
-      cloudflare_record.router,
-      cloudflare_record.server,
-      cloudflare_record.vm_oci_ipv4,
-      cloudflare_record.vm_oci_ipv6,
-      cloudflare_record.website
-    ) : k => v
-    if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
-  }
+  cloudflare_records_merged = merge(
+    {
+      for k, v in cloudflare_record.internal : "${k}-internal" => v
+    },
+    {
+      for k, v in merge(
+        cloudflare_record.dns,
+        cloudflare_record.router,
+        cloudflare_record.server,
+        cloudflare_record.vm_oci_ipv4,
+        cloudflare_record.vm_oci_ipv6,
+        cloudflare_record.website
+      ) : k => v
+      if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
+    }
+  )
 
   cloudflare_tunnels = {
     for k, v in cloudflare_tunnel.server : k => {
@@ -47,12 +52,13 @@ locals {
     for i, router in var.routers : router.location => merge(
       router,
       {
-        fqdn        = "${router.location}.${var.default.domain}"
-        host        = router.location
-        name        = router.location
-        parent_name = ""
-        parent_type = ""
-        tags        = concat(["router"], try(router.tags, []))
+        fqdn_external = "${router.location}.${var.default.domain}"
+        fqdn_internal = "${router.location}.int.${var.default.domain}"
+        host          = router.location
+        name          = router.location
+        parent_name   = ""
+        parent_type   = ""
+        tags          = concat(["router"], try(router.tags, []))
         network = merge(
           {
             mac_address     = ""
@@ -86,13 +92,14 @@ locals {
       for i, server in var.servers_mac : "${router.location}-${server.name}" => merge(
         server,
         {
-          fqdn        = "${server.name}.${router.location}.${var.default.domain}"
-          host        = "${router.location}-${server.name}"
-          location    = router.location
-          parent_name = router.name
-          parent_type = router.type
-          tags        = concat(["server"], try(router.tags, []))
-          type        = "mac"
+          fqdn_external = "${server.name}.${router.location}.${var.default.domain}"
+          fqdn_internal = "${server.name}.${router.location}.int.${var.default.domain}"
+          host          = "${router.location}-${server.name}"
+          location      = router.location
+          parent_name   = router.name
+          parent_type   = router.type
+          tags          = concat(["server"], try(router.tags, []))
+          type          = "mac"
           network = merge(
             {
               mac_address     = ""
@@ -141,13 +148,14 @@ locals {
       for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
         server,
         {
-          fqdn        = "${server.name}.${router.location}.${var.default.domain}"
-          host        = "${router.location}-${server.name}"
-          location    = router.location
-          parent_name = router.name
-          parent_type = router.type
-          tags        = concat(["server"], try(server.tags, []))
-          type        = "proxmox"
+          fqdn_external = "${server.name}.${router.location}.${var.default.domain}"
+          fqdn_internal = "${server.name}.${router.location}.int.${var.default.domain}"
+          host          = "${router.location}-${server.name}"
+          location      = router.location
+          parent_name   = router.name
+          parent_type   = router.type
+          tags          = concat(["server"], try(server.tags, []))
+          type          = "proxmox"
           network = merge(
             {
               mac_address     = ""
@@ -207,13 +215,14 @@ locals {
       for i, vm in var.vms_mac : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
-          fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
-          host        = "${server.location}-${server.name}-${vm.name}"
-          location    = server.location
-          name        = "${server.name}-${vm.name}"
-          parent_name = server.name
-          parent_type = server.type
-          tags        = concat(["vm"], try(vm.tags, []))
+          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
+          fqdn_internal = "${server.name}-${vm.name}.${server.location}.int.${var.default.domain}"
+          host          = "${server.location}-${server.name}-${vm.name}"
+          location      = server.location
+          name          = "${server.name}-${vm.name}"
+          parent_name   = server.name
+          parent_type   = server.type
+          tags          = concat(["vm"], try(vm.tags, []))
           config = merge(
             {
               packages = []
@@ -258,11 +267,12 @@ locals {
     for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
-        fqdn        = "${vm.name}.${vm.location}.${var.default.domain}"
-        host        = "${vm.location}-${vm.name}"
-        parent_name = "oci"
-        parent_type = "cloud"
-        tags        = concat(["vm"], try(vm.tags, []))
+        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain}"
+        fqdn_internal = "${vm.name}.${vm.location}.int.${var.default.domain}"
+        host          = "${vm.location}-${vm.name}"
+        parent_name   = "oci"
+        parent_type   = "cloud"
+        tags          = concat(["vm"], try(vm.tags, []))
         config = merge(
           {
             packages = []
@@ -295,13 +305,14 @@ locals {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
-          fqdn        = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
-          host        = "${server.location}-${server.name}-${vm.name}"
-          location    = server.location
-          name        = "${server.name}-${vm.name}"
-          parent_name = server.name
-          parent_type = server.type
-          tags        = concat(["vm"], try(vm.tags, []))
+          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
+          fqdn_internal = "${server.name}-${vm.name}.${server.location}.int.${var.default.domain}"
+          host          = "${server.location}-${server.name}-${vm.name}"
+          location      = server.location
+          name          = "${server.name}-${vm.name}"
+          parent_name   = server.name
+          parent_type   = server.type
+          tags          = concat(["vm"], try(vm.tags, []))
           config = merge(
             {
               boot_image_url = ""
@@ -340,7 +351,7 @@ locals {
           app_name      = website.name
           b2_bucket     = false
           fly_app       = false
-          fqdn          = "${website.name}.${zone}"
+          fqdn_external = "${website.name}.${zone}"
           group         = "Websites"
           password      = false
           resend_key    = false
@@ -357,11 +368,11 @@ locals {
   websites_merged_openwrt = merge([
     for k, server in local.servers_merged_cloudflare : {
       for i, website in local.cloudflare_records_merged : i => {
-        fqdn     = website.hostname
-        host     = server.host
-        location = server.location
+        fqdn_external = website.hostname
+        host          = server.host
+        location      = server.location
       }
-      if server.fqdn == website.hostname || server.fqdn == website.value
+      if server.fqdn_external == website.hostname || server.fqdn_external == website.value
     }
   ]...)
 
