@@ -50,8 +50,10 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
     {
-      onepassword_vault = var.terraform.onepassword.vault
-      servers           = local.servers_merged
+      cloudflare_tunnels = local.cloudflare_tunnels
+      onepassword_vault  = var.terraform.onepassword.vault
+      servers            = local.servers_merged
+      tailscale_keys     = local.tailscale_keys_merged
     }
   )
 }
