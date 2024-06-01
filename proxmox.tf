@@ -4,13 +4,14 @@ resource "proxmox_virtual_environment_download_file" "gen8" {
     if vm.config.boot_image_url != "" && vm.parent_name == "gen8"
   }
 
-  content_type = "iso"
-  datastore_id = "local"
-  file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
-  node_name    = each.value.parent
-  overwrite    = false
-  provider     = proxmox.gen8
-  url          = each.value.config.boot_image_url
+  content_type   = "iso"
+  datastore_id   = "local"
+  file_name      = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
+  node_name      = each.value.parent
+  overwrite      = false
+  provider       = proxmox.gen8
+  upload_timeout = 1800
+  url            = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_download_file" "kimbap" {
@@ -19,13 +20,14 @@ resource "proxmox_virtual_environment_download_file" "kimbap" {
     if vm.config.boot_image_url != "" && vm.parent_name == "kimbap"
   }
 
-  content_type = "iso"
-  datastore_id = "local"
-  file_name    = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
-  node_name    = each.value.parent
-  overwrite    = false
-  provider     = proxmox.kimbap
-  url          = each.value.config.boot_image_url
+  content_type   = "iso"
+  datastore_id   = "local"
+  file_name      = "${each.value.name}${endswith(each.value.config.boot_image_url, ".iso") ? ".iso" : ".img"}"
+  node_name      = each.value.parent
+  overwrite      = false
+  provider       = proxmox.kimbap
+  upload_timeout = 1800
+  url            = each.value.config.boot_image_url
 }
 
 resource "proxmox_virtual_environment_file" "gen8" {
