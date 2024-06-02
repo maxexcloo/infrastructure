@@ -8,6 +8,12 @@ locals {
     }
   }
 
+  cloudflare_api_tokens = {
+    for k, v in cloudflare_api_token.server : k => {
+      api_token = nonsensitive(v.value)
+    }
+  }
+
   cloudflare_records_merged = merge(
     {
       for k, v in cloudflare_record.internal : "${k}-internal" => v
@@ -25,7 +31,7 @@ locals {
     }
   )
 
-  cloudflare_tunnels = {
+  cloudflare_tunnel_tokens = {
     for k, v in cloudflare_tunnel.server : k => {
       tunnel_token = nonsensitive(v.tunnel_token)
     }
@@ -42,7 +48,7 @@ locals {
     }
   ]...)
 
-  resend_keys_merged = {
+  resend_api_keys_merged = {
     for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : k => {
       api_key = jsondecode(v.create_response).token
     }
@@ -203,7 +209,7 @@ locals {
     )
   }
 
-  tailscale_keys_merged = {
+  tailscale_tailnet_keys_merged = {
     for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
       tailnet_key = nonsensitive(v.key)
     }

@@ -2,24 +2,24 @@ output "b2_buckets" {
   value = local.b2_buckets
 }
 
-output "cloudflare_tunnels" {
-  value = local.cloudflare_tunnels
+output "cloudflare_api_tokens" {
+  value = local.cloudflare_api_tokens
 }
 
-output "resend_keys" {
-  value = local.resend_keys_merged
+output "cloudflare_tunnel_tokens" {
+  value = local.cloudflare_tunnel_tokens
 }
 
-# output "servers" {
-#   value = local.servers_merged
-# }
+output "resend_api_keys" {
+  value = local.resend_api_keys_merged
+}
 
 output "ssh_keys" {
   value = local.ssh_keys
 }
 
-output "tailscale_keys" {
-  value = local.tailscale_keys_merged
+output "tailscale_tailnet_keys" {
+  value = local.tailscale_tailnet_keys_merged
 }
 
 resource "local_file" "gatus_config" {
@@ -50,10 +50,10 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
     {
-      cloudflare_tunnels = local.cloudflare_tunnels
-      onepassword_vault  = var.terraform.onepassword.vault
-      servers            = local.servers_merged
-      tailscale_keys     = local.tailscale_keys_merged
+      cloudflare_tunnel_tokens = local.cloudflare_tunnel_tokens
+      onepassword_vault        = var.terraform.onepassword.vault
+      servers                  = local.servers_merged
+      tailscale_tailnet_keys   = local.tailscale_tailnet_keys_merged
     }
   )
 }
