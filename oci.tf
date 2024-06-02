@@ -24,7 +24,7 @@ data "oci_identity_availability_domain" "au" {
 
 resource "oci_core_default_dhcp_options" "au" {
   compartment_id             = var.terraform.oci.tenancy_ocid
-  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain_external}"
   manage_default_resource_id = oci_core_vcn.au.default_dhcp_options_id
 
   options {
@@ -39,7 +39,7 @@ resource "oci_core_default_dhcp_options" "au" {
 }
 
 resource "oci_core_default_route_table" "au" {
-  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain_external}"
   manage_default_resource_id = oci_core_vcn.au.default_route_table_id
 
   route_rules {
@@ -57,7 +57,7 @@ resource "oci_core_default_route_table" "au" {
 
 resource "oci_core_default_security_list" "au" {
   compartment_id             = var.terraform.oci.tenancy_ocid
-  display_name               = "${var.terraform.oci.location}.${var.default.domain}"
+  display_name               = "${var.terraform.oci.location}.${var.default.domain_external}"
   manage_default_resource_id = oci_core_vcn.au.default_security_list_id
 
   egress_security_rules {
@@ -128,14 +128,14 @@ resource "oci_core_instance" "vm" {
 
 resource "oci_core_internet_gateway" "au" {
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
+  display_name   = "${var.terraform.oci.location}.${var.default.domain_external}"
   vcn_id         = oci_core_vcn.au.id
 }
 
 resource "oci_core_subnet" "au" {
   cidr_block     = "10.0.0.0/24"
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
+  display_name   = "${var.terraform.oci.location}.${var.default.domain_external}"
   dns_label      = var.terraform.oci.location
   ipv6cidr_block = replace(oci_core_vcn.au.ipv6cidr_blocks[0], "/56", "/64")
   vcn_id         = oci_core_vcn.au.id
@@ -144,7 +144,7 @@ resource "oci_core_subnet" "au" {
 resource "oci_core_vcn" "au" {
   cidr_blocks    = ["10.0.0.0/16"]
   compartment_id = var.terraform.oci.tenancy_ocid
-  display_name   = "${var.terraform.oci.location}.${var.default.domain}"
-  dns_label      = replace(var.default.domain, "/\\.[^.]*$/", "")
+  display_name   = "${var.terraform.oci.location}.${var.default.domain_external}"
+  dns_label      = replace(var.default.domain_external, "/\\.[^.]*$/", "")
   is_ipv6enabled = true
 }

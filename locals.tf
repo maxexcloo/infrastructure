@@ -52,8 +52,8 @@ locals {
     for i, router in var.routers : router.location => merge(
       router,
       {
-        fqdn_external = "${router.location}.${var.default.domain}"
-        fqdn_internal = "${router.location}.int.${var.default.domain}"
+        fqdn_external = "${router.location}.${var.default.domain_external}"
+        fqdn_internal = "${router.location}.${var.default.domain_internal}"
         host          = router.location
         name          = router.location
         parent_name   = ""
@@ -92,8 +92,8 @@ locals {
       for i, server in var.servers_mac : "${router.location}-${server.name}" => merge(
         server,
         {
-          fqdn_external = "${server.name}.${router.location}.${var.default.domain}"
-          fqdn_internal = "${server.name}.${router.location}.int.${var.default.domain}"
+          fqdn_external = "${server.name}.${var.default.domain_external}"
+          fqdn_internal = "${server.name}.${var.default.domain_internal}"
           host          = "${router.location}-${server.name}"
           location      = router.location
           parent_name   = router.name
@@ -147,8 +147,8 @@ locals {
       for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
         server,
         {
-          fqdn_external = "${server.name}.${router.location}.${var.default.domain}"
-          fqdn_internal = "${server.name}.${router.location}.int.${var.default.domain}"
+          fqdn_external = "${server.name}.${var.default.domain_external}"
+          fqdn_internal = "${server.name}.${var.default.domain_internal}"
           host          = "${router.location}-${server.name}"
           location      = router.location
           parent_name   = router.name
@@ -213,8 +213,8 @@ locals {
     for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
-        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain}"
-        fqdn_internal = "${vm.name}.${vm.location}.int.${var.default.domain}"
+        fqdn_external = "${vm.name}.${var.default.domain_external}"
+        fqdn_internal = "${vm.name}.${var.default.domain_internal}"
         host          = "${vm.location}-${vm.name}"
         parent_name   = "oci"
         parent_type   = "cloud"
@@ -251,8 +251,8 @@ locals {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
-          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
-          fqdn_internal = "${server.name}-${vm.name}.${server.location}.int.${var.default.domain}"
+          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain_external}"
+          fqdn_internal = "${server.name}-${vm.name}.${server.location}.${var.default.domain_internal}"
           host          = "${server.location}-${server.name}-${vm.name}"
           location      = server.location
           name          = "${server.name}-${vm.name}"

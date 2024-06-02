@@ -18,7 +18,7 @@ resource "cloudflare_record" "internal" {
   name    = each.value.fqdn_internal
   type    = "CNAME"
   value   = "${each.key}.${var.terraform.tailscale.tailnet_domain}"
-  zone_id = cloudflare_zone.zone[var.default.domain].id
+  zone_id = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
 resource "cloudflare_record" "router" {
@@ -27,7 +27,7 @@ resource "cloudflare_record" "router" {
   name    = each.value.fqdn_external
   type    = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
   value   = each.value.network.public_address
-  zone_id = cloudflare_zone.zone[var.default.domain].id
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "server" {
@@ -36,7 +36,7 @@ resource "cloudflare_record" "server" {
   name    = each.value.fqdn_external
   type    = "CNAME"
   value   = each.value.network.public_address
-  zone_id = cloudflare_zone.zone[var.default.domain].id
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv4" {
@@ -45,7 +45,7 @@ resource "cloudflare_record" "vm_oci_ipv4" {
   name    = each.value.fqdn_external
   type    = "A"
   value   = data.oci_core_vnic.vm[each.key].public_ip_address
-  zone_id = cloudflare_zone.zone[var.default.domain].id
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv6" {
@@ -54,7 +54,7 @@ resource "cloudflare_record" "vm_oci_ipv6" {
   name    = each.value.fqdn_external
   type    = "AAAA"
   value   = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
-  zone_id = cloudflare_zone.zone[var.default.domain].id
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "website" {
