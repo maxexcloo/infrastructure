@@ -128,7 +128,6 @@ locals {
     local.routers,
     local.servers_mac,
     local.servers_proxmox,
-    local.vms_mac,
     local.vms_oci,
     local.vms_proxmox
   )
@@ -209,59 +208,6 @@ locals {
       tailnet_key = nonsensitive(v.key)
     }
   }
-
-  vms_mac = merge([
-    for i, server in local.servers_mac : {
-      for i, vm in var.vms_mac : "${server.location}-${server.name}-${vm.name}" => merge(
-        vm,
-        {
-          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain}"
-          fqdn_internal = "${server.name}-${vm.name}.${server.location}.int.${var.default.domain}"
-          host          = "${server.location}-${server.name}-${vm.name}"
-          location      = server.location
-          name          = "${server.name}-${vm.name}"
-          parent_name   = server.name
-          parent_type   = server.type
-          tags          = concat(["vm"], try(vm.tags, []))
-          config = merge(
-            {
-              packages = []
-              timezone = var.default.timezone
-            },
-            try(vm.config, {})
-          )
-          network = merge(
-            {
-              mac_address     = upper(macaddress.server_mac[i].address)
-              private_address = ""
-              public_address  = cloudflare_record.router[server.location].name
-              ssh_port        = 22
-            },
-            try(vm.network, {})
-          )
-          provider = merge(
-            {
-              host     = server.host
-              path     = "${server.config.vms_path}/${server.name}-${vm.name}"
-              port     = server.network.ssh_port
-              username = server.user.username
-            },
-            try(server.config, {})
-          )
-          user = merge(
-            {
-              automation = "root"
-              fullname   = ""
-              ssh_keys   = data.github_user.default.ssh_keys
-              username   = "root"
-            },
-            try(vm.user, {})
-          )
-        },
-      )
-      if vm.parent == server.name
-    }
-  ]...)
 
   vms_oci = merge({
     for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(

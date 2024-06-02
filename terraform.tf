@@ -12,9 +12,6 @@ terraform {
     htpasswd = {
       source = "loafoe/htpasswd"
     }
-    macaddress = {
-      source = "ivoronin/macaddress"
-    }
     oci = {
       source = "oracle/oci"
     }
