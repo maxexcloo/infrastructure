@@ -16,7 +16,10 @@ locals {
 
   cloudflare_records_merged = merge(
     {
-      for k, v in cloudflare_record.internal : "${k}-internal" => v
+      for k, v in cloudflare_record.internal_ipv4 : "${k}-internal" => v
+    },
+    {
+      for k, v in cloudflare_record.internal_ipv6 : "${k}-internal" => v
     },
     {
       for k, v in merge(
@@ -207,6 +210,13 @@ locals {
       },
       tag
     )
+  }
+
+  tailscale_devices = {
+    for k, v in data.tailscale_devices.default.devices : replace(v.name, ".tailnet-c8a0.ts.net", "") => {
+      ipv4 = v.addresses[0]
+      ipv6 = v.addresses[1]
+    }
   }
 
   tailscale_tailnet_keys_merged = {
