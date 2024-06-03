@@ -6,7 +6,7 @@ resource "openwrt_dhcp_host" "au" {
 
   id       = replace(each.value.name, "-", "")
   ip       = each.value.network.private_address
-  mac      = try(proxmox_virtual_environment_vm.gen8[each.key].mac_addresses[0], each.value.network.mac_address)
+  mac      = try(proxmox_virtual_environment_vm.gen8[each.key].network_device[0].mac_address, each.value.network.mac_address)
   name     = each.value.name
   provider = openwrt.au
 
@@ -23,7 +23,7 @@ resource "openwrt_dhcp_host" "au" {
 
 #   id       = replace(each.value.name, "-", "")
 #   ip       = each.value.network.private_address
-#   mac      = try(proxmox_virtual_environment_vm.kimbap[each.key].mac_addresses[0], each.value.network.mac_address)
+#   mac      = try(proxmox_virtual_environment_vm.kimbap[each.key].network_device[0].mac_address, each.value.network.mac_address)
 #   name     = each.value.name
 #   provider = openwrt.kr
 
