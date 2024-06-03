@@ -24,7 +24,7 @@ resource "onepassword_item" "website" {
 
   category = "login"
   password = each.value.password ? random_password.website[each.key].result : null
-  title    = cloudflare_record.website[each.key].hostname
+  title    = each.value.description
   url      = cloudflare_record.website[each.key].hostname
   username = each.value.username
   vault    = data.onepassword_vault.infrastructure.uuid
