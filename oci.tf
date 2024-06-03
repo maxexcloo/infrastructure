@@ -61,27 +61,93 @@ resource "oci_core_default_security_list" "au" {
   manage_default_resource_id = oci_core_vcn.au.default_security_list_id
 
   egress_security_rules {
-    destination = "0.0.0.0/0"
-    protocol    = "all"
-    stateless   = false
-  }
-
-  egress_security_rules {
     destination = "::/0"
     protocol    = "all"
     stateless   = false
   }
 
+  egress_security_rules {
+    destination = "0.0.0.0/0"
+    protocol    = "all"
+    stateless   = false
+  }
+
   ingress_security_rules {
-    protocol  = "all"
+    protocol  = 1
+    source    = "::/0"
+    stateless = false
+  }
+
+  ingress_security_rules {
+    protocol  = 6
+    source    = "::/0"
+    stateless = false
+
+    tcp_options {
+      max = 22
+      min = 22
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = 6
+    source    = "::/0"
+    stateless = false
+
+    tcp_options {
+      max = 80
+      min = 80
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = 6
+    source    = "::/0"
+    stateless = false
+
+    tcp_options {
+      max = 443
+      min = 443
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = 1
     source    = "0.0.0.0/0"
     stateless = false
   }
 
   ingress_security_rules {
-    protocol  = "all"
-    source    = "::/0"
+    protocol  = 6
+    source    = "0.0.0.0/0"
     stateless = false
+
+    tcp_options {
+      max = 22
+      min = 22
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = 6
+    source    = "0.0.0.0/0"
+    stateless = false
+
+    tcp_options {
+      max = 80
+      min = 80
+    }
+  }
+
+  ingress_security_rules {
+    protocol  = 6
+    source    = "0.0.0.0/0"
+    stateless = false
+
+    tcp_options {
+      max = 443
+      min = 443
+    }
   }
 }
 
