@@ -267,8 +267,8 @@ locals {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
-          fqdn_external = "${server.name}-${vm.name}.${server.location}.${var.default.domain_external}"
-          fqdn_internal = "${server.name}-${vm.name}.${server.location}.${var.default.domain_internal}"
+          fqdn_external = "${server.name}-${vm.name}.${var.default.domain_external}"
+          fqdn_internal = "${server.name}-${vm.name}.${var.default.domain_internal}"
           host          = "${server.location}-${server.name}-${vm.name}"
           location      = server.location
           name          = "${server.name}-${vm.name}"
