@@ -314,7 +314,7 @@ locals {
           b2_bucket     = false
           fly_app       = false
           fqdn_external = "${website.name}.${zone}"
-          group         = "Websites"
+          group         = "Websites (${zone})"
           password      = false
           resend_key    = false
           tailscale_key = false
