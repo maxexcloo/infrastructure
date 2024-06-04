@@ -30,7 +30,7 @@ endpoints:
       - "[STATUS] == 200"
     group: "${website.group}"
     name: "${website.description}"
-    url: "https://${website.fqdn_external}"
+    url: "https://${website.fqdn}${website.port != 0 ? ":${website.port}" : ""}""
 %{ endfor ~}
 ui:
   description: ""

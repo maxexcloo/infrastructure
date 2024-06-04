@@ -92,7 +92,10 @@ resource "cloudflare_record" "vm_oci_ipv6" {
 }
 
 resource "cloudflare_record" "website" {
-  for_each = local.websites
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.cloudflare_record
+  }
 
   allow_overwrite = true
   name            = each.value.name

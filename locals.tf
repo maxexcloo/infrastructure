@@ -310,17 +310,20 @@ locals {
     for zone, websites in var.websites : {
       for i, website in websites : "${website.name}.${zone}" => merge(
         {
-          app_name      = website.name
-          b2_bucket     = false
-          fly_app       = false
-          fqdn_external = "${website.name}.${zone}"
-          group         = "Websites (${zone})"
-          password      = false
-          resend_key    = false
-          tailscale_key = false
-          type          = "default"
-          username      = null
-          zone          = zone
+          app_name          = website.name
+          b2_bucket         = false
+          cloudflare_record = true
+          fly_app           = false
+          fqdn              = "${website.name}.${zone}"
+          group             = "Websites (${zone})"
+          password          = false
+          port              = 0
+          resend_key        = false
+          tailscale_key     = false
+          type              = "default"
+          username          = null
+          value             = ""
+          zone              = zone
         },
         website
       )

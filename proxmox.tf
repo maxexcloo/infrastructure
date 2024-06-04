@@ -114,7 +114,7 @@ resource "proxmox_virtual_environment_vm" "gen8" {
 
   memory {
     dedicated = each.value.config.memory * 1024
-    floating  = each.value.config.memory * 1024
+    floating  = 0
   }
 
   network_device {
@@ -210,7 +210,7 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
 
   memory {
     dedicated = each.value.config.memory * 1024
-    floating  = each.value.config.memory * 1024
+    floating  = 0
   }
 
   network_device {
