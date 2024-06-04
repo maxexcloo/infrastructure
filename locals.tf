@@ -308,7 +308,7 @@ locals {
 
   websites = merge([
     for zone, websites in var.websites : {
-      for i, website in websites : "${website.name}.${zone}" => merge(
+      for i, website in websites : "${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}" => merge(
         {
           app_name          = website.name
           b2_bucket         = false
