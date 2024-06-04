@@ -35,4 +35,3 @@ resource "onepassword_item" "website" {
     ]
   }
 }
-
