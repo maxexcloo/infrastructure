@@ -319,6 +319,7 @@ locals {
           password          = false
           port              = 0
           resend_key        = false
+          ssl               = true
           tailscale_key     = false
           type              = "default"
           username          = null
