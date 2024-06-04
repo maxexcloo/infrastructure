@@ -8,7 +8,7 @@ resource "onepassword_item" "server" {
   category = "login"
   password = random_password.server[each.key].result
   title    = each.key
-  url      = "${each.key}.${var.default.domain_internal}"
+  url      = "${each.value.name}.${var.default.domain_internal}"
   username = each.value.user.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
