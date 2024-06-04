@@ -26,7 +26,7 @@ endpoints:
       - type: email
     conditions:
       - "[CERTIFICATE_EXPIRATION] > 48h"
-      - "[RESPONSE_TIME] < 3000"
+      - "[RESPONSE_TIME] < 5000"
       - "[STATUS] == 200"
     group: "${website.group}"
     name: "${website.description}"
