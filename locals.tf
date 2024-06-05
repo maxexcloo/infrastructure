@@ -16,12 +16,6 @@ locals {
 
   cloudflare_records_merged = merge(
     {
-      for k, v in cloudflare_record.internal_ipv4 : "${k}-internal" => v
-    },
-    {
-      for k, v in cloudflare_record.internal_ipv6 : "${k}-internal" => v
-    },
-    {
       for k, v in merge(
         cloudflare_record.dns,
         cloudflare_record.router,

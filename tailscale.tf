@@ -8,13 +8,19 @@ resource "tailscale_acl" "default" {
         ports  = ["*:*"]
         users  = ["*"]
       }
-    ],
+    ]
+    autoApprovers = {
+      routes = {
+        "::/0"      = [for k, tag in local.tags : tag.tailscale_tag]
+        "0.0.0.0/0" = [for k, tag in local.tags : tag.tailscale_tag]
+      }
+    }
     nodeAttrs = [
       {
         attr   = ["nextdns:65188d"]
         target = [for k, tag in local.tags : tag.tailscale_tag]
       }
-    ],
+    ]
     tagOwners = {
       for k, tag in local.tags : tag.tailscale_tag => [var.default.email]
     }
