@@ -160,15 +160,17 @@ resource "oci_core_instance" "vm" {
   shape               = each.value.config.shape
 
   metadata = {
-    user_data = base64encode(templatefile(
-      "./templates/cloud_config/cloud_config.tftpl",
-      {
-        password      = htpasswd_password.server[each.key].sha512
-        server        = each.value
-        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
-        tailscale_key = tailscale_tailnet_key.server[each.key].key
-      }
-    ))
+    user_data = base64encode(
+      templatefile(
+        "./templates/cloud_config/cloud_config.tftpl",
+        {
+          password      = htpasswd_password.server[each.key].sha512
+          server        = each.value
+          ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
+          tailscale_key = tailscale_tailnet_key.server[each.key].key
+        }
+      )
+    )
   }
 
   create_vnic_details {

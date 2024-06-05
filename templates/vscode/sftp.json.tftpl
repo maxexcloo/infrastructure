@@ -6,7 +6,7 @@
         "context": "Downloads/${device.host}",
         "host": "${device.host}",
         "name": "${device.host} (${sftp_path})",
-        "port": "${device.port}",
+        "port": ${device.port},
         "remotePath": "${sftp_path}",
         "uploadOnSave": true,
         "username": "${device.username}"
@@ -20,7 +20,7 @@
         "context": "Downloads/${server.host}",
         "host": "${server.host}",
         "name": "${server.host} (${sftp_path})",
-        "port": "${server.network.ssh_port}",
+        "port": ${server.network.ssh_port},
         "remotePath": "${sftp_path}",
         "uploadOnSave": true,
         "username": "${server.user.username}"

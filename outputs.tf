@@ -75,11 +75,15 @@ resource "local_file" "vscode_sftp" {
   file_permission = "0644"
   filename        = "${var.default.home}/.vscode/sftp.json"
 
-  content = templatefile(
-    "./templates/vscode/sftp.json.tftpl",
-    {
-      devices = local.devices
-      servers = local.servers_merged
-    }
+  content = replace(
+    templatefile(
+      "./templates/vscode/sftp.json.tftpl",
+      {
+        devices = local.devices
+        servers = local.servers_merged
+      }
+    ),
+    "},\n]",
+    "}\n]"
   )
 }
