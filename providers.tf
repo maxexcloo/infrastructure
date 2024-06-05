@@ -85,6 +85,7 @@ provider "restapi" {
 }
 
 provider "tailscale" {
-  api_key = var.terraform.tailscale.api_key
-  tailnet = var.terraform.tailscale.tailnet
+  oauth_client_id     = var.terraform.tailscale.oauth_client_id
+  oauth_client_secret = var.terraform.tailscale.oauth_client_secret
+  tailnet             = var.terraform.tailscale.tailnet
 }

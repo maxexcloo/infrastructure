@@ -176,6 +176,12 @@ resource "proxmox_virtual_environment_vm" "gen8" {
       }
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      initialization
+    ]
+  }
 }
 
 resource "proxmox_virtual_environment_vm" "kimbap" {
@@ -271,5 +277,11 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
         }
       }
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      initialization
+    ]
   }
 }
