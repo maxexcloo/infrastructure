@@ -45,7 +45,7 @@ resource "proxmox_virtual_environment_file" "gen8" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "./templates/cloud_config.tftpl",
+      "./templates/cloud_config/cloud_config.tftpl",
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value
@@ -71,7 +71,7 @@ resource "proxmox_virtual_environment_file" "kimbap" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "./templates/cloud_config.tftpl",
+      "./templates/cloud_config/cloud_config.tftpl",
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value

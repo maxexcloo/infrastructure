@@ -161,7 +161,7 @@ resource "oci_core_instance" "vm" {
 
   metadata = {
     user_data = base64encode(templatefile(
-      "./templates/cloud_config.tftpl",
+      "./templates/cloud_config/cloud_config.tftpl",
       {
         password      = htpasswd_password.server[each.key].sha512
         server        = each.value

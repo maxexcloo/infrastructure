@@ -63,9 +63,22 @@ resource "local_file" "ssh_config" {
   filename        = "${var.default.home}/.ssh/config"
 
   content = templatefile(
-    "./templates/ssh_config.tftpl",
+    "./templates/ssh/config.tftpl",
     {
-      devices = var.devices
+      devices = local.devices
+      servers = local.servers_merged
+    }
+  )
+}
+
+resource "local_file" "vscode_sftp" {
+  file_permission = "0644"
+  filename        = "${var.default.home}/.vscode/sftp.json"
+
+  content = templatefile(
+    "./templates/vscode/sftp.json.tftpl",
+    {
+      devices = local.devices
       servers = local.servers_merged
     }
   )

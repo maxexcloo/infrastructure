@@ -37,6 +37,17 @@ locals {
     }
   }
 
+  devices = {
+    for i, device in var.devices : device.host => merge(
+      {
+        port       = 22
+        sftp_paths = ["/"]
+        username   = "root"
+      },
+      device
+    )
+  }
+
   dns = merge([
     for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
@@ -65,6 +76,12 @@ locals {
         parent_name   = ""
         parent_type   = ""
         tags          = concat(["router"], try(router.tags, []))
+        config = merge(
+          {
+            sftp_paths = ["/"]
+          },
+          try(router.config, {})
+        )
         network = merge(
           {
             mac_address     = ""
@@ -106,6 +123,12 @@ locals {
           parent_type   = router.type
           tags          = concat(["server"], try(router.tags, []))
           type          = "mac"
+          config = merge(
+            {
+              sftp_paths = ["/"]
+            },
+            try(server.config, {})
+          )
           network = merge(
             {
               mac_address     = ""
@@ -161,6 +184,12 @@ locals {
           parent_type   = router.type
           tags          = concat(["server"], try(server.tags, []))
           type          = "proxmox"
+          config = merge(
+            {
+              sftp_paths = ["/"]
+            },
+            try(server.config, {})
+          )
           network = merge(
             {
               mac_address     = ""
@@ -234,8 +263,9 @@ locals {
         tags          = concat(["vm"], try(vm.tags, []))
         config = merge(
           {
-            packages = []
-            timezone = var.default.timezone
+            packages   = []
+            sftp_paths = ["/"]
+            timezone   = var.default.timezone
           },
           try(vm.config, {})
         )
@@ -276,6 +306,7 @@ locals {
             {
               boot_image_url = ""
               packages       = ["qemu-guest-agent"]
+              sftp_paths     = ["/"]
               timezone       = var.default.timezone
             },
             try(vm.config, {})
