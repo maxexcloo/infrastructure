@@ -41,7 +41,7 @@ locals {
     for i, device in var.devices : device.host => merge(
       {
         port       = 22
-        sftp_paths = ["/"]
+        sftp_paths = concat(var.default.sftp_paths, try(device.sftp_paths, []))
         username   = "root"
       },
       device
@@ -77,10 +77,10 @@ locals {
         parent_type   = ""
         tags          = concat(["router"], try(router.tags, []))
         config = merge(
+          try(router.config, {}),
           {
-            sftp_paths = ["/"]
-          },
-          try(router.config, {})
+            sftp_paths = concat(var.default.sftp_paths, try(router.config.sftp_paths, []))
+          }
         )
         network = merge(
           {
@@ -124,10 +124,10 @@ locals {
           tags          = concat(["server"], try(router.tags, []))
           type          = "mac"
           config = merge(
+            try(server.config, {}),
             {
-              sftp_paths = ["/"]
-            },
-            try(server.config, {})
+              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
+            }
           )
           network = merge(
             {
@@ -185,10 +185,10 @@ locals {
           tags          = concat(["server"], try(server.tags, []))
           type          = "proxmox"
           config = merge(
+            try(server.config, {}),
             {
-              sftp_paths = ["/"]
-            },
-            try(server.config, {})
+              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
+            }
           )
           network = merge(
             {
@@ -263,11 +263,13 @@ locals {
         tags          = concat(["vm"], try(vm.tags, []))
         config = merge(
           {
-            packages   = []
-            sftp_paths = ["/"]
-            timezone   = var.default.timezone
+            packages = []
+            timezone = var.default.timezone
           },
-          try(vm.config, {})
+          try(vm.config, {}),
+          {
+            sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+          }
         )
         network = merge(
           {
@@ -305,11 +307,13 @@ locals {
           config = merge(
             {
               boot_image_url = ""
-              packages       = ["qemu-guest-agent"]
-              sftp_paths     = ["/"]
               timezone       = var.default.timezone
             },
-            try(vm.config, {})
+            try(vm.config, {}),
+            {
+              packages   = concat(["qemu-guest-agent"], try(vm.config.packages, []))
+              sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+            },
           )
           network = merge(
             {
