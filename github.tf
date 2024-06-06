@@ -2,17 +2,6 @@ data "github_user" "default" {
   username = ""
 }
 
-resource "github_actions_secret" "portainer_b2_buckets" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.app_type == "portainer"
-  }
-
-  plaintext_value = jsonencode(local.b2_buckets)
-  repository      = each.value.name
-  secret_name     = "B2_BUCKETS"
-}
-
 resource "github_actions_secret" "portainer_cloudflare_api_tokens" {
   for_each = {
     for k, website in local.websites : k => website
@@ -66,6 +55,17 @@ resource "github_actions_secret" "portainer_websites" {
   plaintext_value = jsonencode(local.websites)
   repository      = each.value.name
   secret_name     = "WEBSITES"
+}
+
+resource "github_actions_variable" "portainer_portainer_url" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  repository    = each.value.name
+  variable_name = "PORTAINER_URL"
+  value         = each.value.url
 }
 
 resource "github_actions_variable" "portainer_servers" {
