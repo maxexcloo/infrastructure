@@ -57,15 +57,15 @@ resource "github_actions_secret" "portainer_secret_hashes" {
   secret_name     = "SECRET_HASHES"
 }
 
-resource "github_actions_variable" "portainer_portainer_url" {
+resource "github_actions_secret" "portainer_websites" {
   for_each = {
     for k, website in local.websites : k => website
     if website.app_type == "portainer"
   }
 
-  repository    = each.value.name
-  variable_name = "PORTAINER_URL"
-  value         = each.value.url
+  plaintext_value = jsonencode(local.websites)
+  repository      = each.value.name
+  secret_name     = "WEBSITES"
 }
 
 resource "github_actions_variable" "portainer_servers" {
