@@ -22,27 +22,6 @@ output "tailscale_tailnet_keys" {
   value = local.tailscale_tailnet_keys_merged
 }
 
-resource "local_file" "gatus_config" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.fly_app && website.type == "gatus"
-  }
-
-  file_permission = "0644"
-  filename        = "../Fly/${each.value.app_name}/config.yaml"
-
-  content = templatefile(
-    "./templates/gatus/config.yaml.tftpl",
-    {
-      default  = var.default
-      servers  = local.servers_merged
-      tags     = local.tags
-      website  = each.value
-      websites = local.websites
-    }
-  )
-}
-
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
   filename        = "../PyInfra/inventory.py"
