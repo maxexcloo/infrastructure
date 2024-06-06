@@ -5,7 +5,7 @@ data "github_user" "default" {
 resource "github_actions_secret" "portainer_b2_buckets" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.type == "portainer"
+    if website.app_type == "portainer"
   }
 
   plaintext_value = jsonencode(local.b2_buckets)
@@ -16,7 +16,7 @@ resource "github_actions_secret" "portainer_b2_buckets" {
 resource "github_actions_secret" "portainer_cloudflare_api_tokens" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.type == "portainer"
+    if website.app_type == "portainer"
   }
 
   plaintext_value = jsonencode(local.cloudflare_api_tokens)
@@ -24,10 +24,21 @@ resource "github_actions_secret" "portainer_cloudflare_api_tokens" {
   secret_name     = "CLOUDFLARE_API_TOKENS"
 }
 
+resource "github_actions_secret" "portainer_database_passwords" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  plaintext_value = jsonencode(local.database_passwords)
+  repository      = each.value.name
+  secret_name     = "DATABASE_PASSWORDS"
+}
+
 resource "github_actions_secret" "portainer_resend_api_keys" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.type == "portainer"
+    if website.app_type == "portainer"
   }
 
   plaintext_value = jsonencode(local.resend_api_keys_merged)
@@ -35,21 +46,32 @@ resource "github_actions_secret" "portainer_resend_api_keys" {
   secret_name     = "RESEND_API_KEYS"
 }
 
+resource "github_actions_secret" "portainer_secret_hashes" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  plaintext_value = jsonencode(local.secret_hashes)
+  repository      = each.value.name
+  secret_name     = "SECRET_HASHES"
+}
+
 resource "github_actions_variable" "portainer_portainer_url" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.type == "portainer"
+    if website.app_type == "portainer"
   }
 
   repository    = each.value.name
   variable_name = "PORTAINER_URL"
-  value         = "${each.value.ssl ? "https://" : "http://"}${each.value.fqdn}"
+  value         = each.value.url
 }
 
 resource "github_actions_variable" "portainer_servers" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.type == "portainer"
+    if website.app_type == "portainer"
   }
 
   repository    = each.value.name
@@ -60,7 +82,7 @@ resource "github_actions_variable" "portainer_servers" {
 resource "github_repository_file" "gatus_config" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.fly_app && website.type == "gatus"
+    if website.app_type == "gatus"
   }
 
   file                = "${each.value.app_name}/config.yaml"

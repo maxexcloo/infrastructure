@@ -10,8 +10,16 @@ output "cloudflare_tunnel_tokens" {
   value = local.cloudflare_tunnel_tokens
 }
 
+output "database_passwords" {
+  value = local.database_passwords
+}
+
 output "resend_api_keys" {
   value = local.resend_api_keys_merged
+}
+
+output "secret_hashes" {
+  value = local.secret_hashes
 }
 
 output "ssh_keys" {

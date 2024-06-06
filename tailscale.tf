@@ -43,7 +43,7 @@ resource "tailscale_tailnet_key" "server" {
 resource "tailscale_tailnet_key" "website" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.tailscale_key
+    if website.enable_tailscale_key
   }
 
   description   = "ephemeral-${each.value.app_name}"

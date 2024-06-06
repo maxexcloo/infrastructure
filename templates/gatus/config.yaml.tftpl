@@ -25,14 +25,14 @@ endpoints:
   - alerts:
       - type: email
     conditions:
-%{ if website.ssl ~}
+%{ if website.enable_ssl ~}
       - "[CERTIFICATE_EXPIRATION] > 48h"
 %{ endif ~}
       - "[RESPONSE_TIME] < 5000"
       - "[STATUS] == 200"
     group: "${website.group}"
     name: "${website.description}"
-    url: "${website.ssl ? "https://" : "http://"}${website.fqdn}${website.port != 0 ? ":${website.port}" : ""}"
+    url: "${website.url}"
 %{ endfor ~}
 ui:
   description: ""

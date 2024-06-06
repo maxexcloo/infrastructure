@@ -18,7 +18,7 @@ resource "restapi_object" "server_resend_key" {
 resource "restapi_object" "website_resend_key" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.resend_key
+    if website.enable_resend_key
   }
 
   data         = jsonencode({ name = each.value.app_name })

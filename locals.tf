@@ -37,6 +37,12 @@ locals {
     }
   }
 
+  database_passwords = {
+    for k, v in random_password.database_password : k => {
+      database_password = nonsensitive(v.result)
+    }
+  }
+
   devices = {
     for i, device in var.devices : device.host => merge(
       {
@@ -109,6 +115,12 @@ locals {
       }
     )
   })
+
+  secret_hashes = {
+    for k, v in random_password.secret_hash : k => {
+      secret_hash = nonsensitive(v.result)
+    }
+  }
 
   servers_mac = merge([
     for i, router in local.routers : {
@@ -342,21 +354,24 @@ locals {
     for zone, websites in var.websites : {
       for i, website in websites : "${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}" => merge(
         {
-          app_name          = website.name
-          b2_bucket         = false
-          cloudflare_record = true
-          fly_app           = false
-          fqdn              = "${website.name}.${zone}"
-          group             = "Websites (${zone})"
-          password          = false
-          port              = 0
-          resend_key        = false
-          ssl               = true
-          tailscale_key     = false
-          type              = "default"
-          username          = null
-          value             = ""
-          zone              = zone
+          app_name                 = website.name
+          app_type                 = "default"
+          enable_b2_bucket         = false
+          enable_cloudflare_record = true
+          enable_database_password = false
+          enable_password          = false
+          enable_resend_key        = false
+          enable_secret_hash       = false
+          enable_ssl               = true
+          enable_tailscale_key     = false
+          fqdn                     = "${website.name}.${zone}"
+          group                    = "Websites (${zone})"
+          onepassword_url          = "${try(website.enable_ssl, true) ? "${try(website.port, 0) != 0 ? "https://" : ""}" : "http://"}${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}"
+          port                     = 0
+          url                      = "${try(website.enable_ssl, true) ? "https://" : "http://"}${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}"
+          username                 = null
+          value                    = ""
+          zone                     = zone
         },
         website
       )

@@ -8,7 +8,7 @@ resource "onepassword_item" "server" {
   category = "login"
   password = random_password.server[each.key].result
   title    = each.key
-  url      = "${each.value.name}.${var.default.domain_internal}"
+  url      = each.value.fqdn_internal
   username = each.value.user.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
@@ -23,9 +23,9 @@ resource "onepassword_item" "website" {
   for_each = local.websites
 
   category = "login"
-  password = each.value.password ? random_password.website[each.key].result : null
+  password = each.value.enable_password ? random_password.website[each.key].result : null
   title    = each.value.description
-  url      = "${each.value.ssl ? "${each.value.port != 0 ? "https://" : ""}" : "http://"}${each.value.fqdn}${each.value.port != 0 ? ":${each.value.port}" : ""}"
+  url      = each.value.onepassword_url
   username = each.value.username
   vault    = data.onepassword_vault.infrastructure.uuid
 
