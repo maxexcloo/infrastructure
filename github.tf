@@ -9,7 +9,7 @@ resource "github_actions_variable" "portainer_defaults" {
   }
 
   repository    = each.value.name
-  value         = jsonencode(var.default)
+  value         = jsonencode(local.defaults_portainer)
   variable_name = "DEFAULTS"
 }
 

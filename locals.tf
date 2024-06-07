@@ -43,6 +43,11 @@ locals {
     }
   }
 
+  defaults_portainer = {
+    for k, v in var.default : k => v
+    if k != "home" && k != "sftp_paths"
+  }
+
   devices = {
     for i, device in var.devices : device.host => merge(
       {
@@ -373,14 +378,10 @@ locals {
         app_type          = website.app_type
         database_password = website.enable_database_password ? local.database_passwords[i].database_password : ""
         fqdn              = website.fqdn
-        group             = website.group
         host              = k
-        password          = website.enable_password ? random_password.website[i].result : ""
-        port              = website.port
         resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[i].api_key : ""
         secret_hash       = website.enable_secret_hash ? local.secret_hashes[i].secret_hash : ""
         url               = website.url
-        username          = website.username
       }
       if server.fqdn_external == website.value
     }
