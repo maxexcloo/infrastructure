@@ -1,6 +1,7 @@
 variable "default" {}
 variable "devices" {}
 variable "dns" {}
+variable "portainer_secrets" {}
 variable "routers" {}
 variable "servers_mac" {}
 variable "servers_proxmox" {}

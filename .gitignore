@@ -2,4 +2,5 @@
 .terraform.*
 *.tfstate
 *.tfstate.*
+portainer_secrets.auto.tfvars
 providers.auto.tfvars
