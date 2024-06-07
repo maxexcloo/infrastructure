@@ -396,7 +396,7 @@ locals {
         tailscale_tailnet_key = website.enable_tailscale_key ? local.tailscale_tailnet_keys_merged[k].tailnet_key : ""
         url                   = website.url
       }
-      if server.fqdn_external == website.value
+      if server.fqdn_external == website.value || server.fqdn_internal == website.value
     }
   ]...)
 
