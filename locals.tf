@@ -1,12 +1,23 @@
 locals {
-  b2_buckets = {
-    for k, b2_bucket in b2_bucket.website : k => {
-      application_key    = nonsensitive(b2_application_key.website[k].application_key)
-      application_key_id = b2_application_key.website[k].application_key_id
-      bucket_name        = b2_bucket.bucket_name
-      endpoint           = data.b2_account_info.default.s3_api_url
+  b2_buckets = merge(
+    {
+      for k, server in local.servers_merged : k => {
+        application_key    = nonsensitive(b2_application_key.server[k].application_key)
+        application_key_id = b2_application_key.server[k].application_key_id
+        bucket_name        = b2_bucket.server[k].bucket_name
+        endpoint           = data.b2_account_info.default.s3_api_url
+      }
+    },
+    {
+      for k, website in local.websites : k => {
+        application_key    = nonsensitive(b2_application_key.website[k].application_key)
+        application_key_id = b2_application_key.website[k].application_key_id
+        bucket_name        = b2_bucket.website[k].bucket_name
+        endpoint           = data.b2_account_info.default.s3_api_url
+      }
+      if website.enable_b2_bucket
     }
-  }
+  )
 
   cloudflare_api_tokens = {
     for k, cloudflare_api_token in cloudflare_api_token.server : k => {
@@ -176,12 +187,16 @@ locals {
 
   servers_merged_portainer = {
     for k, server in local.servers_merged : k => {
-      cloudflare_api_token = local.cloudflare_api_tokens[k].api_token
-      fqdn_external        = server.fqdn_external
-      fqdn_internal        = server.fqdn_internal
-      host                 = server.host
-      name                 = server.name
-      resend_api_key       = local.resend_api_keys_merged[k].api_key
+      b2_bucket_application_key    = local.b2_buckets[k].application_key
+      b2_bucket_application_key_id = local.b2_buckets[k].application_key_id
+      b2_bucket_bucket_name        = local.b2_buckets[k].bucket_name
+      b2_bucket_endpoint           = local.b2_buckets[k].endpoint
+      cloudflare_api_token         = local.cloudflare_api_tokens[k].api_token
+      fqdn_external                = server.fqdn_external
+      fqdn_internal                = server.fqdn_internal
+      host                         = server.host
+      name                         = server.name
+      resend_api_key               = local.resend_api_keys_merged[k].api_key
     }
   }
 
@@ -385,16 +400,20 @@ locals {
   websites_merged_portainer = merge([
     for k, server in local.servers_merged : {
       for k, website in local.websites : k => {
-        app_name              = website.app_name
-        app_type              = website.app_type
-        database_password     = website.enable_database_password ? local.database_passwords[k].database_password : ""
-        database_username     = website.enable_database_password ? website.app_type : ""
-        fqdn                  = website.fqdn
-        host                  = server.host
-        resend_api_key        = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
-        secret_hash           = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
-        tailscale_tailnet_key = website.enable_tailscale_key ? local.tailscale_tailnet_keys_merged[k].tailnet_key : ""
-        url                   = website.url
+        app_name                     = website.app_name
+        app_type                     = website.app_type
+        b2_bucket_application_key    = website.enable_b2_bucket ? local.b2_buckets[k].application_key : ""
+        b2_bucket_application_key_id = website.enable_b2_bucket ? local.b2_buckets[k].application_key_id : ""
+        b2_bucket_bucket_name        = website.enable_b2_bucket ? local.b2_buckets[k].bucket_name : ""
+        b2_bucket_endpoint           = website.enable_b2_bucket ? local.b2_buckets[k].endpoint : ""
+        database_password            = website.enable_database_password ? local.database_passwords[k].database_password : ""
+        database_username            = website.enable_database_password ? website.app_type : ""
+        fqdn                         = website.fqdn
+        host                         = server.host
+        resend_api_key               = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
+        secret_hash                  = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
+        tailscale_tailnet_key        = website.enable_tailscale_key ? local.tailscale_tailnet_keys_merged[k].tailnet_key : ""
+        url                          = website.url
       }
       if server.fqdn_external == website.value || server.fqdn_internal == website.value
     }

@@ -1,4 +1,12 @@
-resource "random_password" "b2_bucket" {
+resource "random_password" "b2_bucket_server" {
+  for_each = local.servers_merged
+
+  length  = 6
+  special = false
+  upper   = false
+}
+
+resource "random_password" "b2_bucket_website" {
   for_each = {
     for k, website in local.websites : k => website
     if website.enable_b2_bucket
