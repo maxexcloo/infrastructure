@@ -1,45 +1,45 @@
 locals {
   b2_buckets = {
-    for k, v in b2_bucket.website : k => {
+    for k, b2_bucket in b2_bucket.website : k => {
       application_key    = nonsensitive(b2_application_key.website[k].application_key)
       application_key_id = b2_application_key.website[k].application_key_id
-      bucket_name        = v.bucket_name
+      bucket_name        = b2_bucket.bucket_name
       endpoint           = data.b2_account_info.default.s3_api_url
     }
   }
 
   cloudflare_api_tokens = {
-    for k, v in cloudflare_api_token.server : k => {
-      api_token = nonsensitive(v.value)
+    for k, cloudflare_api_token in cloudflare_api_token.server : k => {
+      api_token = nonsensitive(cloudflare_api_token.value)
     }
   }
 
   cloudflare_records_merged = merge(
     {
-      for k, v in cloudflare_record.internal : "${k}-internal" => v
+      for k, cloudflare_record in cloudflare_record.internal : "${k}-internal" => cloudflare_record
     },
     {
-      for k, v in merge(
+      for k, cloudflare_record in merge(
         cloudflare_record.dns,
         cloudflare_record.router,
         cloudflare_record.server,
         cloudflare_record.vm_oci_ipv4,
         cloudflare_record.vm_oci_ipv6,
         cloudflare_record.website
-      ) : k => v
-      if v.type == "A" || v.type == "AAAA" || v.type == "CNAME"
+      ) : k => cloudflare_record
+      if cloudflare_record.type == "A" || cloudflare_record.type == "AAAA" || cloudflare_record.type == "CNAME"
     }
   )
 
   cloudflare_tunnel_tokens = {
-    for k, v in cloudflare_tunnel.server : k => {
-      tunnel_token = nonsensitive(v.tunnel_token)
+    for k, cloudflare_tunnel in cloudflare_tunnel.server : k => {
+      tunnel_token = nonsensitive(cloudflare_tunnel.tunnel_token)
     }
   }
 
   database_passwords = {
-    for k, v in random_password.database_password : k => {
-      database_password = nonsensitive(v.result)
+    for k, random_password in random_password.database_password : k => {
+      database_password = nonsensitive(random_password.result)
     }
   }
 
@@ -71,8 +71,8 @@ locals {
   ]...)
 
   resend_api_keys_merged = {
-    for k, v in merge(restapi_object.server_resend_api_key, restapi_object.website_resend_api_key) : k => {
-      api_key = jsondecode(v.create_response).token
+    for k, restapi_object in merge(restapi_object.server_resend_api_key, restapi_object.website_resend_api_key) : k => {
+      api_key = jsondecode(restapi_object.create_response).token
     }
   }
 
@@ -118,13 +118,13 @@ locals {
   })
 
   secret_hashes = {
-    for k, v in random_password.secret_hash : k => {
-      secret_hash = nonsensitive(v.result)
+    for k, random_password in random_password.secret_hash : k => {
+      secret_hash = nonsensitive(random_password.result)
     }
   }
 
   servers_mac = merge([
-    for i, router in local.routers : {
+    for k, router in local.routers : {
       for i, server in var.servers_mac : "${router.location}-${server.name}" => merge(
         server,
         {
@@ -170,17 +170,28 @@ locals {
   )
 
   servers_merged_cloudflare = {
-    for k, v in local.servers_merged : k => v
-    if v.parent_type != "cloud" && v.tags[0] != "router"
+    for k, server in local.servers_merged : k => server
+    if server.parent_type != "cloud" && server.tags[0] != "router"
+  }
+
+  servers_merged_portainer = {
+    for k, server in local.servers_merged : k => {
+      cloudflare_api_token = local.cloudflare_api_tokens[k].api_token
+      fqdn_external        = server.fqdn_external
+      fqdn_internal        = server.fqdn_internal
+      host                 = server.host
+      resend_api_key       = local.resend_api_keys_merged[k].api_key
+      type                 = server.location
+    }
   }
 
   servers_merged_ssh = {
-    for k, v in local.servers_merged : k => v
-    if v.tags[0] == "server"
+    for k, server in local.servers_merged : k => server
+    if server.tags[0] == "server"
   }
 
   servers_proxmox = merge([
-    for i, router in local.routers : {
+    for k, router in local.routers : {
       for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
         server,
         {
@@ -226,9 +237,9 @@ locals {
   ]...)
 
   ssh_keys = {
-    for k, v in tls_private_key.server_ssh_key : k => {
-      private_key = trimspace(nonsensitive(v.private_key_openssh))
-      public_key  = trimspace(v.public_key_openssh)
+    for k, tls_private_key in tls_private_key.server_ssh_key : k => {
+      private_key = trimspace(nonsensitive(tls_private_key.private_key_openssh))
+      public_key  = trimspace(tls_private_key.public_key_openssh)
     }
   }
 
@@ -242,8 +253,8 @@ locals {
   }
 
   tailscale_tailnet_keys_merged = {
-    for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
-      tailnet_key = nonsensitive(v.key)
+    for k, tailscale_tailnet_key in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
+      tailnet_key = nonsensitive(tailscale_tailnet_key.key)
     }
   }
 
@@ -286,7 +297,7 @@ locals {
   })
 
   vms_proxmox = merge([
-    for i, server in local.servers_proxmox : {
+    for k, server in local.servers_proxmox : {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
@@ -334,7 +345,7 @@ locals {
 
   websites = merge([
     for zone, websites in var.websites : {
-      for i, website in websites : "${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}" => merge(
+      for k, website in websites : "${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}" => merge(
         {
           app_name                 = website.name
           app_type                 = "default"
@@ -373,14 +384,14 @@ locals {
 
   websites_merged_portainer = merge([
     for k, server in local.servers_merged : {
-      for i, website in local.websites : i => {
+      for k, website in local.websites : k => {
         app_name          = website.app_name
         app_type          = website.app_type
-        database_password = website.enable_database_password ? local.database_passwords[i].database_password : ""
+        database_password = website.enable_database_password ? local.database_passwords[k].database_password : ""
         fqdn              = website.fqdn
-        host              = k
-        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[i].api_key : ""
-        secret_hash       = website.enable_secret_hash ? local.secret_hashes[i].secret_hash : ""
+        host              = server.host
+        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
+        secret_hash       = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
         url               = website.url
       }
       if server.fqdn_external == website.value

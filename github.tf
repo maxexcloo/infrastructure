@@ -2,6 +2,28 @@ data "github_user" "default" {
   username = ""
 }
 
+resource "github_actions_secret" "portainer_servers" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  plaintext_value = jsonencode(local.servers_merged_portainer)
+  repository      = each.value.name
+  secret_name     = "SERVERS"
+}
+
+resource "github_actions_secret" "portainer_websites" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  plaintext_value = jsonencode(local.websites_merged_portainer)
+  repository      = each.value.name
+  secret_name     = "WEBSITES"
+}
+
 resource "github_actions_variable" "portainer_defaults" {
   for_each = {
     for k, website in local.websites : k => website
@@ -22,17 +44,6 @@ resource "github_actions_variable" "portainer_portainer_url" {
   repository    = each.value.name
   variable_name = "PORTAINER_URL"
   value         = each.value.url
-}
-
-resource "github_actions_secret" "portainer_websites" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.app_type == "portainer"
-  }
-
-  plaintext_value = jsonencode(local.websites_merged_portainer)
-  repository      = each.value.name
-  secret_name     = "WEBSITES"
 }
 
 resource "github_repository_file" "gatus_config" {
