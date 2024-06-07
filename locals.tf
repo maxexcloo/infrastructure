@@ -366,17 +366,25 @@ locals {
     }
   ]...)
 
-  websites_merged_portainer = {
-    for k, website in local.websites : k => merge(
-      website,
-      {
-        b2_bucket         = website.enable_b2_bucket ? local.b2_buckets[k] : null
-        database_password = website.enable_database_password ? local.database_passwords[k].database_password : null
-        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : null
-        secret_hash       = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : null
+  websites_merged_portainer = merge([
+    for k, server in local.servers_merged : {
+      for i, website in local.websites : i => {
+        app_name          = website.app_name
+        app_type          = website.app_type
+        database_password = website.enable_database_password ? local.database_passwords[i].database_password : null
+        fqdn              = website.fqdn
+        group             = website.group
+        host              = k
+        password          = website.enable_password ? random_password.website[i].result : null
+        port              = website.port
+        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[i].api_key : null
+        secret_hash       = website.enable_secret_hash ? local.secret_hashes[i].secret_hash : null
+        url               = website.url
+        username          = website.username
       }
-    )
-  }
+      if server.fqdn_external == website.value
+    }
+  ]...)
 
   zones = merge(
     var.dns,

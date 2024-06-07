@@ -2,6 +2,17 @@ data "github_user" "default" {
   username = ""
 }
 
+resource "github_actions_variable" "portainer_defaults" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "portainer"
+  }
+
+  repository    = each.value.name
+  value         = jsonencode(var.default)
+  variable_name = "DEFAULTS"
+}
+
 resource "github_actions_variable" "portainer_portainer_url" {
   for_each = {
     for k, website in local.websites : k => website
