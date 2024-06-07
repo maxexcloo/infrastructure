@@ -180,8 +180,8 @@ locals {
       fqdn_external        = server.fqdn_external
       fqdn_internal        = server.fqdn_internal
       host                 = server.host
+      name                 = server.name
       resend_api_key       = local.resend_api_keys_merged[k].api_key
-      type                 = server.location
     }
   }
 
@@ -382,21 +382,18 @@ locals {
     }
   ]...)
 
-  websites_merged_portainer = merge([
-    for k, server in local.servers_merged : {
-      for k, website in local.websites : k => {
-        app_name          = website.app_name
-        app_type          = website.app_type
-        database_password = website.enable_database_password ? local.database_passwords[k].database_password : ""
-        fqdn              = website.fqdn
-        host              = server.host
-        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
-        secret_hash       = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
-        url               = website.url
-      }
-      if server.fqdn_external == website.value
+  websites_merged_portainer = {
+    for k, website in local.websites : k => {
+      app_name              = website.app_name
+      app_type              = website.app_type
+      database_password     = website.enable_database_password ? local.database_passwords[k].database_password : ""
+      fqdn                  = website.fqdn
+      resend_api_key        = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
+      secret_hash           = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
+      tailscale_tailnet_key = website.enable_tailscale_key ? local.tailscale_tailnet_keys_merged[k].tailnet_key : ""
+      url                   = website.url
     }
-  ]...)
+  }
 
   zones = merge(
     var.dns,
