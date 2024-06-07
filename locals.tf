@@ -66,7 +66,7 @@ locals {
   ]...)
 
   resend_api_keys_merged = {
-    for k, v in merge(restapi_object.server_resend_key, restapi_object.website_resend_key) : k => {
+    for k, v in merge(restapi_object.server_resend_api_key, restapi_object.website_resend_api_key) : k => {
       api_key = jsondecode(v.create_response).token
     }
   }
@@ -360,7 +360,7 @@ locals {
           enable_cloudflare_record = true
           enable_database_password = false
           enable_password          = false
-          enable_resend_key        = false
+          enable_resend_api_key    = false
           enable_secret_hash       = false
           enable_ssl               = true
           enable_tailscale_key     = false
@@ -388,6 +388,18 @@ locals {
       if server.fqdn_external == website.hostname || server.fqdn_external == website.value
     }
   ]...)
+
+  websites_merged_portainer = {
+    for k, website in local.websites : k => merge(
+      website,
+      {
+        b2_bucket         = website.enable_b2_bucket ? local.b2_buckets[k] : null
+        database_password = website.enable_database_password ? local.database_passwords[k].database_password : null
+        resend_api_key    = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : null
+        secret_hash       = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : null
+      }
+    )
+  }
 
   zones = merge(
     var.dns,

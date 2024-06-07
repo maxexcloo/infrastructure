@@ -19,7 +19,7 @@ resource "github_actions_secret" "portainer_stacks" {
     if website.app_type == "portainer"
   }
 
-  plaintext_value = jsonencode(local.websites)
+  plaintext_value = jsonencode(local.websites_merged_portainer)
   repository      = each.value.name
   secret_name     = "STACKS"
 }
