@@ -82,12 +82,7 @@ locals {
         parent_name   = ""
         parent_type   = ""
         tags          = concat(["router"], try(router.tags, []))
-        config = merge(
-          try(router.config, {}),
-          {
-            sftp_paths = concat(var.default.sftp_paths, try(router.config.sftp_paths, []))
-          }
-        )
+        type          = "openwrt"
         network = merge(
           {
             mac_address     = ""
@@ -107,6 +102,7 @@ locals {
           {
             automation = "root"
             fullname   = ""
+            sftp_paths = var.default.sftp_paths
             ssh_keys   = data.github_user.default.ssh_keys
             username   = "root"
           },
@@ -135,12 +131,6 @@ locals {
           parent_type   = router.type
           tags          = concat(["server"], try(router.tags, []))
           type          = "mac"
-          config = merge(
-            try(server.config, {}),
-            {
-              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
-            }
-          )
           network = merge(
             {
               mac_address     = ""
@@ -154,6 +144,7 @@ locals {
             {
               automation = "root"
               fullname   = ""
+              sftp_paths = var.default.sftp_paths
               ssh_keys   = data.github_user.default.ssh_keys
               username   = "root"
             },
@@ -196,12 +187,6 @@ locals {
           parent_type   = router.type
           tags          = concat(["server"], try(server.tags, []))
           type          = "proxmox"
-          config = merge(
-            try(server.config, {}),
-            {
-              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
-            }
-          )
           network = merge(
             {
               mac_address     = ""
@@ -223,6 +208,7 @@ locals {
             {
               automation = "root"
               fullname   = ""
+              sftp_paths = var.default.sftp_paths
               ssh_keys   = data.github_user.default.ssh_keys
               username   = "root"
             },
@@ -250,13 +236,6 @@ locals {
     )
   }
 
-  tailscale_devices = {
-    for k, v in data.tailscale_devices.default.devices : replace(v.name, ".tailnet-c8a0.ts.net", "") => {
-      ipv4 = v.addresses[0]
-      ipv6 = v.addresses[1]
-    }
-  }
-
   tailscale_tailnet_keys_merged = {
     for k, v in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
       tailnet_key = nonsensitive(v.key)
@@ -278,10 +257,7 @@ locals {
             packages = []
             timezone = var.default.timezone
           },
-          try(vm.config, {}),
-          {
-            sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
-          }
+          try(vm.config, {})
         )
         network = merge(
           {
@@ -294,6 +270,7 @@ locals {
           {
             automation = "root"
             fullname   = ""
+            sftp_paths = var.default.sftp_paths
             ssh_keys   = data.github_user.default.ssh_keys
             username   = "root"
           },
@@ -323,8 +300,7 @@ locals {
             },
             try(vm.config, {}),
             {
-              packages   = concat(["qemu-guest-agent"], try(vm.config.packages, []))
-              sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+              packages = concat(["qemu-guest-agent"], try(vm.config.packages, []))
             },
           )
           network = merge(
@@ -339,6 +315,7 @@ locals {
             {
               automation = "root"
               fullname   = ""
+              sftp_paths = var.default.sftp_paths
               ssh_keys   = data.github_user.default.ssh_keys
               username   = "root"
             },

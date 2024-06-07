@@ -1,5 +1,3 @@
-data "tailscale_devices" "default" {}
-
 resource "tailscale_acl" "default" {
   acl = jsonencode({
     acls = [
