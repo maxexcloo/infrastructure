@@ -13,7 +13,7 @@ resource "github_actions_variable" "portainer_portainer_url" {
   value         = each.value.url
 }
 
-resource "github_actions_secret" "portainer_stacks" {
+resource "github_actions_secret" "portainer_websites" {
   for_each = {
     for k, website in local.websites : k => website
     if website.app_type == "portainer"
@@ -21,7 +21,7 @@ resource "github_actions_secret" "portainer_stacks" {
 
   plaintext_value = jsonencode(local.websites_merged_portainer)
   repository      = each.value.name
-  secret_name     = "STACKS"
+  secret_name     = "WEBSITES"
 }
 
 resource "github_repository_file" "gatus_config" {
