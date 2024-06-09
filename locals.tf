@@ -5,7 +5,7 @@ locals {
         application_key    = nonsensitive(b2_application_key.server[k].application_key)
         application_key_id = b2_application_key.server[k].application_key_id
         bucket_name        = b2_bucket.server[k].bucket_name
-        endpoint           = data.b2_account_info.default.s3_api_url
+        endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
       }
     },
     {
@@ -13,7 +13,7 @@ locals {
         application_key    = nonsensitive(b2_application_key.website[k].application_key)
         application_key_id = b2_application_key.website[k].application_key_id
         bucket_name        = b2_bucket.website[k].bucket_name
-        endpoint           = data.b2_account_info.default.s3_api_url
+        endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
       }
       if website.enable_b2_bucket
     }
