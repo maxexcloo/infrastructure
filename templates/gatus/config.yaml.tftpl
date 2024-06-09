@@ -29,7 +29,7 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 48h"
 %{ endif ~}
       - "[RESPONSE_TIME] < 5000"
-      - "[STATUS] == 200"
+      - "[STATUS] == any(200, 401)"
     group: "${website.group}"
     name: "${website.description}"
     url: "${website.url}"
