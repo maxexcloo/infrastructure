@@ -144,18 +144,6 @@ resource "proxmox_virtual_environment_vm" "gen8" {
     }
   }
 
-  # dynamic "disk" {
-  #   for_each = try(each.value.physical_disks, [])
-
-  #   content {
-  #     backup            = false
-  #     datastore_id      = ""
-  #     interface         = disk.key
-  #     path_in_datastore = disk.value
-  #     replicate         = false
-  #   }
-  # }
-
   dynamic "initialization" {
     for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []
 
@@ -245,18 +233,6 @@ resource "proxmox_virtual_environment_vm" "kimbap" {
       interface = "ide0"
     }
   }
-
-  # dynamic "disk" {
-  #   for_each = try(each.value.physical_disks, [])
-
-  #   content {
-  #     backup            = false
-  #     datastore_id      = ""
-  #     interface         = disk.key
-  #     path_in_datastore = disk.value
-  #     replicate         = false
-  #   }
-  # }
 
   dynamic "initialization" {
     for_each = endswith(each.value.config.boot_image_url, ".img") ? [true] : []

@@ -60,8 +60,9 @@ locals {
   }
 
   devices = {
-    for i, device in var.devices : device.host => merge(
+    for i, device in var.devices : device.name => merge(
       {
+        host       = device.name
         port       = 22
         sftp_paths = concat(var.default.sftp_paths, try(device.sftp_paths, []))
         username   = "root"
