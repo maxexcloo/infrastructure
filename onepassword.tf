@@ -22,14 +22,14 @@ resource "onepassword_item" "server" {
 resource "onepassword_item" "website" {
   for_each = {
     for k, website in local.websites : k => website
-    if website.enable_password || try(website.username, "") != ""
+    if website.enable_password || website.username != ""
   }
 
   category = "login"
   password = each.value.enable_password ? random_password.website[each.key].result : null
   title    = each.value.description
   url      = each.value.onepassword_url
-  username = each.value.username
+  username = each.value.username != "" ? each.value.username : null
   vault    = data.onepassword_vault.infrastructure.uuid
 
   lifecycle {
