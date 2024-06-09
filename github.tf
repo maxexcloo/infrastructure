@@ -78,3 +78,64 @@ resource "github_repository_file" "gatus_config" {
     }
   )
 }
+
+resource "github_repository_file" "homepage_bookmarks" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "homepage"
+  }
+
+  file                = "${each.value.app_name}/bookmarks.yaml"
+  overwrite_on_create = true
+  repository          = "fly"
+
+  content = templatefile(
+    "./templates/homepage/bookmarks.yaml.tftpl",
+    {
+      default  = var.default
+      servers  = local.servers_merged
+      website  = each.value
+      websites = local.websites
+    }
+  )
+}
+
+resource "github_repository_file" "homepage_services" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "homepage"
+  }
+
+  file                = "${each.value.app_name}/services.yaml"
+  overwrite_on_create = true
+  repository          = "fly"
+
+  content = templatefile(
+    "./templates/homepage/services.yaml.tftpl",
+    {
+      default  = var.default
+      servers  = local.servers_merged
+      website  = each.value
+      websites = local.websites
+    }
+  )
+}
+
+resource "github_repository_file" "homepage_settings" {
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.app_type == "homepage"
+  }
+
+  file                = "${each.value.app_name}/settings.yaml"
+  overwrite_on_create = true
+  repository          = "fly"
+
+  content = templatefile(
+    "./templates/homepage/settings.yaml.tftpl",
+    {
+      default = var.default
+      website = each.value
+    }
+  )
+}
