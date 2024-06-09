@@ -2,7 +2,7 @@ locals {
   b2_buckets = merge(
     {
       for k, server in local.servers_merged : k => {
-        application_key    = nonsensitive(b2_application_key.server[k].application_key)
+        application_key    = b2_application_key.server[k].application_key
         application_key_id = b2_application_key.server[k].application_key_id
         bucket_name        = b2_bucket.server[k].bucket_name
         endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
@@ -10,7 +10,7 @@ locals {
     },
     {
       for k, website in local.websites : k => {
-        application_key    = nonsensitive(b2_application_key.website[k].application_key)
+        application_key    = b2_application_key.website[k].application_key
         application_key_id = b2_application_key.website[k].application_key_id
         bucket_name        = b2_bucket.website[k].bucket_name
         endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
@@ -21,7 +21,7 @@ locals {
 
   cloudflare_api_tokens = {
     for k, cloudflare_api_token in cloudflare_api_token.server : k => {
-      api_token = nonsensitive(cloudflare_api_token.value)
+      api_token = cloudflare_api_token.value
     }
   }
 
@@ -44,13 +44,13 @@ locals {
 
   cloudflare_tunnel_tokens = {
     for k, cloudflare_tunnel in cloudflare_tunnel.server : k => {
-      tunnel_token = nonsensitive(cloudflare_tunnel.tunnel_token)
+      tunnel_token = cloudflare_tunnel.tunnel_token
     }
   }
 
   database_passwords = {
     for k, random_password in random_password.database_password : k => {
-      database_password = nonsensitive(random_password.result)
+      database_password = random_password.result
     }
   }
 
@@ -131,7 +131,7 @@ locals {
 
   secret_hashes = {
     for k, random_password in random_password.secret_hash : k => {
-      secret_hash = nonsensitive(random_password.result)
+      secret_hash = random_password.result
     }
   }
 
@@ -254,7 +254,7 @@ locals {
 
   ssh_keys = {
     for k, tls_private_key in tls_private_key.server_ssh_key : k => {
-      private_key = trimspace(nonsensitive(tls_private_key.private_key_openssh))
+      private_key = trimspace(tls_private_key.private_key_openssh)
       public_key  = trimspace(tls_private_key.public_key_openssh)
     }
   }
@@ -270,7 +270,7 @@ locals {
 
   tailscale_tailnet_keys_merged = {
     for k, tailscale_tailnet_key in merge(tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
-      tailnet_key = nonsensitive(tailscale_tailnet_key.key)
+      tailnet_key = tailscale_tailnet_key.key
     }
   }
 
