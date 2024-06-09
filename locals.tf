@@ -56,7 +56,7 @@ locals {
 
   defaults_portainer = {
     for k, v in var.default : k => v
-    if k != "home" && k != "sftp_paths"
+    if k == "domain_external" || k == "domain_internal" || k == "email" || k == "timezone"
   }
 
   devices = {
