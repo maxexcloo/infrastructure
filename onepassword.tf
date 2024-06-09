@@ -20,7 +20,10 @@ resource "onepassword_item" "server" {
 }
 
 resource "onepassword_item" "website" {
-  for_each = local.websites
+  for_each = {
+    for k, website in local.websites : k => website
+    if website.enable_password || try(website.username, "") != ""
+  }
 
   category = "login"
   password = each.value.enable_password ? random_password.website[each.key].result : null
