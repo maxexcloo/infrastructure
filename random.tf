@@ -20,7 +20,7 @@ resource "random_password" "b2_bucket_website" {
 resource "random_password" "cloudflare_tunnel" {
   for_each = local.servers_merged
 
-  length  = 24
+  length  = 32
   special = false
 }
 
@@ -40,7 +40,7 @@ resource "random_password" "secret_hash" {
     if website.enable_secret_hash
   }
 
-  length  = 24
+  length  = 32
   special = false
 }
 
