@@ -37,7 +37,7 @@ resource "cloudflare_record" "internal" {
   allow_overwrite = true
   name            = each.value.fqdn_internal
   type            = "CNAME"
-  value           = "ts-${each.key}.${var.default.domain_internal}"
+  value           = "${each.key}.ts.${var.default.domain_internal}"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
