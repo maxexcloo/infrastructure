@@ -365,6 +365,7 @@ locals {
         {
           app_name                 = website.name
           app_type                 = "default"
+          description              = ""
           enable_b2_bucket         = false
           enable_cloudflare_record = true
           enable_database_password = false
@@ -409,7 +410,9 @@ locals {
         b2_bucket_endpoint           = website.enable_b2_bucket ? local.b2_buckets[k].endpoint : ""
         database_password            = website.enable_database_password ? local.database_passwords[k].database_password : ""
         database_username            = website.enable_database_password ? website.app_type : ""
+        description                  = website.description
         fqdn                         = website.fqdn
+        group                        = website.group
         host                         = server.host
         resend_api_key               = website.enable_resend_api_key ? local.resend_api_keys_merged[k].api_key : ""
         secret_hash                  = website.enable_secret_hash ? local.secret_hashes[k].secret_hash : ""
