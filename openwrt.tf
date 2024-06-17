@@ -15,19 +15,19 @@ resource "openwrt_dhcp_host" "au" {
   ]
 }
 
-# resource "openwrt_dhcp_host" "kr" {
-#   for_each = {
-#     for k, v in local.servers_merged : k => v
-#     if v.location == "kr" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
-#   }
+resource "openwrt_dhcp_host" "kr" {
+  for_each = {
+    for k, v in local.servers_merged : k => v
+    if v.location == "kr" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
+  }
 
-#   id       = replace(each.value.name, "-", "")
-#   ip       = each.value.network.private_address
-#   mac      = try(proxmox_virtual_environment_vm.kimbap[each.key].network_device[0].mac_address, each.value.network.mac_address)
-#   name     = each.value.name
-#   provider = openwrt.kr
+  id       = replace(each.value.name, "-", "")
+  ip       = each.value.network.private_address
+  mac      = try(proxmox_virtual_environment_vm.kimbap[each.key].network_device[0].mac_address, each.value.network.mac_address)
+  name     = each.value.name
+  provider = openwrt.kr
 
-#   depends_on = [
-#     proxmox_virtual_environment_vm.kimbap
-#   ]
-# }
+  depends_on = [
+    proxmox_virtual_environment_vm.kimbap
+  ]
+}
