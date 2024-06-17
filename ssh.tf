@@ -1,8 +1,5 @@
 resource "ssh_resource" "router" {
-  for_each = {
-    for k, v in local.routers : k => v
-    if v.name == "au"
-  }
+  for_each = local.routers
 
   agent = true
   host  = each.key
