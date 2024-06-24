@@ -94,8 +94,8 @@ resource "github_repository_file" "homepage_bookmarks" {
     {
       default  = var.default
       servers  = local.servers_merged
-      website  = each.value
-      websites = local.websites
+      websites = local.websites_merged_homepage
+      zones    = local.zones
     }
   )
 }
@@ -115,8 +115,8 @@ resource "github_repository_file" "homepage_services" {
     {
       default  = var.default
       servers  = local.servers_merged
-      website  = each.value
-      websites = local.websites
+      websites = local.websites_merged_homepage
+      zones    = local.zones
     }
   )
 }

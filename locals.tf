@@ -388,6 +388,12 @@ locals {
     }
   ]...)
 
+  websites_merged_homepage = {
+    for zone, _ in local.zones : zone => {
+      for k, website in local.websites : k => website if website.zone == zone
+    }
+  }
+
   websites_merged_openwrt = merge([
     for k, server in local.servers_merged_cloudflare : {
       for i, website in local.cloudflare_records_merged : i => {
