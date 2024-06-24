@@ -21,7 +21,8 @@ provider "oci" {
 }
 
 provider "onepassword" {
-  account = var.terraform.onepassword.account
+  account               = var.terraform.onepassword.account
+  service_account_token = var.terraform.onepassword.service_account_token
 }
 
 provider "openwrt" {
