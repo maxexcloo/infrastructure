@@ -1,9 +1,0 @@
-%{ for zone, websites in zones ~}
-- ${zone}:
-%{ for website in websites ~}
-    - ${website.fqdn}:
-        description: ${website.description}
-        href: ${website.url}
-        siteMonitor: ${website.url}
-%{ endfor ~}
-%{ endfor ~}
