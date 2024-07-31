@@ -7,8 +7,8 @@ resource "ssh_resource" "router" {
   user  = each.value.user.username
 
   commands = [
-    "/etc/rc.d/S19dropbear restart",
-    "/etc/rc.d/S99haproxy restart"
+    "service dropbear restart",
+    "service haproxy restart"
   ]
 
   file {
