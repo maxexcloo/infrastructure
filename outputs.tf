@@ -74,7 +74,7 @@ resource "local_file" "vscode_sftp" {
     templatefile(
       "./templates/vscode/sftp.json.tftpl",
       {
-        agent = fileexists("/run/user/1000/ssh-agent.socket") ? "/run/user/1000/ssh-agent.socket" : "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        agent   = fileexists("/run/user/1000/ssh-agent.socket") ? "/run/user/1000/ssh-agent.socket" : "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
         devices = local.devices
         servers = local.servers_merged
       }
