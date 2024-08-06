@@ -1,4 +1,13 @@
 terraform {
+  backend "remote" {
+    hostname     = "app.terraform.io"
+    organization = "Excloo"
+
+    workspaces {
+      name = "OpenTofu"
+    }
+  }
+
   required_providers {
     b2 = {
       source = "backblaze/b2"
