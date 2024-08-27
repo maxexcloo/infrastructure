@@ -1,5 +1,5 @@
 resource "restapi_object" "server_resend_api_key" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   data         = jsonencode({ name = each.key })
   id_attribute = "id"
@@ -17,7 +17,7 @@ resource "restapi_object" "server_resend_api_key" {
 
 resource "restapi_object" "website_resend_api_key" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.enable_resend_api_key
   }
 

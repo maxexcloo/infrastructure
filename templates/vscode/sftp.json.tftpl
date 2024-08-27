@@ -2,7 +2,7 @@
 %{ for device in devices ~}
 %{ for sftp_path in device.sftp_paths ~}
     {
-        "agent": "${agent}",
+        "agent": "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"",
         "context": "Downloads/${device.host}",
         "host": "${device.host}",
         "name": "${device.name} (${sftp_path})",
@@ -16,7 +16,7 @@
 %{ for server in servers ~}
 %{ for sftp_path in server.user.sftp_paths ~}
     {
-        "agent": "${agent}",
+        "agent": "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"",
         "context": "Downloads/${server.host}",
         "host": "${server.host}",
         "name": "${server.host} (${sftp_path})",

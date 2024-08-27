@@ -17,7 +17,7 @@ endpoints:
       - type: email
     conditions:
       - "[CONNECTED] == true"
-    group: "${tags[server.tags[0]].description}"
+    group: "${tags[server.tag].description}"
     name: "${server.host}"
     url: "icmp://${server.host}"
 %{ endfor ~}

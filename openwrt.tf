@@ -1,6 +1,6 @@
 resource "openwrt_dhcp_host" "au" {
   for_each = {
-    for k, v in local.servers_merged : k => v
+    for k, v in local.filtered_servers_all : k => v
     if v.location == "au" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
   }
 
@@ -17,7 +17,7 @@ resource "openwrt_dhcp_host" "au" {
 
 resource "openwrt_dhcp_host" "kr" {
   for_each = {
-    for k, v in local.servers_merged : k => v
+    for k, v in local.filtered_servers_all : k => v
     if v.location == "kr" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
   }
 

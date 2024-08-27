@@ -5,7 +5,7 @@ resource "cloudflare_account" "default" {
 }
 
 resource "cloudflare_api_token" "server" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   name = each.key
 
@@ -14,6 +14,7 @@ resource "cloudflare_api_token" "server" {
       data.cloudflare_api_token_permission_groups.default.zone["DNS Write"],
       data.cloudflare_api_token_permission_groups.default.zone["Zone Read"],
     ]
+
     resources = {
       "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
     }
@@ -21,121 +22,121 @@ resource "cloudflare_api_token" "server" {
 }
 
 resource "cloudflare_record" "dns" {
-  for_each = local.dns
+  for_each = local.merged_dns
 
   allow_overwrite = true
+  content         = each.value.content
   name            = each.value.name == "@" ? each.value.zone : each.value.name
   priority        = try(each.value.priority, null)
   type            = each.value.type
-  value           = each.value.value
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }
 
 resource "cloudflare_record" "internal" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   allow_overwrite = true
+  content         = "${each.key}.ts.${var.default.domain_internal}"
   name            = each.value.fqdn_internal
   type            = "CNAME"
-  value           = "${each.key}.ts.${var.default.domain_internal}"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
 resource "cloudflare_record" "router" {
-  for_each = local.routers
+  for_each = local.merged_routers
 
   allow_overwrite = true
+  content         = each.value.network.public_address
   name            = each.value.fqdn_external
   type            = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
-  value           = each.value.network.public_address
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "server" {
-  for_each = local.servers_merged_cloudflare
+  for_each = local.filtered_servers_noncloud
 
   allow_overwrite = true
+  content         = each.value.network.public_address
   name            = each.value.fqdn_external
   type            = "CNAME"
-  value           = each.value.network.public_address
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv4" {
-  for_each = local.vms_oci
+  for_each = local.merged_vms_oci
 
   allow_overwrite = true
+  content         = data.oci_core_vnic.vm[each.key].public_ip_address
   name            = each.value.fqdn_external
   type            = "A"
-  value           = data.oci_core_vnic.vm[each.key].public_ip_address
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv6" {
-  for_each = local.vms_oci
+  for_each = local.merged_vms_oci
 
   allow_overwrite = true
+  content         = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   name            = each.value.fqdn_external
   type            = "AAAA"
-  value           = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "website" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.enable_cloudflare_record
   }
 
   allow_overwrite = true
+  content         = each.value.content
   name            = each.value.name
-  type            = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.value)) > 0 ? "A" : "CNAME"
-  value           = each.value.value
+  type            = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.content)) > 0 ? "A" : "CNAME"
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }
 
 resource "cloudflare_record" "wildcard" {
-  for_each = local.cloudflare_records_merged
+  for_each = local.output_cloudflare_records
 
   allow_overwrite = true
+  content         = each.value.hostname
   name            = "*.${each.value.name}"
   type            = "CNAME"
-  value           = each.value.hostname
   zone_id         = each.value.zone_id
 }
 
 resource "cloudflare_tiered_cache" "zone" {
-  for_each = local.zones
+  for_each = local.filtered_zones
 
   cache_type = "off"
   zone_id    = cloudflare_zone.zone[each.key].id
 }
 
-resource "cloudflare_tunnel" "server" {
-  for_each = local.servers_merged
-
-  account_id = cloudflare_account.default.id
-  name       = each.value.fqdn_external
-  secret     = random_password.cloudflare_tunnel[each.key].result
-}
-
 resource "cloudflare_url_normalization_settings" "zone" {
-  for_each = local.zones
+  for_each = local.filtered_zones
 
   scope   = "incoming"
   type    = "cloudflare"
   zone_id = cloudflare_zone.zone[each.key].id
 }
 
+resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
+  for_each = local.filtered_servers_all
+
+  account_id = cloudflare_account.default.id
+  name       = each.value.fqdn_external
+  secret     = random_password.cloudflare_tunnel[each.key].result
+}
+
 resource "cloudflare_zone" "zone" {
-  for_each = local.zones
+  for_each = local.filtered_zones
 
   account_id = cloudflare_account.default.id
   zone       = each.key
 }
 
 resource "cloudflare_zone_settings_override" "zone" {
-  for_each = local.zones
+  for_each = local.filtered_zones
 
   zone_id = cloudflare_zone.zone[each.key].id
 }

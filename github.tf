@@ -4,7 +4,7 @@ data "github_user" "default" {
 
 resource "github_actions_secret" "portainer_secrets" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "portainer"
   }
 
@@ -15,40 +15,40 @@ resource "github_actions_secret" "portainer_secrets" {
 
 resource "github_actions_secret" "portainer_servers" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "portainer"
   }
 
-  plaintext_value = jsonencode(local.servers_merged_portainer)
+  plaintext_value = jsonencode(local.filtered_servers_portainer)
   repository      = each.value.name
   secret_name     = "SERVERS"
 }
 
 resource "github_actions_secret" "portainer_websites" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "portainer"
   }
 
-  plaintext_value = jsonencode(local.websites_merged_portainer)
+  plaintext_value = jsonencode(local.filtered_websites_portainer)
   repository      = each.value.name
   secret_name     = "WEBSITES"
 }
 
 resource "github_actions_variable" "portainer_defaults" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "portainer"
   }
 
   repository    = each.value.name
-  value         = jsonencode(local.defaults_portainer)
+  value         = jsonencode(local.filtered_defaults_portainer)
   variable_name = "DEFAULTS"
 }
 
 resource "github_actions_variable" "portainer_portainer_url" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "portainer"
   }
 
@@ -59,11 +59,11 @@ resource "github_actions_variable" "portainer_portainer_url" {
 
 resource "github_repository_file" "gatus_config" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.app_type == "gatus"
   }
 
-  file                = "${each.value.app_name}/config.yaml"
+  file                = "${each.value.app_type}/config.yaml"
   overwrite_on_create = true
   repository          = "fly"
 
@@ -71,71 +71,10 @@ resource "github_repository_file" "gatus_config" {
     "./templates/gatus/config.yaml.tftpl",
     {
       default  = var.default
-      servers  = local.servers_merged
-      tags     = local.tags
+      servers  = local.filtered_servers_all
+      tags     = local.merged_tags
       website  = each.value
-      websites = local.websites
-    }
-  )
-}
-
-resource "github_repository_file" "homepage_bookmarks" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.app_type == "homepage"
-  }
-
-  file                = "${each.value.app_name}/bookmarks.yaml"
-  overwrite_on_create = true
-  repository          = "fly"
-
-  content = templatefile(
-    "./templates/homepage/bookmarks.yaml.tftpl",
-    {
-      default  = var.default
-      servers  = local.servers_merged
-      websites = local.websites_merged_homepage
-      zones    = local.zones
-    }
-  )
-}
-
-resource "github_repository_file" "homepage_services" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.app_type == "homepage"
-  }
-
-  file                = "${each.value.app_name}/services.yaml"
-  overwrite_on_create = true
-  repository          = "fly"
-
-  content = templatefile(
-    "./templates/homepage/services.yaml.tftpl",
-    {
-      default  = var.default
-      servers  = local.servers_merged
-      websites = local.websites_merged_homepage
-      zones    = local.zones
-    }
-  )
-}
-
-resource "github_repository_file" "homepage_settings" {
-  for_each = {
-    for k, website in local.websites : k => website
-    if website.app_type == "homepage"
-  }
-
-  file                = "${each.value.app_name}/settings.yaml"
-  overwrite_on_create = true
-  repository          = "fly"
-
-  content = templatefile(
-    "./templates/homepage/settings.yaml.tftpl",
-    {
-      default = var.default
-      website = each.value
+      websites = local.merged_websites
     }
   )
 }

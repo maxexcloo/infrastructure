@@ -152,7 +152,7 @@ resource "oci_core_default_security_list" "au" {
 }
 
 resource "oci_core_instance" "vm" {
-  for_each = local.vms_oci
+  for_each = local.merged_vms_oci
 
   availability_domain = data.oci_identity_availability_domain.au.name
   compartment_id      = var.terraform.oci.tenancy_ocid
@@ -188,9 +188,9 @@ resource "oci_core_instance" "vm" {
   }
 
   source_details {
-    boot_volume_size_in_gbs = each.value.config.disk_size
-    source_id               = each.value.config.boot_image_id
-    source_type             = each.value.config.boot_image_type
+    boot_volume_size_in_gbs = each.value.config.boot_disk_size
+    source_id               = each.value.config.boot_disk_image_id
+    source_type             = each.value.config.boot_disk_image_type
   }
 
   lifecycle {

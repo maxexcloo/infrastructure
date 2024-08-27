@@ -27,47 +27,49 @@ provider "onepassword" {
 provider "openwrt" {
   alias    = "au"
   hostname = "au"
-  password = local.routers["au"].provider.password
-  port     = local.routers["au"].provider.port
+  password = local.merged_routers["au"].provider.password
+  port     = local.merged_routers["au"].provider.port
 }
 
 provider "openwrt" {
   alias    = "kr"
   hostname = "kr"
-  password = local.routers["kr"].provider.password
-  port     = local.routers["kr"].provider.port
+  password = local.merged_routers["kr"].provider.password
+  port     = local.merged_routers["kr"].provider.port
 }
 
 provider "proxmox" {
-  alias     = "gen8"
-  api_token = local.servers_proxmox["au-gen8"].provider.api_token
-  endpoint  = "https://au-gen8:${local.servers_proxmox["au-gen8"].provider.port}"
-  insecure  = local.servers_proxmox["au-gen8"].provider.insecure
+  alias    = "gen8"
+  endpoint = "https://au-gen8:${local.merged_servers_proxmox["au-gen8"].provider.port}"
+  insecure = local.merged_servers_proxmox["au-gen8"].provider.insecure
+  password = local.merged_servers_proxmox["au-gen8"].provider.password
+  username = "${local.merged_servers_proxmox["au-gen8"].provider.username}@pam"
 
   ssh {
     agent    = true
-    username = local.servers_proxmox["au-gen8"].user.username
+    username = local.merged_servers_proxmox["au-gen8"].provider.username
 
     node {
       address = "au-gen8"
-      name    = local.servers_proxmox["au-gen8"].name
+      name    = local.merged_servers_proxmox["au-gen8"].name
     }
   }
 }
 
 provider "proxmox" {
-  alias     = "kimbap"
-  api_token = local.servers_proxmox["kr-kimbap"].provider.api_token
-  endpoint  = "https://kr-kimbap:${local.servers_proxmox["kr-kimbap"].provider.port}"
-  insecure  = local.servers_proxmox["kr-kimbap"].provider.insecure
+  alias    = "kimbap"
+  endpoint = "https://kr-kimbap:${local.merged_servers_proxmox["kr-kimbap"].provider.port}"
+  insecure = local.merged_servers_proxmox["kr-kimbap"].provider.insecure
+  password = local.merged_servers_proxmox["kr-kimbap"].provider.password
+  username = "${local.merged_servers_proxmox["kr-kimbap"].provider.username}@pam"
 
   ssh {
     agent    = true
-    username = local.servers_proxmox["kr-kimbap"].user.username
+    username = local.merged_servers_proxmox["kr-kimbap"].provider.username
 
     node {
       address = "kr-kimbap"
-      name    = local.servers_proxmox["kr-kimbap"].name
+      name    = local.merged_servers_proxmox["kr-kimbap"].name
     }
   }
 }

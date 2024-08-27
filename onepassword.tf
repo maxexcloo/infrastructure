@@ -3,7 +3,7 @@ data "onepassword_vault" "infrastructure" {
 }
 
 resource "onepassword_item" "server" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   category = "login"
   password = random_password.server[each.key].result
@@ -21,7 +21,7 @@ resource "onepassword_item" "server" {
 
 resource "onepassword_item" "website" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.enable_password || website.username != ""
   }
 

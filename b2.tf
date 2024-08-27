@@ -1,7 +1,7 @@
 data "b2_account_info" "default" {}
 
 resource "b2_application_key" "server" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   bucket_id = b2_bucket.server[each.key].id
   key_name  = each.key
@@ -25,7 +25,7 @@ resource "b2_application_key" "server" {
 
 resource "b2_application_key" "website" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.enable_b2_bucket
   }
 
@@ -50,7 +50,7 @@ resource "b2_application_key" "website" {
 }
 
 resource "b2_bucket" "server" {
-  for_each = local.servers_merged
+  for_each = local.filtered_servers_all
 
   bucket_name = "${each.key}-${random_password.b2_bucket_server[each.key].result}"
   bucket_type = "allPrivate"
@@ -58,7 +58,7 @@ resource "b2_bucket" "server" {
 
 resource "b2_bucket" "website" {
   for_each = {
-    for k, website in local.websites : k => website
+    for k, website in local.merged_websites : k => website
     if website.enable_b2_bucket
   }
 

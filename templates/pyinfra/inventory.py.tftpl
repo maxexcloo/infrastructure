@@ -6,14 +6,15 @@ hosts = [
             "ssh_port": "${server.network.ssh_port}",
             "ssh_user": "${server.user.automation}",
             "cloudflare_tunnel_token": "${cloudflare_tunnel_tokens[server.host].tunnel_token}",
+            "flags": ${jsonencode(server.flags)},
             "fqdn_external": "${server.fqdn_external}",
             "fqdn_internal": "${server.fqdn_internal}",
             "host": "${server.host}",
             "name": "${server.name}",
             "parent_name": "${server.parent_name}",
             "parent_type": "${server.parent_type}",
+            "tag": ${server.tag},
             "tailscale_key": "${tailscale_tailnet_keys[server.host].tailnet_key}",
-            "tags": ${jsonencode(server.tags)},
             "type": "${server.type}",
             "username": "${server.user.username}"
         }
