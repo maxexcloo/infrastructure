@@ -63,7 +63,7 @@ resource "github_repository_file" "gatus_config" {
     if website.app_type == "gatus"
   }
 
-  file                = "${each.value.app_type}/config.yaml"
+  file                = "${each.value.app_name}/config.yaml"
   overwrite_on_create = true
   repository          = "fly"
 
