@@ -3,7 +3,7 @@ hosts = [
     (
         "${server.host}", 
         {
-            "ssh_port": "${server.network.ssh_port}",
+            "ssh_port": ${server.network.ssh_port},
             "ssh_user": "${server.user.automation}",
             "cloudflare_tunnel_token": "${cloudflare_tunnel_tokens[server.host].tunnel_token}",
             "flags": ${jsonencode(server.flags)},
