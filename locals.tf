@@ -129,10 +129,8 @@ locals {
         )
         user = merge(
           {
-            automation = "root"
-            fullname   = ""
-            ssh_keys   = data.github_user.default.ssh_keys
-            username   = "root"
+            fullname = ""
+            username = "root"
           },
           try(router.user, {}),
           {
@@ -167,10 +165,8 @@ locals {
           )
           user = merge(
             {
-              automation = "root"
-              fullname   = ""
-              ssh_keys   = data.github_user.default.ssh_keys
-              username   = "root"
+              fullname = ""
+              username = "root"
             },
             try(server.user, {}),
             {
@@ -217,10 +213,8 @@ locals {
           )
           user = merge(
             {
-              automation = "root"
-              fullname   = ""
-              ssh_keys   = data.github_user.default.ssh_keys
-              username   = "root"
+              fullname = ""
+              username = "root"
             },
             try(server.user, {}),
             {
@@ -269,10 +263,8 @@ locals {
         )
         user = merge(
           {
-            automation = "root"
-            fullname   = ""
-            ssh_keys   = data.github_user.default.ssh_keys
-            username   = "root"
+            fullname = ""
+            username = "root"
           },
           try(vm.user, {}),
           {
@@ -330,10 +322,8 @@ locals {
           )
           user = merge(
             {
-              automation = "root"
-              fullname   = ""
-              ssh_keys   = data.github_user.default.ssh_keys
-              username   = "root"
+              fullname = ""
+              username = "root"
             },
             try(vm.user, {}),
             {

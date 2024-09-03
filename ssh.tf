@@ -34,21 +34,3 @@ resource "ssh_resource" "router" {
     )
   }
 }
-
-resource "ssh_resource" "server" {
-  for_each = local.filtered_servers_ssh
-
-  agent = true
-  host  = each.key
-  port  = each.value.network.ssh_port
-  user  = each.value.user.username
-
-  commands = [
-    "mkdir -p ~/.ssh"
-  ]
-
-  file {
-    content     = "${join("\n", concat([trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)], each.value.user.ssh_keys))}\n"
-    destination = "~/.ssh/authorized_keys"
-  }
-}

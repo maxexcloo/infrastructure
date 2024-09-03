@@ -47,10 +47,12 @@ resource "proxmox_virtual_environment_file" "gen8" {
     data = templatefile(
       "./templates/cloud_config/cloud_config.tftpl",
       {
-        password      = htpasswd_password.server[each.key].sha512
-        server        = each.value
-        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
-        tailscale_key = tailscale_tailnet_key.server[each.key].key
+        cloudflare_tunnel_token = cloudflare_zero_trust_tunnel_cloudflared.server[each.key].tunnel_token
+        password                = htpasswd_password.server[each.key].sha512
+        server                  = each.value
+        ssh_key_default         = data.github_user.default.ssh_keys
+        ssh_key_server          = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
+        tailscale_tailnet_key   = tailscale_tailnet_key.server[each.key].key
       }
     )
   }
@@ -73,10 +75,12 @@ resource "proxmox_virtual_environment_file" "kimbap" {
     data = templatefile(
       "./templates/cloud_config/cloud_config.tftpl",
       {
-        password      = htpasswd_password.server[each.key].sha512
-        server        = each.value
-        ssh_key       = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
-        tailscale_key = tailscale_tailnet_key.server[each.key].key
+        cloudflare_tunnel_token = cloudflare_zero_trust_tunnel_cloudflared.server[each.key].tunnel_token
+        password                = htpasswd_password.server[each.key].sha512
+        server                  = each.value
+        ssh_key_default         = data.github_user.default.ssh_keys
+        ssh_key_server          = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
+        tailscale_tailnet_key   = tailscale_tailnet_key.server[each.key].key
       }
     )
   }

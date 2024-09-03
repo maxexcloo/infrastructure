@@ -16,7 +16,7 @@ resource "cloudflare_api_token" "server" {
     ]
 
     resources = {
-      "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
+      "com.cloudflare.api.account.zone.*" = "*"
     }
   }
 }

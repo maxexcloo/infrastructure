@@ -4,7 +4,7 @@ hosts = [
         "${server.host}", 
         {
             "ssh_port": ${server.network.ssh_port},
-            "ssh_user": "${server.user.automation}",
+            "ssh_user": "${server.user.username}",
             "cloudflare_tunnel_token": "${cloudflare_tunnel_tokens[server.host].tunnel_token}",
             "flags": ${jsonencode(server.flags)},
             "fqdn_external": "${server.fqdn_external}",
@@ -14,7 +14,7 @@ hosts = [
             "parent_name": "${server.parent_name}",
             "parent_type": "${server.parent_type}",
             "tag": "${server.tag}",
-            "tailscale_key": "${tailscale_tailnet_keys[server.host].tailnet_key}",
+            "tailscale_tailnet_key": "${tailscale_tailnet_keys[server.host].tailnet_key}",
             "type": "${server.type}",
             "username": "${server.user.username}"
         }

@@ -1,5 +1,4 @@
 #cloud-config
-disable_root: false
 fqdn: ${server.fqdn_external}
 hostname: ${server.name}
 locale: en_AU
@@ -22,23 +21,15 @@ runcmd:
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
 %{ endif ~}
-  - tailscale up --advertise-exit-node --authkey ${tailscale_key} --hostname ${server.host}
+  - tailscale up --advertise-exit-node --authkey ${tailscale_tailnet_key} --hostname ${server.host}
   - tailscale set --auto-update
 users:
-  - name: ${server.user.automation}
-    ssh_authorized_keys:
-      - ${ssh_key}
-%{ for ssh_key in server.user.ssh_keys ~}
-      - ${ssh_key}
-%{ endfor ~}
   - name: ${server.user.username}
     gecos: ${server.user.fullname}
     hashed_passwd: ${password}
     lock_passwd: false
     shell: /bin/bash
-    sudo: ALL=(ALL:ALL) ALL
+    sudo: ALL=(ALL:ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-      - ${ssh_key}
-%{ for ssh_key in server.user.ssh_keys ~}
-      - ${ssh_key}
-%{ endfor ~}
+      - ${ssh_key_default}
+      - ${ssh_key_server}

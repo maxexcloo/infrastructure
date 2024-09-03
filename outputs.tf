@@ -40,7 +40,7 @@ output "tailscale_tailnet_keys" {
 
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
-  filename        = "../PyInfra/inventory.py"
+  filename        = "./pyinfra/inventory.py"
 
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
