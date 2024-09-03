@@ -5,11 +5,7 @@ provider "b2" {
 
 provider "cloudflare" {
   api_key = var.terraform.cloudflare.api_key
-  email   = var.terraform.cloudflare.email
-}
-
-provider "github" {
-  token = var.terraform.github.token
+  email   = var.default.email
 }
 
 provider "oci" {

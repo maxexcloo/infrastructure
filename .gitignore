@@ -1,8 +1,4 @@
 .terraform
 .terraform.*
+*.enc.*
 *.log
-*.tfstate
-*.tfstate.*
-pyinfra_inventory.py
-portainer_secrets.auto.tfvars
-providers.auto.tfvars

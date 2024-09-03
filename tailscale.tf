@@ -25,18 +25,6 @@ resource "tailscale_acl" "default" {
   })
 }
 
-resource "tailscale_tailnet_key" "github" {
-  description   = "github"
-  ephemeral     = true
-  preauthorized = true
-  reusable      = true
-  tags          = [local.merged_tags["ephemeral"].tailscale_tag]
-
-  depends_on = [
-    tailscale_acl.default
-  ]
-}
-
 resource "tailscale_tailnet_key" "server" {
   for_each = local.filtered_servers_all
 
@@ -44,23 +32,6 @@ resource "tailscale_tailnet_key" "server" {
   preauthorized = true
   reusable      = true
   tags          = [local.merged_tags[each.value.tag].tailscale_tag]
-
-  depends_on = [
-    tailscale_acl.default
-  ]
-}
-
-resource "tailscale_tailnet_key" "website" {
-  for_each = {
-    for k, website in local.merged_websites : k => website
-    if website.enable_tailscale_key
-  }
-
-  description   = "ephemeral-${each.value.app_name}"
-  ephemeral     = true
-  preauthorized = true
-  reusable      = true
-  tags          = [local.merged_tags["ephemeral"].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default

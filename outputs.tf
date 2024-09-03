@@ -3,29 +3,14 @@ output "b2_buckets" {
   value     = local.output_b2_buckets
 }
 
-output "cloudflare_api_tokens" {
-  sensitive = true
-  value     = local.output_cloudflare_api_tokens
-}
-
 output "cloudflare_tunnel_tokens" {
   sensitive = true
   value     = local.output_cloudflare_tunnel_tokens
 }
 
-output "database_passwords" {
-  sensitive = true
-  value     = local.output_database_passwords
-}
-
 output "resend_api_keys" {
   sensitive = true
   value     = local.output_resend_api_keys
-}
-
-output "secret_hashes" {
-  sensitive = true
-  value     = local.output_secret_hashes
 }
 
 output "ssh_keys" {
@@ -40,7 +25,7 @@ output "tailscale_tailnet_keys" {
 
 resource "local_file" "pyinfra_inventory" {
   file_permission = "0644"
-  filename        = "./pyinfra/inventory.py"
+  filename        = "./pyinfra/inventory.enc.py"
 
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",

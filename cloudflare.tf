@@ -1,24 +1,5 @@
-data "cloudflare_api_token_permission_groups" "default" {}
-
 resource "cloudflare_account" "default" {
-  name = var.terraform.cloudflare.email
-}
-
-resource "cloudflare_api_token" "server" {
-  for_each = local.filtered_servers_all
-
-  name = each.key
-
-  policy {
-    permission_groups = [
-      data.cloudflare_api_token_permission_groups.default.zone["DNS Write"],
-      data.cloudflare_api_token_permission_groups.default.zone["Zone Read"],
-    ]
-
-    resources = {
-      "com.cloudflare.api.account.zone.*" = "*"
-    }
-  }
+  name = var.default.email
 }
 
 resource "cloudflare_record" "dns" {
@@ -82,19 +63,6 @@ resource "cloudflare_record" "vm_oci_ipv6" {
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "website" {
-  for_each = {
-    for k, website in local.merged_websites : k => website
-    if website.enable_cloudflare_record
-  }
-
-  allow_overwrite = true
-  content         = each.value.content
-  name            = each.value.name
-  type            = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.content)) > 0 ? "A" : "CNAME"
-  zone_id         = cloudflare_zone.zone[each.value.zone].id
-}
-
 resource "cloudflare_record" "wildcard" {
   for_each = local.output_cloudflare_records
 
@@ -103,21 +71,6 @@ resource "cloudflare_record" "wildcard" {
   name            = "*.${each.value.name}"
   type            = "CNAME"
   zone_id         = each.value.zone_id
-}
-
-resource "cloudflare_tiered_cache" "zone" {
-  for_each = local.filtered_zones
-
-  cache_type = "off"
-  zone_id    = cloudflare_zone.zone[each.key].id
-}
-
-resource "cloudflare_url_normalization_settings" "zone" {
-  for_each = local.filtered_zones
-
-  scope   = "incoming"
-  type    = "cloudflare"
-  zone_id = cloudflare_zone.zone[each.key].id
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
@@ -129,14 +82,8 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
 }
 
 resource "cloudflare_zone" "zone" {
-  for_each = local.filtered_zones
+  for_each = var.dns
 
   account_id = cloudflare_account.default.id
   zone       = each.key
-}
-
-resource "cloudflare_zone_settings_override" "zone" {
-  for_each = local.filtered_zones
-
-  zone_id = cloudflare_zone.zone[each.key].id
 }

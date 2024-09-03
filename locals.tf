@@ -1,9 +1,4 @@
 locals {
-  filtered_defaults_portainer = {
-    for k, v in var.default : k => v
-    if k == "domain_external" || k == "domain_internal" || k == "email" || k == "timezone"
-  }
-
   filtered_servers_all = merge(
     local.merged_routers,
     local.merged_servers,
@@ -17,65 +12,10 @@ locals {
     if server.parent_type != "cloud" && server.tag != "router"
   }
 
-  filtered_servers_portainer = {
-    for k, server in local.filtered_servers_all : k => {
-      b2_bucket_application_key    = local.output_b2_buckets[k].application_key
-      b2_bucket_application_key_id = local.output_b2_buckets[k].application_key_id
-      b2_bucket_bucket_name        = local.output_b2_buckets[k].bucket_name
-      b2_bucket_endpoint           = local.output_b2_buckets[k].endpoint
-      cloudflare_api_token         = local.output_cloudflare_api_tokens[k].api_token
-      fqdn_external                = server.fqdn_external
-      fqdn_internal                = server.fqdn_internal
-      host                         = server.host
-      name                         = server.name
-      resend_api_key               = local.output_resend_api_keys[k].api_key
-    }
-  }
-
   filtered_servers_ssh = {
     for k, server in local.filtered_servers_all : k => server
     if server.tag == "server"
   }
-
-  filtered_websites_noncloud = merge([
-    for k, server in local.filtered_servers_noncloud : {
-      for i, website in local.output_cloudflare_records : i => {
-        fqdn_external = website.hostname
-        host          = server.host
-        location      = server.location
-      }
-      if server.fqdn_external == website.hostname || server.fqdn_external == website.value
-    }
-  ]...)
-
-  filtered_websites_portainer = merge([
-    for k, server in local.filtered_servers_all : {
-      for k, website in local.merged_websites : k => {
-        app_name                     = website.app_name
-        app_type                     = website.app_type
-        b2_bucket_application_key    = website.enable_b2_bucket ? local.output_b2_buckets[k].application_key : ""
-        b2_bucket_application_key_id = website.enable_b2_bucket ? local.output_b2_buckets[k].application_key_id : ""
-        b2_bucket_bucket_name        = website.enable_b2_bucket ? local.output_b2_buckets[k].bucket_name : ""
-        b2_bucket_endpoint           = website.enable_b2_bucket ? local.output_b2_buckets[k].endpoint : ""
-        database_password            = website.enable_database_password ? local.output_database_passwords[k].database_password : ""
-        database_username            = website.enable_database_password ? website.app_type : ""
-        description                  = website.description
-        fqdn                         = website.fqdn
-        group                        = website.group
-        host                         = server.host
-        resend_api_key               = website.enable_resend_api_key ? local.output_resend_api_keys[k].api_key : ""
-        secret_hash                  = website.enable_secret_hash ? local.output_secret_hashes[k].secret_hash : ""
-        tailscale_tailnet_key        = website.enable_tailscale_key ? local.output_tailscale_tailnet_keys[k].tailnet_key : ""
-        url                          = website.url
-      }
-      if server.fqdn_external == website.content || server.fqdn_internal == website.content
-    }
-  ]...)
-
-  filtered_zones = merge(
-    var.dns,
-    var.websites
-  )
 
   merged_devices = {
     for i, device in var.devices : device.name => merge(
@@ -336,58 +276,12 @@ locals {
     }
   ]...)
 
-  merged_websites = merge([
-    for zone, websites in var.websites : {
-      for k, website in websites : "${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}" => merge(
-        {
-          app_name                 = website.name
-          app_type                 = "default"
-          content                  = ""
-          description              = ""
-          enable_b2_bucket         = false
-          enable_cloudflare_record = true
-          enable_database_password = false
-          enable_password          = false
-          enable_resend_api_key    = false
-          enable_secret_hash       = false
-          enable_ssl               = true
-          enable_tailscale_key     = false
-          fqdn                     = "${website.name}.${zone}"
-          group                    = "Websites (${zone})"
-          onepassword_url          = "${try(website.enable_ssl, true) ? "${try(website.port, 0) != 0 ? "https://" : ""}" : "http://"}${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}"
-          port                     = 0
-          url                      = "${try(website.enable_ssl, true) ? "https://" : "http://"}${website.name}.${zone}${try(website.port, 0) != 0 ? ":${website.port}" : ""}"
-          username                 = ""
-          zone                     = zone
-        },
-        website
-      )
-    }
-  ]...)
-
-  output_b2_buckets = merge(
-    {
-      for k, server in local.filtered_servers_all : k => {
-        application_key    = b2_application_key.server[k].application_key
-        application_key_id = b2_application_key.server[k].application_key_id
-        bucket_name        = b2_bucket.server[k].bucket_name
-        endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
-      }
-    },
-    {
-      for k, website in local.merged_websites : k => {
-        application_key    = b2_application_key.website[k].application_key
-        application_key_id = b2_application_key.website[k].application_key_id
-        bucket_name        = b2_bucket.website[k].bucket_name
-        endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
-      }
-      if website.enable_b2_bucket
-    }
-  )
-
-  output_cloudflare_api_tokens = {
-    for k, cloudflare_api_token in cloudflare_api_token.server : k => {
-      api_token = cloudflare_api_token.value
+  output_b2_buckets = {
+    for k, server in local.filtered_servers_all : k => {
+      application_key    = b2_application_key.server[k].application_key
+      application_key_id = b2_application_key.server[k].application_key_id
+      bucket_name        = b2_bucket.server[k].bucket_name
+      endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
     }
   }
 
@@ -401,8 +295,7 @@ locals {
         cloudflare_record.router,
         cloudflare_record.server,
         cloudflare_record.vm_oci_ipv4,
-        cloudflare_record.vm_oci_ipv6,
-        cloudflare_record.website
+        cloudflare_record.vm_oci_ipv6
       ) : k => cloudflare_record
       if cloudflare_record.type == "A" || cloudflare_record.type == "AAAA" || cloudflare_record.type == "CNAME"
     }
@@ -414,21 +307,9 @@ locals {
     }
   }
 
-  output_database_passwords = {
-    for k, random_password in random_password.database_password : k => {
-      database_password = random_password.result
-    }
-  }
-
   output_resend_api_keys = {
-    for k, restapi_object in merge(restapi_object.server_resend_api_key, restapi_object.website_resend_api_key) : k => {
+    for k, restapi_object in restapi_object.server_resend_api_key : k => {
       api_key = jsondecode(restapi_object.create_response).token
-    }
-  }
-
-  output_secret_hashes = {
-    for k, random_password in random_password.secret_hash : k => {
-      secret_hash = random_password.result
     }
   }
 
@@ -440,7 +321,7 @@ locals {
   }
 
   output_tailscale_tailnet_keys = {
-    for k, tailscale_tailnet_key in merge({ github = tailscale_tailnet_key.github }, tailscale_tailnet_key.server, tailscale_tailnet_key.website) : k => {
+    for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => {
       tailnet_key = tailscale_tailnet_key.key
     }
   }

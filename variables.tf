@@ -1,7 +1,6 @@
 variable "default" {}
 variable "devices" {}
 variable "dns" {}
-variable "portainer_secrets" {}
 variable "routers" {}
 variable "servers" {}
 variable "servers_proxmox" {}
@@ -9,4 +8,3 @@ variable "tags" {}
 variable "terraform" {}
 variable "vms_oci" {}
 variable "vms_proxmox" {}
-variable "websites" {}
