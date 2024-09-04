@@ -1,18 +1,16 @@
 locals {
   filtered_cloudflare_records = merge(
     {
-      for k, cloudflare_record in cloudflare_record.tailscale : "${k}-tailscale" => cloudflare_record
+      for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
+      if try(cloudflare_record.wildcard, false)
     },
     {
-      for k, cloudflare_record in merge(
-        cloudflare_record.dns,
-        cloudflare_record.router,
-        cloudflare_record.server,
-        cloudflare_record.vm_oci_ipv4,
-        cloudflare_record.vm_oci_ipv6
-      ) : k => cloudflare_record
-      if cloudflare_record.type == "A" || cloudflare_record.type == "AAAA" || cloudflare_record.type == "CNAME"
-    }
+      for k, cloudflare_record in cloudflare_record.tailscale : "${k}-tailscale" => cloudflare_record
+    },
+    cloudflare_record.router,
+    cloudflare_record.server,
+    cloudflare_record.vm_oci_ipv4,
+    cloudflare_record.vm_oci_ipv6
   )
 
   filtered_servers_all = merge(
