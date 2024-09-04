@@ -2,7 +2,7 @@ locals {
   filtered_cloudflare_records = merge(
     {
       for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
-      if try(cloudflare_record.wildcard, false)
+      if try(local.merged_dns[k].wildcard, false)
     },
     {
       for k, cloudflare_record in cloudflare_record.tailscale : "${k}-tailscale" => cloudflare_record

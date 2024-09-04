@@ -13,6 +13,11 @@ output "resend" {
   value     = local.output_resend
 }
 
+output "servers" {
+  sensitive = true
+  value     = local.filtered_servers_all
+}
+
 output "ssh" {
   sensitive = true
   value     = local.output_ssh
@@ -21,11 +26,6 @@ output "ssh" {
 output "tailscale" {
   sensitive = true
   value     = local.output_tailscale
-}
-
-output "urls" {
-  sensitive = true
-  value     = local.output_urls
 }
 
 resource "local_file" "pyinfra_inventory" {
