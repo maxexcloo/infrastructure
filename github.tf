@@ -2,7 +2,7 @@ data "github_user" "default" {
   username = ""
 }
 
-resource "github_repository_file" "gatus_config" {
+resource "github_repository_file" "gatus_infrastructure" {
   file                = "fly/gatus/config/infrastructure.yaml"
   overwrite_on_create = true
   repository          = "Services"
