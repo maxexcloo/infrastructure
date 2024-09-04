@@ -167,8 +167,7 @@ resource "oci_core_instance" "vm" {
           cloudflare_tunnel_token = cloudflare_zero_trust_tunnel_cloudflared.server[each.key].tunnel_token
           password                = htpasswd_password.server[each.key].sha512
           server                  = each.value
-          ssh_key_default         = data.github_user.default.ssh_keys
-          ssh_key_server          = trimspace(tls_private_key.server_ssh_key[each.key].public_key_openssh)
+          ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])
           tailscale_tailnet_key   = tailscale_tailnet_key.server[each.key].key
         }
       )

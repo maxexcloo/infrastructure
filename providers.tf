@@ -35,39 +35,23 @@ provider "openwrt" {
 }
 
 provider "proxmox" {
-  alias    = "gen8"
-  endpoint = "https://au-gen8:${local.merged_servers_proxmox["au-gen8"].provider.port}"
-  insecure = local.merged_servers_proxmox["au-gen8"].provider.insecure
-  password = local.merged_servers_proxmox["au-gen8"].provider.password
-  username = "${local.merged_servers_proxmox["au-gen8"].provider.username}@pam"
+  endpoint = "https://null"
+  password = "null"
+  username = "null@pam"
+  # endpoint = "https://au-gen8:${local.merged_servers_proxmox["au-gen8"].provider.port}"
+  # insecure = local.merged_servers_proxmox["au-gen8"].provider.insecure
+  # password = local.merged_servers_proxmox["au-gen8"].provider.password
+  # username = "${local.merged_servers_proxmox["au-gen8"].provider.username}@pam"
 
-  ssh {
-    agent    = true
-    username = local.merged_servers_proxmox["au-gen8"].provider.username
+  # ssh {
+  #   agent    = true
+  #   username = local.merged_servers_proxmox["au-gen8"].provider.username
 
-    node {
-      address = "au-gen8"
-      name    = local.merged_servers_proxmox["au-gen8"].name
-    }
-  }
-}
-
-provider "proxmox" {
-  alias    = "kimbap"
-  endpoint = "https://kr-kimbap:${local.merged_servers_proxmox["kr-kimbap"].provider.port}"
-  insecure = local.merged_servers_proxmox["kr-kimbap"].provider.insecure
-  password = local.merged_servers_proxmox["kr-kimbap"].provider.password
-  username = "${local.merged_servers_proxmox["kr-kimbap"].provider.username}@pam"
-
-  ssh {
-    agent    = true
-    username = local.merged_servers_proxmox["kr-kimbap"].provider.username
-
-    node {
-      address = "kr-kimbap"
-      name    = local.merged_servers_proxmox["kr-kimbap"].name
-    }
-  }
+  #   node {
+  #     address = "au-gen8"
+  #     name    = local.merged_servers_proxmox["au-gen8"].name
+  #   }
+  # }
 }
 
 provider "restapi" {

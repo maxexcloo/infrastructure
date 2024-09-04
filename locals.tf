@@ -1,4 +1,20 @@
 locals {
+  filtered_cloudflare_records = merge(
+    {
+      for k, cloudflare_record in cloudflare_record.tailscale : "${k}-tailscale" => cloudflare_record
+    },
+    {
+      for k, cloudflare_record in merge(
+        cloudflare_record.dns,
+        cloudflare_record.router,
+        cloudflare_record.server,
+        cloudflare_record.vm_oci_ipv4,
+        cloudflare_record.vm_oci_ipv6
+      ) : k => cloudflare_record
+      if cloudflare_record.type == "A" || cloudflare_record.type == "AAAA" || cloudflare_record.type == "CNAME"
+    }
+  )
+
   filtered_servers_all = merge(
     local.merged_routers,
     local.merged_servers,
@@ -276,53 +292,46 @@ locals {
     }
   ]...)
 
-  output_b2_buckets = {
+  output_b2 = {
     for k, server in local.filtered_servers_all : k => {
-      application_key    = b2_application_key.server[k].application_key
-      application_key_id = b2_application_key.server[k].application_key_id
+      application_key    = b2_application_key.server[k].application_key_id
+      application_secret = b2_application_key.server[k].application_key
       bucket_name        = b2_bucket.server[k].bucket_name
       endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
     }
   }
 
-  output_cloudflare_records = merge(
-    {
-      for k, cloudflare_record in cloudflare_record.internal : "${k}-internal" => cloudflare_record
-    },
-    {
-      for k, cloudflare_record in merge(
-        cloudflare_record.dns,
-        cloudflare_record.router,
-        cloudflare_record.server,
-        cloudflare_record.vm_oci_ipv4,
-        cloudflare_record.vm_oci_ipv6
-      ) : k => cloudflare_record
-      if cloudflare_record.type == "A" || cloudflare_record.type == "AAAA" || cloudflare_record.type == "CNAME"
-    }
-  )
-
-  output_cloudflare_tunnel_tokens = {
+  output_cloudflare = {
     for k, cloudflare_tunnel in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
       tunnel_token = cloudflare_tunnel.tunnel_token
     }
   }
 
-  output_resend_api_keys = {
+  output_resend = {
     for k, restapi_object in restapi_object.server_resend_api_key : k => {
       api_key = jsondecode(restapi_object.create_response).token
     }
   }
 
-  output_ssh_keys = {
+  output_ssh = {
     for k, tls_private_key in tls_private_key.server_ssh_key : k => {
       private_key = trimspace(tls_private_key.private_key_openssh)
       public_key  = trimspace(tls_private_key.public_key_openssh)
     }
   }
 
-  output_tailscale_tailnet_keys = {
+  output_tailscale = {
     for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => {
       tailnet_key = tailscale_tailnet_key.key
+    }
+  }
+
+  output_urls = {
+    for k, server in local.filtered_servers_all : k => {
+      fqdn_external   = server.fqdn_external
+      fqdn_internal   = server.fqdn_internal
+      public_address  = try(server.network.public_address, "")
+      private_address = try(server.network.private_address, "")
     }
   }
 }

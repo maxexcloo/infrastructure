@@ -12,10 +12,3 @@ resource "random_password" "cloudflare_tunnel" {
   length  = 32
   special = false
 }
-
-resource "random_password" "server" {
-  for_each = local.filtered_servers_all
-
-  length  = 24
-  special = false
-}

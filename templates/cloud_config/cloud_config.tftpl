@@ -14,15 +14,16 @@ packages:
 %{ endfor ~}
 %{ endif ~}
 runcmd:
+  - sh -c "curl -fsLS https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$(dpkg --print-architecture).deb -o /tmp/cloudflared.deb && dpkg -i /tmp/cloudflared.deb && rm /tmp/cloudflared.deb"
   - sh -c "curl -fsLS https://tailscale.com/install.sh | sh"
-  - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf"
-  - sysctl -p /etc/sysctl.d/99-tailscale.conf
+  - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && sysctl -p /etc/sysctl.d/99-tailscale.conf"
+  - cloudflared service install ${cloudflare_tunnel_token}
+  - tailscale up --advertise-exit-node --authkey ${tailscale_tailnet_key} --hostname ${server.host}
+  - tailscale set --auto-update
 %{ if contains(server.config.packages, "qemu-guest-agent") ~}
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
 %{ endif ~}
-  - tailscale up --advertise-exit-node --authkey ${tailscale_tailnet_key} --hostname ${server.host}
-  - tailscale set --auto-update
 users:
   - name: ${server.user.username}
     gecos: ${server.user.fullname}
@@ -31,5 +32,6 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL:ALL) NOPASSWD:ALL
     ssh_authorized_keys:
-      - ${ssh_key_default}
-      - ${ssh_key_server}
+%{ for ssh_key in ssh_keys ~}
+      - ${ssh_key}
+%{ endfor ~}

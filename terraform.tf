@@ -4,7 +4,7 @@ terraform {
     organization = "Excloo"
 
     workspaces {
-      name = "OpenTofu"
+      name = "Infrastructure"
     }
   }
 

@@ -13,16 +13,6 @@ resource "cloudflare_record" "dns" {
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }
 
-resource "cloudflare_record" "internal" {
-  for_each = local.filtered_servers_all
-
-  allow_overwrite = true
-  content         = "${each.key}.ts.${var.default.domain_internal}"
-  name            = each.value.fqdn_internal
-  type            = "CNAME"
-  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
-}
-
 resource "cloudflare_record" "router" {
   for_each = local.merged_routers
 
@@ -41,6 +31,16 @@ resource "cloudflare_record" "server" {
   name            = each.value.fqdn_external
   type            = "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+}
+
+resource "cloudflare_record" "tailscale" {
+  for_each = local.filtered_servers_all
+
+  allow_overwrite = true
+  content         = "${each.key}.ts.${var.default.domain_internal}"
+  name            = each.value.fqdn_internal
+  type            = "CNAME"
+  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv4" {
@@ -64,7 +64,7 @@ resource "cloudflare_record" "vm_oci_ipv6" {
 }
 
 resource "cloudflare_record" "wildcard" {
-  for_each = local.output_cloudflare_records
+  for_each = local.filtered_cloudflare_records
 
   allow_overwrite = true
   content         = each.value.hostname

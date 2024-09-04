@@ -1,26 +1,31 @@
-output "b2_buckets" {
+output "b2" {
   sensitive = true
-  value     = local.output_b2_buckets
+  value     = local.output_b2
 }
 
-output "cloudflare_tunnel_tokens" {
+output "cloudflare" {
   sensitive = true
-  value     = local.output_cloudflare_tunnel_tokens
+  value     = local.output_cloudflare
 }
 
-output "resend_api_keys" {
+output "resend" {
   sensitive = true
-  value     = local.output_resend_api_keys
+  value     = local.output_resend
 }
 
-output "ssh_keys" {
+output "ssh" {
   sensitive = true
-  value     = local.output_ssh_keys
+  value     = local.output_ssh
 }
 
-output "tailscale_tailnet_keys" {
+output "tailscale" {
   sensitive = true
-  value     = local.output_tailscale_tailnet_keys
+  value     = local.output_tailscale
+}
+
+output "urls" {
+  sensitive = true
+  value     = local.output_urls
 }
 
 resource "local_file" "pyinfra_inventory" {
@@ -30,10 +35,10 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
     {
-      cloudflare_tunnel_tokens = local.output_cloudflare_tunnel_tokens
+      cloudflare_tunnel_tokens = local.output_cloudflare
       onepassword_vault        = var.terraform.onepassword.vault
       servers                  = local.filtered_servers_all
-      tailscale_tailnet_keys   = local.output_tailscale_tailnet_keys
+      tailscale_tailnet_keys   = local.output_tailscale
     }
   )
 }
