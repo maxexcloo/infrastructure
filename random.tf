@@ -1,4 +1,4 @@
-resource "random_password" "b2_bucket_server" {
+resource "random_password" "b2_server" {
   for_each = local.filtered_servers_all
 
   length  = 6
@@ -6,9 +6,9 @@ resource "random_password" "b2_bucket_server" {
   upper   = false
 }
 
-resource "random_password" "cloudflare_tunnel" {
+resource "random_password" "cloudflare_tunnel_server" {
   for_each = local.filtered_servers_all
 
-  length  = 32
+  length  = 64
   special = false
 }

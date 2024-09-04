@@ -78,7 +78,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
 
   account_id = cloudflare_account.default.id
   name       = each.value.fqdn_external
-  secret     = random_password.cloudflare_tunnel[each.key].result
+  secret     = random_password.cloudflare_tunnel_server[each.key].result
 }
 
 resource "cloudflare_zone" "zone" {
