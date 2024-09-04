@@ -308,13 +308,13 @@ locals {
   }
 
   output_resend = {
-    for k, restapi_object in restapi_object.server_resend_api_key : k => {
+    for k, restapi_object in restapi_object.resend_api_key_server : k => {
       api_key = jsondecode(restapi_object.create_response).token
     }
   }
 
   output_ssh = {
-    for k, tls_private_key in tls_private_key.server_ssh_key : k => {
+    for k, tls_private_key in tls_private_key.ssh_key_server : k => {
       private_key = trimspace(tls_private_key.private_key_openssh)
       public_key  = trimspace(tls_private_key.public_key_openssh)
     }

@@ -1,4 +1,4 @@
-resource "restapi_object" "server_resend_api_key" {
+resource "restapi_object" "resend_api_key_server" {
   for_each = local.filtered_servers_all
 
   data         = jsonencode({ name = each.key })
