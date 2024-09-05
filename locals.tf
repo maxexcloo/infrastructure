@@ -321,20 +321,18 @@ locals {
     }
   }
 
-  output_servers_services = {
-    servers = {
-      for k, server in local.filtered_servers_all : k => {
-        flags         = server.flags
-        fqdn_external = server.fqdn_external
-        fqdn_internal = server.fqdn_internal
-        host          = server.host
-        location      = server.location
-        parent_name   = server.parent_name
-        parent_type   = server.parent_type
-        ssh_port      = server.network.ssh_port
-        tag           = server.tag
-        username      = server.user.username
-      }
+  output_servers = {
+    for k, server in local.filtered_servers_all : k => {
+      flags         = server.flags
+      fqdn_external = server.fqdn_external
+      fqdn_internal = server.fqdn_internal
+      host          = server.host
+      location      = server.location
+      parent_name   = server.parent_name
+      parent_type   = server.parent_type
+      ssh_port      = server.network.ssh_port
+      tag           = server.tag
+      username      = server.user.username
     }
   }
 
@@ -348,15 +346,6 @@ locals {
   output_tailscale = {
     for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => {
       tailnet_key = tailscale_tailnet_key.key
-    }
-  }
-
-  output_urls = {
-    for k, server in local.filtered_servers_all : k => {
-      fqdn_external   = server.fqdn_external
-      fqdn_internal   = server.fqdn_internal
-      public_address  = try(server.network.public_address, "")
-      private_address = try(server.network.private_address, "")
     }
   }
 }

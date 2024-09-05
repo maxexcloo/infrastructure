@@ -15,7 +15,7 @@ output "resend" {
 
 output "servers" {
   sensitive = true
-  value     = local.filtered_servers_all
+  value     = local.output_servers
 }
 
 output "ssh" {
@@ -44,7 +44,7 @@ resource "local_file" "pyinfra_inventory" {
 }
 
 resource "local_file" "services_servers" {
-  content         = jsonencode(local.output_servers_services)
+  content         = jsonencode({ servers = local.output_servers })
   file_permission = "0644"
   filename        = "../Services/servers.enc.auto.tfvars.json"
 }

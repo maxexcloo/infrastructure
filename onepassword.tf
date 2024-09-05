@@ -96,17 +96,17 @@ resource "onepassword_item" "server" {
     field {
       label = "External FQDN"
       type  = "URL"
-      value = local.output_urls[each.key].fqdn_external
+      value = each.value.fqdn_external
     }
 
     field {
       label = "Internal FQDN"
       type  = "URL"
-      value = local.output_urls[each.key].fqdn_internal
+      value = each.value.fqdn_internal
     }
 
     dynamic "field" {
-      for_each = local.output_urls[each.key].public_address != "" ? [true] : []
+      for_each = try(each.value.network.public_address, "") != "" ? [true] : []
 
       content {
         label = "Public Address"
@@ -116,7 +116,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = local.output_urls[each.key].private_address != "" ? [true] : []
+      for_each = try(each.value.network.private_address, "") != "" ? [true] : []
 
       content {
         label = "Private Address"
