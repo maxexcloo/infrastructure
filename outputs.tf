@@ -44,7 +44,7 @@ resource "local_file" "pyinfra_inventory" {
 }
 
 resource "local_file" "services_servers" {
-  content         = jsonencode({ servers = local.filtered_servers_all })
+  content         = jsonencode(local.output_servers_services)
   file_permission = "0644"
   filename        = "../Services/servers.enc.auto.tfvars.json"
 }

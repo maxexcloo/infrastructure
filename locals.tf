@@ -321,6 +321,23 @@ locals {
     }
   }
 
+  output_servers_services = {
+    servers = {
+      for k, server in local.filtered_servers_all : k => {
+        flags         = server.flags
+        fqdn_external = server.fqdn_external
+        fqdn_internal = server.fqdn_internal
+        host          = server.host
+        location      = server.location
+        parent_name   = server.parent_name
+        parent_type   = server.parent_type
+        ssh_port      = server.network.ssh_port
+        tag           = server.tag
+        username      = server.user.username
+      }
+    }
+  }
+
   output_ssh = {
     for k, tls_private_key in tls_private_key.ssh_key_server : k => {
       private_key = trimspace(tls_private_key.private_key_openssh)
