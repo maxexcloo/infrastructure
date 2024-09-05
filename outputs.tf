@@ -43,6 +43,12 @@ resource "local_file" "pyinfra_inventory" {
   )
 }
 
+resource "local_file" "services_servers" {
+  content         = jsonencode({ servers = local.filtered_servers_all })
+  file_permission = "0644"
+  filename        = "../Services/servers.enc.auto.tfvars.json"
+}
+
 resource "local_file" "ssh_config" {
   file_permission = "0644"
   filename        = "${var.default.home}/.ssh/config"
