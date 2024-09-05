@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = each.value.host
+  url      = try(each.value.network.web_port, 0) == 0 && try(each.value.network.web_ssl, null) == null ? each.value.host : "${each.value.network.web_ssl ? "https://" : "http://"}${each.value.host}${each.value.network.web_port > 0 ? ":${each.value.network.web_port}" : ""}/"
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 

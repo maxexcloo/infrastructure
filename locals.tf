@@ -82,6 +82,8 @@ locals {
             private_address = ""
             public_address  = ""
             ssh_port        = 22
+            web_port        = 80
+            web_ssl         = false
           },
           try(router.network, {})
         )
@@ -163,6 +165,8 @@ locals {
               private_address = ""
               public_address  = cloudflare_record.router[router.location].name
               ssh_port        = 22
+              web_port        = 8006
+              web_ssl         = true
             },
             try(server.network, {})
           )
