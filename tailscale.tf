@@ -9,18 +9,22 @@ resource "tailscale_acl" "default" {
     ]
     autoApprovers = {
       routes = {
-        "::/0"      = [for k, tag in local.merged_tags : tag.tailscale_tag]
-        "0.0.0.0/0" = [for k, tag in local.merged_tags : tag.tailscale_tag]
+        "::/0"      = local.filtered_tags_tailscale_servers
+        "0.0.0.0/0" = local.filtered_tags_tailscale_servers
       }
     }
     nodeAttrs = [
       {
+        attr   = ["mullvad"]
+        target = local.filtered_tags_tailscale_vpn
+      },
+      {
         attr   = ["nextdns:65188d"]
-        target = [for k, tag in local.merged_tags : tag.tailscale_tag]
+        target = local.filtered_tags_tailscale_servers
       }
     ]
     tagOwners = {
-      for k, tag in local.merged_tags : tag.tailscale_tag => [var.default.email]
+      for k, tag in local.merged_tags_tailscale : tag.tailscale_tag => [var.default.email]
     }
   })
 }
@@ -31,7 +35,7 @@ resource "tailscale_tailnet_key" "server" {
   description   = "${each.value.tag}-${each.key}"
   preauthorized = true
   reusable      = true
-  tags          = [local.merged_tags[each.value.tag].tailscale_tag]
+  tags          = [local.merged_tags_tailscale[each.value.tag].tailscale_tag]
 
   depends_on = [
     tailscale_acl.default

@@ -31,6 +31,16 @@ locals {
     if server.tag == "server"
   }
 
+  filtered_tags_tailscale_servers = [
+    for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
+    if tag.server
+  ]
+
+  filtered_tags_tailscale_vpn = [
+    for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
+    if tag.vpn
+  ]
+
   merged_devices = {
     for i, device in var.devices : device.name => merge(
       {
@@ -181,7 +191,7 @@ locals {
     }
   ]...)
 
-  merged_tags = {
+  merged_tags_tailscale = {
     for i, tag in var.tags : tag.name => merge(
       {
         tailscale_tag = "tag:${tag.name}"

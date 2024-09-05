@@ -11,7 +11,7 @@ resource "github_repository_file" "gatus_infrastructure" {
     "./templates/gatus/infrastructure.yaml.tftpl",
     {
       servers = local.filtered_servers_all
-      tags    = local.merged_tags
+      tags    = local.merged_tags_tailscale
     }
   )
 }
