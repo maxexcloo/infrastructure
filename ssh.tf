@@ -1,5 +1,8 @@
 resource "ssh_resource" "router" {
-  for_each = local.merged_routers
+  for_each = {
+    for k, router in local.merged_routers : k => router
+    if data.external.connectivity_check_servers[k].result.reachable == "true"
+  }
 
   agent = true
   host  = each.key
@@ -30,5 +33,42 @@ resource "ssh_resource" "router" {
         }
       }
     )
+  }
+}
+
+resource "ssh_resource" "server_docker" {
+  for_each = {
+    for k, server in local.filtered_servers_docker : k => server
+    if data.external.connectivity_check_servers[k].result.reachable == "true"
+  }
+
+  agent = true
+  host  = each.value.host
+  port  = each.value.network.ssh_port
+  user  = each.value.user.username
+
+  pre_commands = [
+    "mkdir -p ~/.env"
+  ]
+
+  file {
+    destination = "~/.env/_server.env"
+
+    content = <<-EOT
+      SERVER_B2_BUCKET_APPLICATION_KEY="${local.output_b2[each.key].application_key}"
+      SERVER_B2_BUCKET_APPLICATION_SECRET="${local.output_b2[each.key].application_secret}"
+      SERVER_B2_BUCKET_BUCKET_NAME="${local.output_b2[each.key].bucket_name}"
+      SERVER_B2_BUCKET_ENDPOINT="${local.output_b2[each.key].endpoint}"
+      SERVER_CLOUDFLARE_TUNNEL_TOKEN="${local.output_cloudflare[each.key].tunnel_token}"
+      SERVER_DUCKDNS_DOMAIN="${var.default.duckdns_domain}"
+      SERVER_DUCKDNS_TOKEN="${var.default.duckdns_token}"
+      SERVER_EMAIL="${var.default.email}"
+      SERVER_FQDN_EXTERNAL="${each.value.fqdn_external}"
+      SERVER_FQDN_INTERNAL="${each.value.fqdn_internal}"
+      SERVER_HOST="${each.value.host}"
+      SERVER_RESEND_API_KEY="${local.output_resend[each.key].api_key}"
+      SERVER_TAILSCALE_TAILNET_KEY="${local.output_tailscale[each.key].tailnet_key}"
+      SERVER_TIMEZONE="${var.default.email}"
+    EOT
   }
 }

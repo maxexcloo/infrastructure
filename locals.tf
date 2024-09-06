@@ -21,14 +21,14 @@ locals {
     local.merged_vms_proxmox
   )
 
+  filtered_servers_docker = {
+    for k, server in local.filtered_servers_all : k => server
+    if contains(server.flags, "docker")
+  }
+
   filtered_servers_noncloud = {
     for k, server in local.filtered_servers_all : k => server
     if server.parent_type != "cloud" && server.tag != "router"
-  }
-
-  filtered_servers_ssh = {
-    for k, server in local.filtered_servers_all : k => server
-    if server.tag == "server"
   }
 
   filtered_tags_tailscale_servers = [

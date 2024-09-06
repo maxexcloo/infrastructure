@@ -8,6 +8,10 @@ provider "cloudflare" {
   email   = var.default.email
 }
 
+provider "github" {
+  token = var.terraform.github.token
+}
+
 provider "oci" {
   fingerprint  = var.terraform.oci.fingerprint
   private_key  = base64decode(var.terraform.oci.private_key)

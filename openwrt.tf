@@ -1,7 +1,7 @@
 resource "openwrt_dhcp_host" "au" {
   for_each = {
     for k, v in local.filtered_servers_all : k => v
-    if v.location == "au" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
+    if data.external.connectivity_check_servers["au"].result.reachable == "true" && v.location == "au" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
   }
 
   id       = replace(each.value.name, "-", "")
@@ -18,7 +18,7 @@ resource "openwrt_dhcp_host" "au" {
 resource "openwrt_dhcp_host" "kr" {
   for_each = {
     for k, v in local.filtered_servers_all : k => v
-    if v.location == "kr" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
+    if data.external.connectivity_check_servers["kr"].result.reachable == "true" && v.location == "kr" && (v.parent_type == "proxmox" || try(v.network.mac_address, "") != "")
   }
 
   id       = replace(each.value.name, "-", "")
