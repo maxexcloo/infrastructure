@@ -81,6 +81,16 @@ resource "onepassword_item" "server" {
   }
 
   section {
+    label = "Secret Hash"
+
+    field {
+      label = "Secret Hash"
+      type  = "CONCEALED"
+      value = local.output_secret_hashes[each.key].secret_hash
+    }
+  }
+
+  section {
     label = "Tailscale"
 
     field {

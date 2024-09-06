@@ -325,6 +325,12 @@ locals {
     }
   }
 
+  output_secret_hashes = {
+    for k, server in local.filtered_servers_all : k => {
+      secret_hash = random_password.secret_hash_server[k].result
+    }
+  }
+
   output_servers = {
     for k, server in local.filtered_servers_all : k => {
       flags         = server.flags

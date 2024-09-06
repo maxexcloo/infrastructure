@@ -13,6 +13,11 @@ output "resend" {
   value     = local.output_resend
 }
 
+output "secret_hashes" {
+  sensitive = true
+  value     = local.output_secret_hashes
+}
+
 output "servers" {
   sensitive = true
   value     = local.output_servers
@@ -51,7 +56,7 @@ resource "local_file" "services_servers" {
 
 resource "local_file" "ssh_config" {
   file_permission = "0644"
-  filename        = "${var.default.home}/.ssh/config"
+  filename        = "../../.ssh/config"
 
   content = templatefile(
     "./templates/ssh/config.tftpl",
@@ -64,7 +69,7 @@ resource "local_file" "ssh_config" {
 
 resource "local_file" "vscode_sftp" {
   file_permission = "0644"
-  filename        = "${var.default.home}/.vscode/sftp.json"
+  filename        = "../../.vscode/sftp.json"
 
   content = replace(
     templatefile(
