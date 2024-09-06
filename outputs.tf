@@ -69,7 +69,7 @@ resource "local_file" "ssh_config" {
 
 resource "local_file" "vscode_sftp" {
   file_permission = "0644"
-  filename        = "../../.vscode/sftp.json"
+  filename        = "../.vscode/sftp.json"
 
   content = replace(
     templatefile(
