@@ -116,7 +116,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = try(each.value.network.public_address, "") != "" ? [true] : []
+      for_each = can(each.value.network.public_address) ? [true] : []
 
       content {
         label = "Public Address"
@@ -126,7 +126,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = try(each.value.network.private_address, "") != "" ? [true] : []
+      for_each = can(each.value.network.private_address) ? [true] : []
 
       content {
         label = "Private Address"
