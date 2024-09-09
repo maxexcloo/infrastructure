@@ -18,11 +18,6 @@ output "secret_hashes" {
   value     = local.output_secret_hashes
 }
 
-output "servers" {
-  sensitive = true
-  value     = local.output_servers
-}
-
 output "ssh" {
   sensitive = true
   value     = local.output_ssh
@@ -46,12 +41,6 @@ resource "local_file" "pyinfra_inventory" {
       tailscale_tailnet_keys   = local.output_tailscale
     }
   )
-}
-
-resource "local_file" "services_servers" {
-  content         = jsonencode({ servers = local.output_servers })
-  file_permission = "0644"
-  filename        = "../Services/servers.enc.auto.tfvars.json"
 }
 
 resource "local_file" "ssh_config" {
