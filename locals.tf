@@ -226,8 +226,7 @@ locals {
         )
         network = merge(
           {
-            private_address = ""
-            ssh_port        = 22
+            ssh_port = 22
           },
           try(vm.network, {})
         )
