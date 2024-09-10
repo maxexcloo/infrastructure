@@ -56,13 +56,13 @@ resource "local_file" "services_infrastructure" {
         fqdn_internal           = server.fqdn_internal
         host                    = server.host
         location                = server.location
+        name                    = server.name
         parent_name             = server.parent_name
         parent_type             = server.parent_type
         resend_api_key          = local.output_resend_api_keys[k]
         secret_hash             = local.output_secret_hashes[k]
-        ssh_port                = server.network.ssh_port
         tag                     = server.tag
-        username                = server.user.username
+        type                    = server.type
       }
     }
   })
