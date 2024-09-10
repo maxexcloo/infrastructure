@@ -3,16 +3,24 @@ from pyinfra.facts.server import Path
 from pyinfra.operations import apt, server
 
 if "apt" in host.data.get("flags"):
-    apt.update(name="Apt update")
+    apt.update(
+        _sudo=True,
+        name="Apt update",
+    )
 
-    apt.upgrade(name="Apt upgrade")
+    apt.upgrade(
+        _sudo=True,
+        name="Apt upgrade",
+    )
 
     server.shell(
+        _sudo=True,
         name="Apt autoremove",
         commands=["apt autoremove"],
     )
 
     server.shell(
+        _sudo=True,
         name="Apt clean",
         commands=["apt clean"],
     )
@@ -25,31 +33,53 @@ if "docker" in host.data.get("flags"):
 if "homebrew" in host.data.get("flags"):
     env = {"PATH": f"/opt/homebrew/bin:/opt/homebrew/sbin:${host.get_fact(Path)}"}
 
-    server.shell(name="Brew update", commands=["brew update"], _env=env)
-
-    server.shell(name="Brew upgrade", commands=["brew upgrade"], _env=env)
-
-    # server.shell(
-    #     name="Brew upgrade casks",
-    #     commands=["brew upgrade --cask --greedy"],
-    #     _env=env
-    # )
-
-    server.shell(name="Brew cleanup", commands=["brew cleanup -s"], _env=env)
-
     server.shell(
-        name="Brew relink",
-        commands=[
-            "brew list --formula -1 | while read line; do brew unlink $line; brew link $line; done"
-        ],
         _env=env,
+        name="Brew update",
+        commands=["brew update"],
     )
 
-    server.shell(name="Brew doctor", commands=["brew doctor"], _env=env)
+    server.shell(
+        _env=env,
+        name="Brew upgrade",
+        commands=["brew upgrade"],
+    )
 
-    # server.shell(name="Mac App Store upgrade", commands=["mas upgrade"], _env=env)
+    # server.shell(
+    #     _env=env,
+    #     name="Brew upgrade casks",
+    #     commands=["brew upgrade --cask --greedy"],
+    # )
 
-    server.shell(name="Mise upgrade", commands=["mise upgrade"], _env=env)
+    server.shell(
+        _env=env,
+        name="Brew cleanup",
+        commands=["brew cleanup -s"],
+    )
+
+    server.shell(
+        _env=env,
+        name="Brew relink",
+        commands=["brew list --formula -1 | while read line; do brew unlink $line; brew link $line; done"],
+    )
+
+    server.shell(
+        _env=env,
+        name="Brew doctor",
+        commands=["brew doctor"],
+    )
+
+    # server.shell(
+    #     _env=env,
+    #     name="Mac App Store upgrade",
+    #     commands=["mas upgrade"],
+    # )
+
+    server.shell(
+        _env=env,
+        name="Mise upgrade",
+        commands=["mise upgrade"],
+    )
 
     server.shell(
         name="Write defaults",

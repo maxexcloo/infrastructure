@@ -1,11 +1,10 @@
 from pyinfra import host
-from pyinfra.facts.docker import DockerContainer, DockerNetwork
-from pyinfra.facts.files import File
 from pyinfra.facts.server import Command, LsbRelease
 from pyinfra.operations import apt, server
 
 if "apt" in host.data.get("flags"):
     apt.packages(
+        _sudo=True,
         name=f"Install apt packages",
         packages=["curl"],
         update=True,
@@ -15,13 +14,23 @@ if "apt" in host.data.get("flags"):
         dpkg_arch = host.get_fact(Command, command="dpkg --print-architecture")
 
         apt.deb(
+            _sudo=True,
             name="Install cloudflared",
             src=f"https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-{dpkg_arch}.deb",
         )
 
-        server.shell(name="Uninstall cloudflared service", commands=[f"cloudflared service uninstall"])
+        server.shell(
+            _success_exit_codes=[0,1],
+            _sudo=True,
+            name="Uninstall cloudflared service",
+            commands=[f"cloudflared service uninstall"],
+        )
 
-        server.shell(name="Configure cloudflared service", commands=[f"cloudflared service install {host.data.get("cloudflare_tunnel_token")}"])
+        server.shell(
+            _sudo=True,
+            name="Configure cloudflared service",
+            commands=[f"cloudflared service install {host.data.get("cloudflare_tunnel_token")}"],
+        )
 
     if "docker" in host.data.get("flags"):
         dpkg_arch = host.get_fact(Command, command="dpkg --print-architecture")
@@ -29,23 +38,27 @@ if "apt" in host.data.get("flags"):
         lsb_id = lsb_release["id"].lower()
 
         apt.packages(
+            _sudo=True,
             name="Install docker prerequisites",
             packages=["ca-certificates"],
             update=True,
         )
 
         apt.key(
+            _sudo=True,
             name="Download the docker apt key",
             src=f"https://download.docker.com/linux/{lsb_id}/gpg",
         )
 
         apt.repo(
+            _sudo=True,
             name="Add the docker apt repo",
             filename="docker",
             src=f"deb [arch={dpkg_arch}] https://download.docker.com/linux/{lsb_id} {lsb_release['codename']} stable",
         )
 
         apt.packages(
+            _sudo=True,
             name="Install docker via apt",
             packages=[
                 "containerd.io",
@@ -58,12 +71,14 @@ if "apt" in host.data.get("flags"):
         )
 
         server.group(
+            _sudo=True,
             name="Create docker group",
             group="docker",
         )
 
         server.user(
+            _sudo=True,
             name="Add primary user to docker group",
             groups=["docker"],
-            user=host.data.get("username"),
+            user=host.data.get("ssh_user"),
         )

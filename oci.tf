@@ -193,12 +193,6 @@ resource "oci_core_instance" "vm" {
     source_id               = each.value.config.boot_disk_image_id
     source_type             = each.value.config.boot_disk_image_type
   }
-
-  lifecycle {
-    ignore_changes = [
-      metadata["user_data"]
-    ]
-  }
 }
 
 resource "oci_core_internet_gateway" "au" {
