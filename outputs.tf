@@ -49,6 +49,8 @@ resource "local_file" "services_infrastructure" {
     default = var.default
     servers = {
       for k, server in local.filtered_servers_all : k => {
+        ssh_port                = server.network.ssh_port
+        ssh_user                = server.user.username
         b2                      = local.output_b2[k]
         cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[k]
         flags                   = server.flags
