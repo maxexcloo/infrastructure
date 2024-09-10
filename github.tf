@@ -1,5 +1,9 @@
+data "github_repository" "default" {
+  name = basename(path.module)
+}
+
 data "github_user" "default" {
-  username = ""
+  username = var.terraform.github.username
 }
 
 resource "github_repository_file" "services_fly_gatus_infrastructure" {
