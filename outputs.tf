@@ -29,7 +29,7 @@ output "tailscale_tailnet_keys" {
 }
 
 resource "local_file" "pyinfra_inventory" {
-  filename = "./pyinfra/inventory.enc.py"
+  filename = "./pyinfra/inventory.py"
 
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
@@ -43,7 +43,7 @@ resource "local_file" "pyinfra_inventory" {
 }
 
 resource "local_file" "services_infrastructure" {
-  filename = "../Services/infrastructure.enc.auto.tfvars.json"
+  filename = "../Services/terraform.tfvars.json"
 
   content = jsonencode({
     default = var.default

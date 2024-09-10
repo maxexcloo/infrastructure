@@ -1,4 +1,6 @@
 .terraform
 .terraform.*
-*.enc.*
 *.log
+*.tfvars
+*.tfvars.*
+inventory.py
