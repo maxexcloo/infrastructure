@@ -314,37 +314,16 @@ locals {
     }
   }
 
-  output_cloudflare = {
-    for k, cloudflare_tunnel in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
-      tunnel_token = cloudflare_tunnel.tunnel_token
-    }
+  output_cloudflare_tunnel_tokens = {
+    for k, cloudflare_tunnel in cloudflare_zero_trust_tunnel_cloudflared.server : k => cloudflare_tunnel.tunnel_token
   }
 
-  output_resend = {
-    for k, restapi_object in restapi_object.resend_api_key_server : k => {
-      api_key = jsondecode(restapi_object.create_response).token
-    }
+  output_resend_api_keys = {
+    for k, restapi_object in restapi_object.resend_api_key_server : k => jsondecode(restapi_object.create_response).token
   }
 
   output_secret_hashes = {
-    for k, server in local.filtered_servers_all : k => {
-      secret_hash = random_password.secret_hash_server[k].result
-    }
-  }
-
-  output_servers = {
-    for k, server in local.filtered_servers_all : k => {
-      flags         = server.flags
-      fqdn_external = server.fqdn_external
-      fqdn_internal = server.fqdn_internal
-      host          = server.host
-      location      = server.location
-      parent_name   = server.parent_name
-      parent_type   = server.parent_type
-      ssh_port      = server.network.ssh_port
-      tag           = server.tag
-      username      = server.user.username
-    }
+    for k, server in local.filtered_servers_all : k => random_password.secret_hash_server[k].result
   }
 
   output_ssh = {
@@ -354,9 +333,7 @@ locals {
     }
   }
 
-  output_tailscale = {
-    for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => {
-      tailnet_key = tailscale_tailnet_key.key
-    }
+  output_tailscale_tailnet_keys = {
+    for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => tailscale_tailnet_key.key
   }
 }

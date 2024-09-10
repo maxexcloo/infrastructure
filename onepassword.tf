@@ -50,7 +50,7 @@ resource "onepassword_item" "server" {
     field {
       label = "Tunnel Token"
       type  = "CONCEALED"
-      value = local.output_cloudflare[each.key].tunnel_token
+      value = local.output_cloudflare_tunnel_tokens[each.key].tunnel_token
     }
   }
 
@@ -60,7 +60,7 @@ resource "onepassword_item" "server" {
     field {
       label = "API Key"
       type  = "CONCEALED"
-      value = local.output_resend[each.key].api_key
+      value = local.output_resend_api_keys[each.key].api_key
     }
   }
 
@@ -96,7 +96,7 @@ resource "onepassword_item" "server" {
     field {
       label = "Tailnet Key"
       type  = "CONCEALED"
-      value = local.output_tailscale[each.key].tailnet_key
+      value = local.output_tailscale_tailnet_keys[each.key].tailnet_key
     }
   }
 

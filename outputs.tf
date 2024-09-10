@@ -3,14 +3,14 @@ output "b2" {
   value     = local.output_b2
 }
 
-output "cloudflare" {
+output "cloudflare_tunnel_tokens" {
   sensitive = true
-  value     = local.output_cloudflare
+  value     = local.output_cloudflare_tunnel_tokens
 }
 
-output "resend" {
+output "resend_api_keys" {
   sensitive = true
-  value     = local.output_resend
+  value     = local.output_resend_api_keys
 }
 
 output "secret_hashes" {
@@ -23,29 +23,53 @@ output "ssh" {
   value     = local.output_ssh
 }
 
-output "tailscale" {
+output "tailscale_tailnet_keys" {
   sensitive = true
-  value     = local.output_tailscale
+  value     = local.output_tailscale_tailnet_keys
 }
 
 resource "local_file" "pyinfra_inventory" {
-  file_permission = "0644"
-  filename        = "./pyinfra/inventory.enc.py"
+  filename = "./pyinfra/inventory.enc.py"
 
   content = templatefile(
     "./templates/pyinfra/inventory.py.tftpl",
     {
-      cloudflare_tunnel_tokens = local.output_cloudflare
+      cloudflare_tunnel_tokens = local.output_cloudflare_tunnel_tokens
       onepassword_vault        = var.terraform.onepassword.vault
       servers                  = local.filtered_servers_all
-      tailscale_tailnet_keys   = local.output_tailscale
+      tailscale_tailnet_keys   = local.output_tailscale_tailnet_keys
     }
   )
 }
 
+resource "local_file" "services_infrastructure" {
+  filename = "../Services/infrastructure.enc.auto.tfvars.json"
+
+  content = jsonencode({
+    default = var.default
+    servers = {
+      for k, server in local.filtered_servers_all : k => {
+        b2                      = local.output_b2[k]
+        cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[k]
+        flags                   = server.flags
+        fqdn_external           = server.fqdn_external
+        fqdn_internal           = server.fqdn_internal
+        host                    = server.host
+        location                = server.location
+        parent_name             = server.parent_name
+        parent_type             = server.parent_type
+        resend_api_key          = local.output_resend_api_keys[k]
+        secret_hash             = local.output_secret_hashes[k]
+        ssh_port                = server.network.ssh_port
+        tag                     = server.tag
+        username                = server.user.username
+      }
+    }
+  })
+}
+
 resource "local_file" "ssh_config" {
-  file_permission = "0644"
-  filename        = "../../.ssh/config"
+  filename = "../../.ssh/config"
 
   content = templatefile(
     "./templates/ssh/config.tftpl",
@@ -57,8 +81,7 @@ resource "local_file" "ssh_config" {
 }
 
 resource "local_file" "vscode_sftp" {
-  file_permission = "0644"
-  filename        = "../.vscode/sftp.json"
+  filename = "../.vscode/sftp.json"
 
   content = replace(
     templatefile(
