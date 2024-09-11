@@ -5,7 +5,7 @@ locals {
       if try(local.merged_dns[k].wildcard, false)
     },
     {
-      for k, cloudflare_record in cloudflare_record.tailscale : "${k}-tailscale" => cloudflare_record
+      for k, cloudflare_record in cloudflare_record.tailscale_ipv4 : "${k}-internal" => cloudflare_record
     },
     cloudflare_record.router,
     cloudflare_record.server,
@@ -26,6 +26,11 @@ locals {
     if contains(server.flags, "docker")
   }
 
+  filtered_servers_openwrt = {
+    for k, server in local.filtered_servers_all : k => server
+    if server.parent_type == "proxmox" || try(server.network.mac_address, "") != ""
+  }
+
   filtered_servers_noncloud = {
     for k, server in local.filtered_servers_all : k => server
     if server.parent_type != "cloud" && server.tag != "router"
@@ -40,6 +45,22 @@ locals {
     for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
     if tag.vpn
   ]
+
+  filtered_tailscale_devices = {
+    for k, server in local.filtered_servers_all : k => {
+      fqdn_external = server.fqdn_external
+      fqdn_internal = server.fqdn_internal
+      ipv4 = [for device in data.tailscale_devices.default.devices :
+        [for address in device.addresses : address if can(cidrhost("${address}/32", 0))][0]
+        if element(split(".", device.name), 0) == k
+      ][0]
+      ipv6 = [for device in data.tailscale_devices.default.devices :
+        [for address in device.addresses : address if can(cidrhost("${address}/128", 0))][0]
+        if element(split(".", device.name), 0) == k
+      ][0]
+    }
+    if length([for device in data.tailscale_devices.default.devices : device if element(split(".", device.name), 0) == k]) > 0
+  }
 
   merged_devices = {
     for i, device in var.devices : device.name => merge(

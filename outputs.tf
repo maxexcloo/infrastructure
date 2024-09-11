@@ -28,6 +28,21 @@ output "tailscale_tailnet_keys" {
   value     = local.output_tailscale_tailnet_keys
 }
 
+resource "local_file" "pyinfra_docker_caddy" {
+  content  = templatefile("./templates/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
+  filename = "./pyinfra/docker/caddy/docker-compose.yaml"
+}
+
+resource "local_file" "pyinfra_docker_portainer" {
+  for_each = {
+    for k, server in local.filtered_servers_all : k => server
+    if contains(server.flags, "portainer")
+  }
+
+  content  = templatefile("./templates/portainer/docker-compose.yaml.tftpl", { fqdn_internal = each.value.fqdn_internal })
+  filename = "./pyinfra/docker/portainer/docker-compose.yaml"
+}
+
 resource "local_file" "pyinfra_inventory" {
   filename = "./pyinfra/inventory.py"
 

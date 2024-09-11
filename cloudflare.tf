@@ -1,5 +1,21 @@
+data "cloudflare_api_token_permission_groups" "default" {}
+
 resource "cloudflare_account" "default" {
   name = var.default.email
+}
+
+resource "cloudflare_api_token" "caddy" {
+  name = "caddy"
+
+  policy {
+    permission_groups = [
+      data.cloudflare_api_token_permission_groups.default.zone["DNS Write"],
+      data.cloudflare_api_token_permission_groups.default.zone["Zone Read"]
+    ]
+    resources = {
+      "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
+    }
+  }
 }
 
 resource "cloudflare_record" "dns" {
@@ -19,7 +35,7 @@ resource "cloudflare_record" "router" {
   allow_overwrite = true
   content         = each.value.network.public_address
   name            = each.value.fqdn_external
-  type            = length(regexall("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", each.value.network.public_address)) > 0 ? "A" : "CNAME"
+  type            = can(cidrhost("${each.value.network.public_address}/32", 0)) ? "A" : "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
@@ -33,13 +49,23 @@ resource "cloudflare_record" "server" {
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "tailscale" {
-  for_each = local.filtered_servers_all
+resource "cloudflare_record" "tailscale_ipv4" {
+  for_each = local.filtered_tailscale_devices
 
   allow_overwrite = true
-  content         = "${each.key}.ts.${var.default.domain_internal}"
+  content         = each.value.ipv4
   name            = each.value.fqdn_internal
-  type            = "CNAME"
+  type            = "A"
+  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
+}
+
+resource "cloudflare_record" "tailscale_ipv6" {
+  for_each = local.filtered_tailscale_devices
+
+  allow_overwrite = true
+  content         = each.value.ipv6
+  name            = each.value.fqdn_internal
+  type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 

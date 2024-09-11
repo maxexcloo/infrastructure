@@ -1,5 +1,5 @@
 from pyinfra import host
-from pyinfra.facts.server import Command, LsbRelease
+from pyinfra.facts.server import Command, LsbRelease, Path
 from pyinfra.operations import apt, server
 
 if "apt" in host.data.get("flags"):
