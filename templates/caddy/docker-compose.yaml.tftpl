@@ -10,6 +10,7 @@ services:
     labels:
       caddy: (internal)
       caddy.tls.dns: cloudflare ${cloudflare_api_token}
+      caddy.tls.resolvers: 1.1.1.1
     ports:
       - 80:80
       - 443:443
