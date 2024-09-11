@@ -79,7 +79,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   operating_system {
-    type = try(each.value.config.operating_system, "l26")
+    type = each.value.config.operating_system
   }
 
   dynamic "agent" {

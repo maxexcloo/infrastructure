@@ -24,7 +24,7 @@ resource "cloudflare_record" "dns" {
   allow_overwrite = true
   content         = each.value.content
   name            = each.value.name == "@" ? each.value.zone : each.value.name
-  priority        = try(each.value.priority, null)
+  priority        = each.value.priority
   type            = each.value.type
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }

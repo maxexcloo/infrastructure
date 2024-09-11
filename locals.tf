@@ -79,10 +79,11 @@ locals {
   merged_dns = merge([
     for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
-        record,
         {
-          zone = zone
-        }
+          priority = try(record.priority, null)
+          zone     = zone
+        },
+        record
       )
     }
   ]...)
@@ -282,6 +283,7 @@ locals {
           config = merge(
             {
               boot_disk_image_url = ""
+              operating_system    = "l26"
               timezone            = var.default.timezone
             },
             try(vm.config, {}),
