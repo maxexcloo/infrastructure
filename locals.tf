@@ -21,11 +21,6 @@ locals {
     local.merged_vms_proxmox
   )
 
-  filtered_servers_docker = {
-    for k, server in local.filtered_servers_all : k => server
-    if contains(server.flags, "docker")
-  }
-
   filtered_servers_openwrt = {
     for k, server in local.filtered_servers_all : k => server
     if server.parent_type == "proxmox" || try(server.network.mac_address, "") != ""
@@ -39,11 +34,6 @@ locals {
   filtered_tags_tailscale_servers = [
     for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
     if tag.server
-  ]
-
-  filtered_tags_tailscale_vpn = [
-    for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
-    if tag.vpn
   ]
 
   filtered_tailscale_devices = {

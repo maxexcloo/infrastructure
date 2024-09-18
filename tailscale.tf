@@ -17,10 +17,6 @@ resource "tailscale_acl" "default" {
     }
     nodeAttrs = [
       {
-        attr   = ["mullvad"]
-        target = local.filtered_tags_tailscale_vpn
-      },
-      {
         attr   = ["nextdns:65188d"]
         target = local.filtered_tags_tailscale_servers
       }
