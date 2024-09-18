@@ -8,9 +8,10 @@ services:
     labels:
       caddy: portainer.${fqdn_internal}
       caddy.import: internal
-      caddy.reverse_proxy: "{{upstreams 9443}}"
+      caddy.reverse_proxy: "{{upstreams 9000}}"
     ports:
       - 8000:8000
+      - 9000:9000
       - 9443:9443
     restart: unless-stopped
     volumes:

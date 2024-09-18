@@ -92,3 +92,9 @@ if "homebrew" in host.data.get("flags"):
             "killall Dock",
         ],
     )
+
+if "openwrt" == host.data.get("type"):
+    server.shell(
+        name="Tailscale update",
+        commands=["tailscale update"],
+    )
