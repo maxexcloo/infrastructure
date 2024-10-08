@@ -98,7 +98,7 @@ resource "local_file" "ssh_config" {
 }
 
 resource "local_file" "vscode_sftp" {
-  filename = "../.vscode/sftp.json"
+  filename = "../../.vscode/sftp.json"
 
   content = replace(
     templatefile(
