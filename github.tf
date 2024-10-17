@@ -2,7 +2,7 @@ data "github_user" "default" {
   username = var.terraform.github.username
 }
 
-resource "github_repository_file" "services_fly_gatus_infrastructure" {
+resource "github_repository_file" "services_config_gatus_infrastructure" {
   file                = "config/fly-excloo-uptime/infrastructure.yaml"
   overwrite_on_create = true
   repository          = "Services"
