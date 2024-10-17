@@ -3,7 +3,7 @@ data "github_user" "default" {
 }
 
 resource "github_repository_file" "services_fly_gatus_infrastructure" {
-  file                = "config/excloo-uptime/infrastructure.yaml"
+  file                = "config/fly-excloo-uptime/infrastructure.yaml"
   overwrite_on_create = true
   repository          = "Services"
 
