@@ -39,7 +39,7 @@ resource "local_file" "pyinfra_docker_portainer" {
     if contains(server.flags, "portainer")
   }
 
-  content  = templatefile("./templates/portainer/docker-compose.yaml.tftpl", { fqdn_internal = each.value.fqdn_internal })
+  content  = templatefile("./templates/portainer/docker-compose.yaml.tftpl", { default = var.default })
   filename = "./pyinfra/docker/portainer/docker-compose.yaml"
 }
 

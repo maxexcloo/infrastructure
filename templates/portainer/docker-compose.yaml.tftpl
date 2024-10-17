@@ -6,7 +6,7 @@ services:
   service:
     image: portainer/portainer-ce
     labels:
-      caddy: portainer.${fqdn_internal}
+      caddy: portainer.${default.domain_internal}
       caddy.import: internal
       caddy.reverse_proxy: "{{upstreams 9000}}"
     ports:
