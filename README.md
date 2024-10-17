@@ -1,2 +1,2 @@
 # Infrastructure
-OpenTofu configuration for personal infrastructure.
+OpenTofu and PyInfra configuration for personal infrastructure.
