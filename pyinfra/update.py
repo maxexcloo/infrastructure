@@ -93,8 +93,8 @@ if "homebrew" in host.data.get("flags"):
         ],
     )
 
-if "openwrt" == host.data.get("type"):
-    server.shell(
-        name="Tailscale update",
-        commands=["tailscale update"],
-    )
+# if "openwrt" == host.data.get("type"):
+#     server.shell(
+#         name="Tailscale update",
+#         commands=["tailscale update"],
+#     )

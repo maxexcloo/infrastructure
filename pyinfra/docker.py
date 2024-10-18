@@ -26,12 +26,19 @@ if "docker" in host.data.get("flags"):
         commands=["docker compose up -d"],
     )
 
+    server.shell(
+        _chdir="/tmp/docker/portainer",
+        _env=env,
+        name="Deploy portainer agent with docker compose",
+        commands=["docker compose -f docker-compose.agent.yaml up -d"],
+    )
+
     if "portainer" in host.data.get("flags"):
         server.shell(
             _chdir="/tmp/docker/portainer",
             _env=env,
-            name="Deploy portainer with docker compose",
-            commands=["docker compose up -d"],
+            name="Deploy portainer service with docker compose",
+            commands=["docker compose -f docker-compose.service.yaml up -d"],
         )
 
     server.shell(

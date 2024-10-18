@@ -33,14 +33,14 @@ resource "local_file" "pyinfra_docker_caddy" {
   filename = "./pyinfra/docker/caddy/docker-compose.yaml"
 }
 
-resource "local_file" "pyinfra_docker_portainer" {
-  for_each = {
-    for k, server in local.filtered_servers_all : k => server
-    if contains(server.flags, "portainer")
-  }
+resource "local_file" "pyinfra_docker_portainer_agent" {
+  content  = templatefile("./templates/portainer/docker-compose.agent.yaml.tftpl", {})
+  filename = "./pyinfra/docker/portainer/docker-compose.agent.yaml"
+}
 
-  content  = templatefile("./templates/portainer/docker-compose.yaml.tftpl", { default = var.default })
-  filename = "./pyinfra/docker/portainer/docker-compose.yaml"
+resource "local_file" "pyinfra_docker_portainer_service" {
+  content  = templatefile("./templates/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
+  filename = "./pyinfra/docker/portainer/docker-compose.service.yaml"
 }
 
 resource "local_file" "pyinfra_inventory" {
