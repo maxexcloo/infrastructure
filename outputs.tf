@@ -62,6 +62,9 @@ resource "local_file" "services_infrastructure" {
 
   content = jsonencode({
     default = var.default
+    devices = var.devices
+    tags    = var.tags
+
     servers = {
       for k, server in local.filtered_servers_all : k => {
         ssh_port                = server.network.ssh_port
