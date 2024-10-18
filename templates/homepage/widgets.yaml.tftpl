@@ -1,0 +1,10 @@
+%{ for server in servers ~}
+%{ if contains(server.flags, "docker") ~}
+- glances:
+    cputemp: true
+    label: ${server.host}
+    uptime: true
+    url: https://glances.${server.fqdn_internal}
+    version: 4
+%{ endif ~}
+%{ endfor ~}

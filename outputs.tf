@@ -28,18 +28,18 @@ output "tailscale_tailnet_keys" {
   value     = local.output_tailscale_tailnet_keys
 }
 
-resource "local_file" "pyinfra_docker_caddy" {
-  content  = templatefile("./templates/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
+resource "local_file" "docker_caddy" {
+  content  = templatefile("./templates/docker/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
   filename = "./pyinfra/docker/caddy/docker-compose.yaml"
 }
 
-resource "local_file" "pyinfra_docker_portainer_agent" {
-  content  = templatefile("./templates/portainer/docker-compose.agent.yaml.tftpl", {})
+resource "local_file" "docker_portainer_agent" {
+  content  = templatefile("./templates/docker/portainer/docker-compose.agent.yaml.tftpl", {})
   filename = "./pyinfra/docker/portainer/docker-compose.agent.yaml"
 }
 
-resource "local_file" "pyinfra_docker_portainer_service" {
-  content  = templatefile("./templates/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
+resource "local_file" "docker_portainer_service" {
+  content  = templatefile("./templates/docker/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
   filename = "./pyinfra/docker/portainer/docker-compose.service.yaml"
 }
 
