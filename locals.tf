@@ -9,6 +9,8 @@ locals {
     },
     cloudflare_record.router,
     cloudflare_record.server,
+    cloudflare_record.vm_ipv4,
+    cloudflare_record.vm_ipv6,
     cloudflare_record.vm_oci_ipv4,
     cloudflare_record.vm_oci_ipv6
   )
@@ -17,6 +19,7 @@ locals {
     local.merged_routers,
     local.merged_servers,
     local.merged_servers_proxmox,
+    local.merged_vms,
     local.merged_vms_oci,
     local.merged_vms_proxmox
   )
@@ -33,7 +36,6 @@ locals {
 
   filtered_tags_tailscale_servers = [
     for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
-    if tag.server
   ]
 
   filtered_tailscale_devices = {
@@ -218,6 +220,43 @@ locals {
     )
   }
 
+  merged_vms = merge({
+    for i, vm in var.vms : "${vm.location}-${vm.name}" => merge(
+      vm,
+      {
+        flags         = try(vm.flags, [])
+        fqdn_external = "${vm.name}.${var.default.domain_external}"
+        fqdn_internal = "${vm.name}.${var.default.domain_internal}"
+        host          = "${vm.location}-${vm.name}"
+        parent_type   = "cloud"
+        tag           = "vm"
+        config = merge(
+          {
+            packages = []
+            timezone = var.default.timezone
+          },
+          try(vm.config, {})
+        )
+        network = merge(
+          {
+            ssh_port = 22
+          },
+          try(vm.network, {})
+        )
+        user = merge(
+          {
+            fullname = ""
+            username = "root"
+          },
+          try(vm.user, {}),
+          {
+            sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+          }
+        )
+      }
+    )
+  })
+
   merged_vms_oci = merge({
     for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
@@ -238,7 +277,9 @@ locals {
         )
         network = merge(
           {
-            ssh_port = 22
+            public_ipv4 = ""
+            public_ipv6 = ""
+            ssh_port    = 22
           },
           try(vm.network, {})
         )
