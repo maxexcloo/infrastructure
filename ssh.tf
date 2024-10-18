@@ -25,7 +25,7 @@ resource "ssh_resource" "router" {
     destination = "/etc/haproxy.infrastructure.cfg"
 
     content = templatefile(
-      "./templates/openwrt/haproxy.infrastructure.cfg.tftpl",
+      "templates/openwrt/haproxy.infrastructure.cfg.tftpl",
       {
         servers = {
           for k, v in local.filtered_servers_noncloud : k => v

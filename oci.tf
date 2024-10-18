@@ -162,7 +162,7 @@ resource "oci_core_instance" "vm" {
   metadata = {
     user_data = base64encode(
       templatefile(
-        "./templates/cloud_config/cloud_config.tftpl",
+        "templates/cloud_config/cloud_config.tftpl",
         {
           cloudflare_tunnel_token = cloudflare_zero_trust_tunnel_cloudflared.server[each.key].tunnel_token
           password                = htpasswd_password.server[each.key].sha512

@@ -29,25 +29,25 @@ output "tailscale_tailnet_keys" {
 }
 
 resource "local_file" "docker_caddy" {
-  content  = templatefile("./templates/docker/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
-  filename = "./pyinfra/docker/caddy/docker-compose.yaml"
+  content  = templatefile("templates/docker/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
+  filename = "pyinfra/docker/caddy/docker-compose.yaml"
 }
 
 resource "local_file" "docker_portainer_agent" {
-  content  = templatefile("./templates/docker/portainer/docker-compose.agent.yaml.tftpl", {})
-  filename = "./pyinfra/docker/portainer/docker-compose.agent.yaml"
+  content  = templatefile("templates/docker/portainer/docker-compose.agent.yaml.tftpl", {})
+  filename = "pyinfra/docker/portainer/docker-compose.agent.yaml"
 }
 
 resource "local_file" "docker_portainer_service" {
-  content  = templatefile("./templates/docker/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
-  filename = "./pyinfra/docker/portainer/docker-compose.service.yaml"
+  content  = templatefile("templates/docker/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
+  filename = "pyinfra/docker/portainer/docker-compose.service.yaml"
 }
 
 resource "local_file" "pyinfra_inventory" {
-  filename = "./pyinfra/inventory.py"
+  filename = "pyinfra/inventory.py"
 
   content = templatefile(
-    "./templates/pyinfra/inventory.py.tftpl",
+    "templates/pyinfra/inventory.py.tftpl",
     {
       cloudflare_tunnel_tokens = local.output_cloudflare_tunnel_tokens
       onepassword_vault        = var.terraform.onepassword.vault
@@ -92,7 +92,7 @@ resource "local_file" "ssh_config" {
   filename = "../../.ssh/config"
 
   content = templatefile(
-    "./templates/ssh/config.tftpl",
+    "templates/ssh/config.tftpl",
     {
       devices = local.merged_devices
       servers = local.filtered_servers_all
@@ -105,7 +105,7 @@ resource "local_file" "vscode_sftp" {
 
   content = replace(
     templatefile(
-      "./templates/vscode/sftp.json.tftpl",
+      "templates/vscode/sftp.json.tftpl",
       {
         devices = local.merged_devices
         servers = local.filtered_servers_all
