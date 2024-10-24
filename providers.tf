@@ -39,23 +39,20 @@ provider "openwrt" {
 }
 
 provider "proxmox" {
-  endpoint = "https://null"
-  password = "null"
-  username = "null@pam"
-  # endpoint = "https://au-gen8:${local.merged_servers_proxmox["au-gen8"].provider.port}"
-  # insecure = local.merged_servers_proxmox["au-gen8"].provider.insecure
-  # password = local.merged_servers_proxmox["au-gen8"].provider.password
-  # username = "${local.merged_servers_proxmox["au-gen8"].provider.username}@pam"
+  endpoint = "https://au-pie:${local.merged_servers_proxmox["au-pie"].provider.port}"
+  insecure = local.merged_servers_proxmox["au-pie"].provider.insecure
+  password = local.merged_servers_proxmox["au-pie"].provider.password
+  username = "${local.merged_servers_proxmox["au-pie"].provider.username}@pam"
 
-  # ssh {
-  #   agent    = true
-  #   username = local.merged_servers_proxmox["au-gen8"].provider.username
+  ssh {
+    agent    = true
+    username = local.merged_servers_proxmox["au-pie"].provider.username
 
-  #   node {
-  #     address = "au-gen8"
-  #     name    = local.merged_servers_proxmox["au-gen8"].name
-  #   }
-  # }
+    node {
+      address = "au-pie"
+      name    = local.merged_servers_proxmox["au-pie"].name
+    }
+  }
 }
 
 provider "restapi" {

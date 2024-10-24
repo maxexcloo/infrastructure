@@ -6,7 +6,7 @@ if "apt" in host.data.get("flags"):
     apt.packages(
         _sudo=True,
         name=f"Install apt packages",
-        packages=["curl"],
+        packages=["curl", "sudo"],
         update=True,
     )
 
