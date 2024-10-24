@@ -26,12 +26,12 @@ locals {
 
   filtered_servers_openwrt = {
     for k, server in local.filtered_servers_all : k => server
-    if server.parent_type == "proxmox" || try(server.network.mac_address, "") != ""
+    if contains(server.parent_flags, "proxmox") || try(server.network.mac_address, "") != ""
   }
 
   filtered_servers_noncloud = {
     for k, server in local.filtered_servers_all : k => server
-    if server.parent_type != "cloud" && server.tag != "router"
+    if try(local.filtered_servers_all[server.parent_name].tag, "") == "router"
   }
 
   filtered_tags_tailscale_servers = [
@@ -84,13 +84,14 @@ locals {
     for i, router in var.routers : router.location => merge(
       router,
       {
+        description   = try(router.description, upper(router.location))
         flags         = try(router.flags, [])
         fqdn_external = "${router.location}.${var.default.domain_external}"
         fqdn_internal = "${router.location}.${var.default.domain_internal}"
         host          = router.location
         name          = router.location
+        parent_flags  = []
         parent_name   = ""
-        parent_type   = ""
         tag           = "router"
         network = merge(
           {
@@ -128,13 +129,14 @@ locals {
       for i, server in var.servers : "${router.location}-${server.name}" => merge(
         server,
         {
+          description   = try(server.description, title(server.name))
           flags         = try(server.flags, [])
           fqdn_external = "${server.name}.${var.default.domain_external}"
           fqdn_internal = "${server.name}.${var.default.domain_internal}"
           host          = "${router.location}-${server.name}"
           location      = router.location
+          parent_flags  = router.flags
           parent_name   = router.name
-          parent_type   = router.type
           tag           = "server"
           network = merge(
             {
@@ -145,6 +147,7 @@ locals {
             },
             try(server.network, {})
           )
+          provider = {}
           user = merge(
             {
               fullname = ""
@@ -166,15 +169,15 @@ locals {
       for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
         server,
         {
+          description   = try(server.description, title(server.name))
           flags         = try(server.flags, [])
           fqdn_external = "${server.name}.${var.default.domain_external}"
           fqdn_internal = "${server.name}.${var.default.domain_internal}"
           host          = "${router.location}-${server.name}"
           location      = router.location
+          parent_flags  = router.flags
           parent_name   = router.name
-          parent_type   = router.type
           tag           = "server"
-          type          = "proxmox"
           network = merge(
             {
               mac_address     = ""
@@ -224,11 +227,14 @@ locals {
     for i, vm in var.vms : "${vm.location}-${vm.name}" => merge(
       vm,
       {
+        description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${var.default.domain_internal}"
         host          = "${vm.location}-${vm.name}"
-        parent_type   = "cloud"
+        location      = try(vm.location, "cloud")
+        parent_flags  = ["cloud"]
+        parent_name   = "cloud"
         tag           = "vm"
         config = merge(
           {
@@ -261,12 +267,14 @@ locals {
     for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
+        description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${var.default.domain_internal}"
         host          = "${vm.location}-${vm.name}"
+        location      = try(vm.location, "cloud")
+        parent_flags  = ["cloud"]
         parent_name   = "oci"
-        parent_type   = "cloud"
         tag           = "vm"
         config = merge(
           {
@@ -308,8 +316,8 @@ locals {
           host          = "${server.location}-${server.name}-${vm.name}"
           location      = server.location
           name          = "${server.name}-${vm.name}"
+          parent_flags  = server.flags
           parent_name   = server.name
-          parent_type   = server.type
           tag           = "vm"
           config = merge(
             {

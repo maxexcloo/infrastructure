@@ -30,7 +30,7 @@ if "docker" in host.data.get("flags"):
 
     server.shell(name="Docker prune", commands=["docker system prune -a -f"], _env=env)
 
-if "homebrew" in host.data.get("flags"):
+if "mac" in host.data.get("flags"):
     env = {"PATH": f"/Users/max.schaefer/.local/bin:/Users/max.schaefer/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${host.get_fact(Path)}"}
 
     server.shell(
@@ -93,7 +93,7 @@ if "homebrew" in host.data.get("flags"):
         ],
     )
 
-# if "openwrt" == host.data.get("type"):
+# if "openwrt" in host.data.get("flags"):
 #     server.shell(
 #         name="Tailscale update",
 #         commands=["tailscale update"],

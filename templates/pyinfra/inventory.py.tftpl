@@ -6,17 +6,17 @@ hosts = [
             "ssh_port": ${server.network.ssh_port},
             "ssh_user": "${server.user.username}",
             "cloudflare_tunnel_token": "${cloudflare_tunnel_tokens[server.host]}",
+            "description": "${server.description}",
             "flags": ${jsonencode(server.flags)},
             "fqdn_external": "${server.fqdn_external}",
             "fqdn_internal": "${server.fqdn_internal}",
             "host": "${server.host}",
             "location": "${server.location}",
             "name": "${server.name}",
+            "parent_flags": "$jsonencode(server.parent_flags)}",
             "parent_name": "${server.parent_name}",
-            "parent_type": "${server.parent_type}",
             "tag": "${server.tag}",
             "tailscale_tailnet_key": "${tailscale_tailnet_keys[server.host]}",
-            "type": "${server.type}"
         }
     ),
 %{ endfor ~}

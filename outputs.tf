@@ -71,18 +71,18 @@ resource "local_file" "services_infrastructure" {
         ssh_user                = server.user.username
         b2                      = local.output_b2[k]
         cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[k]
+        description             = server.description
         flags                   = server.flags
         fqdn_external           = server.fqdn_external
         fqdn_internal           = server.fqdn_internal
         host                    = server.host
         location                = server.location
         name                    = server.name
+        parent_flags            = server.parent_flags
         parent_name             = server.parent_name
-        parent_type             = server.parent_type
         resend_api_key          = local.output_resend_api_keys[k]
         secret_hash             = local.output_secret_hashes[k]
         tag                     = server.tag
-        type                    = server.type
       }
     }
   })

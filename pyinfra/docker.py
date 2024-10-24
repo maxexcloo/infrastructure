@@ -12,26 +12,20 @@ if "docker" in host.data.get("flags"):
         src="docker",
     )
 
-    server.shell(
-        _env=env,
-        _success_exit_codes=[0,1],
-        name="Create default docker network",
-        commands=["docker network create docker"],
-    )
+    if "caddy" in host.data.get("flags"):
+        server.shell(
+            _env=env,
+            _success_exit_codes=[0,1],
+            name="Create default docker network",
+            commands=["docker network create docker"],
+        )
 
-    server.shell(
-        _chdir="/tmp/docker/caddy",
-        _env=env,
-        name="Deploy caddy with docker compose",
-        commands=["docker compose up -d"],
-    )
-
-    server.shell(
-        _chdir="/tmp/docker/portainer",
-        _env=env,
-        name="Deploy portainer agent with docker compose",
-        commands=["docker compose -f docker-compose.agent.yaml up -d"],
-    )
+        server.shell(
+            _chdir="/tmp/docker/caddy",
+            _env=env,
+            name="Deploy caddy with docker compose",
+            commands=["docker compose up -d"],
+        )
 
     if "portainer" in host.data.get("flags"):
         server.shell(
@@ -40,6 +34,13 @@ if "docker" in host.data.get("flags"):
             name="Deploy portainer service with docker compose",
             commands=["docker compose -f docker-compose.service.yaml up -d"],
         )
+
+    server.shell(
+        _chdir="/tmp/docker/portainer",
+        _env=env,
+        name="Deploy portainer agent with docker compose",
+        commands=["docker compose -f docker-compose.agent.yaml up -d"],
+    )
 
     server.shell(
         name="Clean up docker directory",
