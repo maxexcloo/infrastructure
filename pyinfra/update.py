@@ -93,8 +93,8 @@ if "mac" in host.data.get("flags"):
         ],
     )
 
-# if "openwrt" in host.data.get("flags"):
-#     server.shell(
-#         name="Tailscale update",
-#         commands=["tailscale update"],
-#     )
+if "openwrt" in host.data.get("flags"):
+    server.shell(
+        name="Tailscale update",
+        commands=["tailscale update --yes"],
+    )
