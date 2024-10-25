@@ -189,9 +189,9 @@ locals {
         )
         network = merge(
           {
+            ipv4            = ""
+            ipv6            = ""
             private_address = ""
-            public_ipv4     = ""
-            public_ipv6     = ""
             ssh_port        = 22
             web_port        = 80
             web_ssl         = false
@@ -235,8 +235,6 @@ locals {
         network = merge(
           {
             private_address = ""
-            public_ipv4     = ""
-            public_ipv6     = ""
             ssh_port        = 22
             web_port        = 80
             web_ssl         = false
@@ -296,6 +294,8 @@ locals {
           ]
           network = merge(
             {
+              ipv4            = "dhcp"
+              ipv6            = "dhcp"
               mac_address     = ""
               private_address = ""
               public_address  = cloudflare_record.router[server.location].name

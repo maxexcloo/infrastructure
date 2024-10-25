@@ -126,6 +126,26 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
+      for_each = can(each.value.network.ipv4) ? [true] : []
+
+      content {
+        label = "Public IPv4"
+        type  = "URL"
+        value = each.value.network.ipv4
+      }
+    }
+
+    dynamic "field" {
+      for_each = can(each.value.network.ipv6) ? [true] : []
+
+      content {
+        label = "Public IPv6"
+        type  = "URL"
+        value = each.value.network.ipv6
+      }
+    }
+
+    dynamic "field" {
       for_each = each.value.network.private_address != "" ? [true] : []
 
       content {

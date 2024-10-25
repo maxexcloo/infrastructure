@@ -50,9 +50,7 @@ resource "local_file" "pyinfra_inventory" {
     "templates/pyinfra/inventory.py.tftpl",
     {
       cloudflare_tunnel_tokens = local.output_cloudflare_tunnel_tokens
-      onepassword_vault        = var.terraform.onepassword.vault
       servers                  = local.filtered_servers_all
-      tailscale_tailnet_keys   = local.output_tailscale_tailnet_keys
     }
   )
 }
