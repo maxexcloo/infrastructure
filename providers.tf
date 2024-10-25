@@ -5,7 +5,7 @@ provider "b2" {
 
 provider "cloudflare" {
   api_key = var.terraform.cloudflare.api_key
-  email   = var.default.email
+  email   = var.terraform.cloudflare.email
 }
 
 provider "github" {
@@ -26,31 +26,31 @@ provider "onepassword" {
 
 provider "openwrt" {
   alias    = "au"
-  hostname = "au"
-  password = local.merged_routers["au"].provider.password
-  port     = local.merged_routers["au"].provider.port
+  hostname = var.terraform.openwrt.au.hostname
+  password = var.terraform.openwrt.au.password
+  port     = var.terraform.openwrt.au.port
 }
 
 provider "openwrt" {
   alias    = "kr"
-  hostname = "kr"
-  password = local.merged_routers["kr"].provider.password
-  port     = local.merged_routers["kr"].provider.port
+  hostname = var.terraform.openwrt.kr.hostname
+  password = var.terraform.openwrt.kr.password
+  port     = var.terraform.openwrt.kr.port
 }
 
 provider "proxmox" {
-  endpoint = "https://au-pie:${local.merged_servers_proxmox["au-pie"].provider.port}"
-  insecure = local.merged_servers_proxmox["au-pie"].provider.insecure
-  password = local.merged_servers_proxmox["au-pie"].provider.password
-  username = "${local.merged_servers_proxmox["au-pie"].provider.username}@pam"
+  endpoint = "https://${var.terraform.proxmox.pie.host}:${var.terraform.proxmox.pie.port}"
+  insecure = var.terraform.proxmox.pie.insecure
+  password = var.terraform.proxmox.pie.password
+  username = "${var.terraform.proxmox.pie.username}@pam"
 
   ssh {
     agent    = true
-    username = local.merged_servers_proxmox["au-pie"].provider.username
+    username = var.terraform.proxmox.pie.username
 
     node {
-      address = "au-pie"
-      name    = local.merged_servers_proxmox["au-pie"].name
+      address = var.terraform.proxmox.pie.host
+      name    = var.terraform.proxmox.pie.name
     }
   }
 }
@@ -70,5 +70,5 @@ provider "restapi" {
 provider "tailscale" {
   oauth_client_id     = var.terraform.tailscale.oauth_client_id
   oauth_client_secret = var.terraform.tailscale.oauth_client_secret
-  tailnet             = var.default.domain_root
+  tailnet             = var.terraform.tailscale.tailnet
 }

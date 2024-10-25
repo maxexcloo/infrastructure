@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = try(each.value.network.web_port, 0) == 0 && try(each.value.network.web_ssl, null) == null ? each.value.host : "${each.value.network.web_ssl ? "https://" : "http://"}${each.value.host}${each.value.network.web_port > 0 ? ":${each.value.network.web_port}" : ""}/"
+  url      = each.value.network.web_port == 80 && each.value.network.web_ssl == false ? each.value.host : "${each.value.network.web_ssl ? "https://${each.value.fqdn_internal}" : "http://${each.value.host}"}${each.value.network.web_port == 80 ? "" : ":${each.value.network.web_port}"}/"
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
@@ -126,7 +126,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.private_address) ? [true] : []
+      for_each = each.value.network.private_address != "" ? [true] : []
 
       content {
         label = "Private Address"

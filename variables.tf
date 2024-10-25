@@ -3,7 +3,6 @@ variable "devices" {}
 variable "dns" {}
 variable "routers" {}
 variable "servers" {}
-variable "servers_proxmox" {}
 variable "tags" {}
 variable "terraform" {}
 variable "vms" {}

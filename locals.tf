@@ -18,7 +18,6 @@ locals {
   filtered_servers_all = merge(
     local.merged_routers,
     local.merged_servers,
-    local.merged_servers_proxmox,
     local.merged_vms,
     local.merged_vms_oci,
     local.merged_vms_proxmox
@@ -72,7 +71,7 @@ locals {
     for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
         {
-          priority = try(record.priority, null)
+          priority = null
           zone     = zone
         },
         record
@@ -103,12 +102,6 @@ locals {
             web_ssl         = false
           },
           try(router.network, {})
-        )
-        provider = merge(
-          {
-            port = 81
-          },
-          var.terraform.openwrt[router.location]
         )
         user = merge(
           {
@@ -144,59 +137,10 @@ locals {
               private_address = ""
               public_address  = cloudflare_record.router[router.location].name
               ssh_port        = 22
+              web_port        = 80
+              web_ssl         = false
             },
             try(server.network, {})
-          )
-          provider = {}
-          user = merge(
-            {
-              fullname = ""
-              username = "root"
-            },
-            try(server.user, {}),
-            {
-              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
-            }
-          )
-        },
-      )
-      if server.parent == router.name
-    }
-  ]...)
-
-  merged_servers_proxmox = merge([
-    for k, router in local.merged_routers : {
-      for i, server in var.servers_proxmox : "${router.location}-${server.name}" => merge(
-        server,
-        {
-          description   = try(server.description, title(server.name))
-          flags         = try(server.flags, [])
-          fqdn_external = "${server.name}.${var.default.domain_external}"
-          fqdn_internal = "${server.name}.${var.default.domain_internal}"
-          host          = "${router.location}-${server.name}"
-          location      = router.location
-          parent_flags  = router.flags
-          parent_name   = router.name
-          tag           = "server"
-          network = merge(
-            {
-              mac_address     = ""
-              private_address = ""
-              public_address  = cloudflare_record.router[router.location].name
-              ssh_port        = 22
-              web_port        = 8006
-              web_ssl         = true
-            },
-            try(server.network, {})
-          )
-          provider = merge(
-            {
-              username = var.terraform.proxmox[server.name].username
-              password = var.terraform.proxmox[server.name].password
-              insecure = try(var.terraform.proxmox[server.name].insecure, true)
-              port     = try(var.terraform.proxmox[server.name].port, 8006)
-            },
-            try(server.provider, {})
           )
           user = merge(
             {
@@ -245,7 +189,12 @@ locals {
         )
         network = merge(
           {
-            ssh_port = 22
+            private_address = ""
+            public_ipv4     = ""
+            public_ipv6     = ""
+            ssh_port        = 22
+            web_port        = 80
+            web_ssl         = false
           },
           try(vm.network, {})
         )
@@ -285,9 +234,12 @@ locals {
         )
         network = merge(
           {
-            public_ipv4 = ""
-            public_ipv6 = ""
-            ssh_port    = 22
+            private_address = ""
+            public_ipv4     = ""
+            public_ipv6     = ""
+            ssh_port        = 22
+            web_port        = 80
+            web_ssl         = false
           },
           try(vm.network, {})
         )
@@ -306,7 +258,7 @@ locals {
   })
 
   merged_vms_proxmox = merge([
-    for k, server in local.merged_servers_proxmox : {
+    for k, server in local.merged_servers : {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
@@ -348,6 +300,8 @@ locals {
               private_address = ""
               public_address  = cloudflare_record.router[server.location].name
               ssh_port        = 22
+              web_port        = 80
+              web_ssl         = false
             },
             try(vm.network, {})
           )
