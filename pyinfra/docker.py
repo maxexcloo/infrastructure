@@ -12,14 +12,14 @@ if "docker" in host.data.get("flags"):
         src="docker",
     )
 
-    if "caddy" in host.data.get("flags"):
-        server.shell(
-            _env=env,
-            _success_exit_codes=[0,1],
-            name="Create default docker network",
-            commands=["docker network create docker"],
-        )
+    server.shell(
+        _env=env,
+        _success_exit_codes=[0,1],
+        name="Create default docker network",
+        commands=["docker network create docker"],
+    )
 
+    if "caddy" in host.data.get("flags"):
         server.shell(
             _chdir="/tmp/docker/caddy",
             _env=env,
