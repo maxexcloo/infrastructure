@@ -273,9 +273,9 @@ locals {
           config = merge(
             {
               boot_disk_image_url = ""
-              memory              = 4096
+              memory              = 4
               cpus                = 2
-              boot_disk_size      = 256
+              boot_disk_size      = 128
               operating_system    = "l26"
               timezone            = var.default.timezone
             },
