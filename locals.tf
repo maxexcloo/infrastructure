@@ -260,6 +260,7 @@ locals {
       for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
+          description   = "${server.description} ${try(vm.description, title(vm.name))}"
           flags         = try(vm.flags, [])
           fqdn_external = "${server.name}-${vm.name}.${var.default.domain_external}"
           fqdn_internal = "${server.name}-${vm.name}.${var.default.domain_internal}"
@@ -272,6 +273,9 @@ locals {
           config = merge(
             {
               boot_disk_image_url = ""
+              memory              = 4096
+              cpus                = 2
+              boot_disk_size      = 256
               operating_system    = "l26"
               timezone            = var.default.timezone
             },
