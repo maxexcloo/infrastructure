@@ -296,6 +296,7 @@ locals {
               try(disk, {})
             )
           ]
+          hostpci = try(vm.hostpci, [])
           network = merge(
             {
               ipv4            = "dhcp"
@@ -309,6 +310,7 @@ locals {
             },
             try(vm.network, {})
           )
+          usb = try(vm.usb, [])
           user = merge(
             {
               fullname = ""

@@ -50,7 +50,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   cpu {
     cores = each.value.config.cpus
-    type  = "x86-64-v2-AES"
+    type  = "host"
   }
 
   disk {
@@ -69,13 +69,15 @@ resource "proxmox_virtual_environment_vm" "vm" {
     type         = "4m"
   }
 
+  lifecycle {
+    ignore_changes = [
+      initialization
+    ]
+  }
+
   memory {
     dedicated = each.value.config.memory * 1024
     floating  = 0
-  }
-
-  network_device {
-    firewall = true
   }
 
   operating_system {
@@ -116,6 +118,18 @@ resource "proxmox_virtual_environment_vm" "vm" {
     }
   }
 
+  dynamic "hostpci" {
+    for_each = each.value.hostpci
+
+    content {
+      device = "hostpci${hostpci.key}"
+      id     = hostpci.value.id
+      pcie   = try(hostpci.value.pcie, true)
+      rombar = true
+      xvga   = try(hostpci.value.xvga, false)
+    }
+  }
+
   dynamic "initialization" {
     for_each = endswith(each.value.config.boot_disk_image_url, ".img") ? [true] : []
 
@@ -137,9 +151,20 @@ resource "proxmox_virtual_environment_vm" "vm" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [
-      initialization
-    ]
+  dynamic "network_device" {
+    for_each = try(each.value.config.disable_network, false) ? [] : [true]
+
+    content {
+      firewall = true
+    }
+  }
+
+  dynamic "usb" {
+    for_each = each.value.usb
+
+    content {
+      host = usb.value.host
+      usb3 = try(usb.value.usb3, true)
+    }
   }
 }
