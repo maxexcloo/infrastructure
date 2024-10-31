@@ -160,7 +160,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.private_addres) ? [true] : []
+      for_each = can(each.value.network.private_ipv4) ? [true] : []
 
       content {
         label = "Private Address"
