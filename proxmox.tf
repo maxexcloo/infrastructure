@@ -151,7 +151,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   dynamic "network_device" {
-    for_each = try(each.value.config.disable_network, false) ? [] : [true]
+    for_each = each.value.config.disable_network ? [] : [true]
 
     content {
       firewall = true
