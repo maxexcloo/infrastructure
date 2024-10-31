@@ -1,10 +1,10 @@
 [
-%{ for device in devices ~}
+%{ for host, device in devices ~}
 %{ for sftp_path in device.sftp_paths ~}
     {
         "agent": "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock",
-        "context": "Downloads/${device.host}",
-        "host": "${device.host}",
+        "context": "Downloads/${host}",
+        "host": "${host}",
         "name": "${device.name} (${sftp_path})",
         "port": ${device.port},
         "remotePath": "${sftp_path}",
@@ -13,13 +13,13 @@
     },
 %{ endfor ~}
 %{ endfor ~}
-%{ for server in servers ~}
+%{ for host, server in servers ~}
 %{ for sftp_path in server.user.sftp_paths ~}
     {
         "agent": "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock",
-        "context": "Downloads/${server.host}",
-        "host": "${server.host}",
-        "name": "${server.host} (${sftp_path})",
+        "context": "Downloads/${host}",
+        "host": "${host}",
+        "name": "${host} (${sftp_path})",
         "port": ${server.network.ssh_port},
         "remotePath": "${sftp_path}",
         "uploadOnSave": true,

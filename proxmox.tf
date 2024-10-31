@@ -30,6 +30,7 @@ resource "proxmox_virtual_environment_file" "vm" {
       "templates/cloud_config/cloud_config.tftpl",
       {
         cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[each.key]
+        host                    = each.key
         password                = htpasswd_password.server[each.key].sha512
         server                  = each.value
         ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])

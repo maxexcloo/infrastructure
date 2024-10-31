@@ -3,10 +3,10 @@ Include ~/.orbstack/ssh/config
 #############
 ## Devices ##
 #############
-%{ for device in devices ~}
+%{ for host, device in devices ~}
 
-Host ${device.name}
-	HostName ${device.host}
+Host ${host}
+	HostName ${host}
 	Port ${device.port}
 	User ${device.username}
 %{ endfor ~}
@@ -14,10 +14,10 @@ Host ${device.name}
 #############
 ## Servers ##
 #############
-%{ for server in servers ~}
+%{ for host, server in servers ~}
 
-Host ${server.host}
-	HostName ${server.host}
+Host ${host}
+	HostName ${host}
 	Port ${server.network.ssh_port}
 	User ${server.user.username}
 %{ endfor ~}

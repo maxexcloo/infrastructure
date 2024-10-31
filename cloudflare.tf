@@ -53,7 +53,7 @@ resource "cloudflare_record" "tailscale_ipv4" {
   for_each = local.filtered_tailscale_devices
 
   allow_overwrite = true
-  content         = each.value.ipv4
+  content         = each.value.private_ipv4
   name            = each.value.fqdn_internal
   type            = "A"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
@@ -63,7 +63,7 @@ resource "cloudflare_record" "tailscale_ipv6" {
   for_each = local.filtered_tailscale_devices
 
   allow_overwrite = true
-  content         = each.value.ipv6
+  content         = each.value.private_ipv6
   name            = each.value.fqdn_internal
   type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id

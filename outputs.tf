@@ -65,22 +65,22 @@ resource "local_file" "services_infrastructure" {
 
     servers = {
       for k, server in local.filtered_servers_all : k => {
-        ssh_port                = server.network.ssh_port
-        ssh_user                = server.user.username
         b2                      = local.output_b2[k]
         cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[k]
         description             = server.description
         flags                   = server.flags
         fqdn_external           = server.fqdn_external
         fqdn_internal           = server.fqdn_internal
-        host                    = server.host
         location                = server.location
         parent_flags            = server.parent_flags
         parent_name             = server.parent_name
         resend_api_key          = local.output_resend_api_keys[k]
         secret_hash             = local.output_secret_hashes[k]
         service                 = server.service
+        ssh_port                = server.network.ssh_port
+        ssh_user                = server.user.username
         tag                     = server.tag
+        tailscale_tailnet_key   = local.output_tailscale_tailnet_keys[k]
       }
     }
   })

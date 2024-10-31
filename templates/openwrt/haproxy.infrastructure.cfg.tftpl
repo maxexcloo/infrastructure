@@ -10,9 +10,9 @@ global
     daemon
     nosplice
 
-%{ for server in servers ~}
-backend ${server.host}
+%{ for host, server in servers ~}
+backend ${host}
     mode tcp
-    server ${server.host} ${server.network.private_ipv4}:443
+    server ${host} ${server.network.private_ipv4}:443
 
 %{ endfor ~}

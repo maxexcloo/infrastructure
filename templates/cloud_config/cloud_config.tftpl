@@ -18,7 +18,7 @@ runcmd:
   - sh -c "curl -fsLS https://tailscale.com/install.sh | sh"
   - sh -c "echo 'net.ipv4.ip_forward = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | tee -a /etc/sysctl.d/99-tailscale.conf && sysctl -p /etc/sysctl.d/99-tailscale.conf"
   - cloudflared service install ${cloudflare_tunnel_token}
-  - tailscale up --advertise-exit-node --authkey ${tailscale_tailnet_key} --hostname ${server.host}
+  - tailscale up --advertise-exit-node --authkey ${tailscale_tailnet_key} --hostname ${host}
   - tailscale set --auto-update
 %{ if contains(server.config.packages, "qemu-guest-agent") ~}
   - systemctl enable qemu-guest-agent

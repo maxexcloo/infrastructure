@@ -41,11 +41,11 @@ locals {
     for k, server in local.filtered_servers_all : k => {
       fqdn_external = server.fqdn_external
       fqdn_internal = server.fqdn_internal
-      ipv4 = [for device in data.tailscale_devices.default.devices :
+      private_ipv4 = [for device in data.tailscale_devices.default.devices :
         [for address in device.addresses : address if can(cidrhost("${address}/32", 0))][0]
         if element(split(".", device.name), 0) == k
       ][0]
-      ipv6 = [for device in data.tailscale_devices.default.devices :
+      private_ipv6 = [for device in data.tailscale_devices.default.devices :
         [for address in device.addresses : address if can(cidrhost("${address}/128", 0))][0]
         if element(split(".", device.name), 0) == k
       ][0]
@@ -56,7 +56,6 @@ locals {
   merged_devices = {
     for i, device in var.devices : device.name => merge(
       {
-        host     = device.name
         port     = 22
         username = "root"
       },
@@ -87,7 +86,6 @@ locals {
         flags         = try(router.flags, [])
         fqdn_external = "${router.location}.${var.default.domain_external}"
         fqdn_internal = "${router.location}.${var.default.domain_internal}"
-        host          = router.location
         name          = router.location
         parent_flags  = []
         parent_name   = ""
@@ -131,9 +129,8 @@ locals {
         {
           description   = try(server.description, title(server.name))
           flags         = try(server.flags, [])
-          fqdn_external = "${server.name}.${var.default.domain_external}"
-          fqdn_internal = "${server.name}.${var.default.domain_internal}"
-          host          = "${router.location}-${server.name}"
+          fqdn_external = "${server.name}.${router.location}.${var.default.domain_external}"
+          fqdn_internal = "${server.name}.${router.location}.${var.default.domain_internal}"
           location      = router.location
           parent_flags  = router.flags
           parent_name   = router.name
@@ -187,9 +184,8 @@ locals {
       {
         description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
-        fqdn_external = "${vm.name}.${var.default.domain_external}"
-        fqdn_internal = "${vm.name}.${var.default.domain_internal}"
-        host          = "${vm.location}-${vm.name}"
+        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
+        fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
         location      = try(vm.location, "cloud")
         parent_flags  = ["cloud"]
         parent_name   = "cloud"
@@ -231,9 +227,8 @@ locals {
       {
         description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
-        fqdn_external = "${vm.name}.${var.default.domain_external}"
-        fqdn_internal = "${vm.name}.${var.default.domain_internal}"
-        host          = "${vm.location}-${vm.name}"
+        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
+        fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
         location      = try(vm.location, "cloud")
         parent_flags  = ["cloud"]
         parent_name   = "oci"
@@ -281,9 +276,8 @@ locals {
         {
           description   = "${server.description} ${try(vm.description, title(vm.name))}"
           flags         = try(vm.flags, [])
-          fqdn_external = "${server.name}-${vm.name}.${var.default.domain_external}"
-          fqdn_internal = "${server.name}-${vm.name}.${var.default.domain_internal}"
-          host          = "${server.location}-${server.name}-${vm.name}"
+          fqdn_external = "${vm.name}.${server.name}.${server.location}.${var.default.domain_external}"
+          fqdn_internal = "${vm.name}.${server.name}.${server.location}.${var.default.domain_internal}"
           location      = server.location
           name          = "${server.name}-${vm.name}"
           parent_flags  = server.flags

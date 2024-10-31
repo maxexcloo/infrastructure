@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = each.value.host
+  url      = each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
