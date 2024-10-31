@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = each.value.network.web_port == 80 && each.value.network.web_ssl == false ? each.value.host : "${each.value.network.web_ssl ? "https://${each.value.fqdn_internal}" : "http://${each.value.host}"}${each.value.network.web_port == 80 ? "" : ":${each.value.network.web_port}"}/"
+  url      = each.value.host
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
@@ -90,6 +90,20 @@ resource "onepassword_item" "server" {
     }
   }
 
+  dynamic "section" {
+    for_each = each.value.service.enable_service ? [true] : []
+
+    content {
+      label = "Service"
+
+      field {
+        label = each.value.service.description
+        type  = "URL"
+        value = "${each.value.service.enable_ssl ? "https://" : "http://"}${each.value.fqdn_internal}${each.value.service.port == 80 || each.value.service.port == 443 ? "" : ":${each.value.service.port}"}"
+      }
+    }
+  }
+
   section {
     label = "Tailscale"
 
@@ -126,12 +140,12 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.ipv4) ? [true] : []
+      for_each = can(each.value.network.public_ipv4) ? [true] : []
 
       content {
         label = "Public IPv4"
         type  = "URL"
-        value = each.value.network.ipv4
+        value = each.value.network.public_ipv4
       }
     }
 
@@ -146,12 +160,12 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = each.value.network.private_address != "" ? [true] : []
+      for_each = can(each.value.network.private_addres) ? [true] : []
 
       content {
         label = "Private Address"
         type  = "URL"
-        value = each.value.network.private_address
+        value = each.value.network.private_ipv4
       }
     }
   }

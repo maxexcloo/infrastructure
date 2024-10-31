@@ -29,7 +29,7 @@ resource "ssh_resource" "router" {
       {
         servers = {
           for k, v in local.filtered_servers_noncloud : k => v
-          if k != each.key && v.location == each.value.location && v.network.private_address != ""
+          if k != each.key && v.location == each.value.location && v.network.private_ipv4 != ""
         }
       }
     )

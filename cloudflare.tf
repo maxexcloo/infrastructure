@@ -72,11 +72,11 @@ resource "cloudflare_record" "tailscale_ipv6" {
 resource "cloudflare_record" "vm_ipv4" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
-    if vm.network.ipv4 != ""
+    if vm.network.public_ipv4 != ""
   }
 
   allow_overwrite = true
-  content         = each.value.network.ipv4
+  content         = each.value.network.public_ipv4
   name            = each.value.fqdn_external
   type            = "A"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id

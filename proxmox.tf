@@ -140,12 +140,10 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
       ip_config {
         ipv4 {
-          address = each.value.network.ipv4 == "dhcp" ? each.value.network.ipv4 : each.value.network.ipv4.address
-          gateway = each.value.network.ipv4 == "dhcp" ? null : each.value.network.ipv4.gateway
+          address = "dhcp"
         }
         ipv6 {
-          address = each.value.network.ipv6 == "dhcp" ? each.value.network.ipv6 : each.value.network.ipv6.address
-          gateway = each.value.network.ipv6 == "dhcp" ? null : each.value.network.ipv6.gateway
+          address = "dhcp"
         }
       }
     }

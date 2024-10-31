@@ -5,7 +5,7 @@
 #   }
 
 #   id       = replace(each.value.name, "-", "")
-#   ip       = each.value.network.private_address
+#   ip       = each.value.network.private_ipv4
 #   mac      = try(proxmox_virtual_environment_vm.vm[each.key].network_device[0].mac_address, each.value.network.mac_address)
 #   name     = each.value.name
 #   provider = openwrt.au
@@ -22,7 +22,7 @@
 #   }
 
 #   id       = replace(each.value.name, "-", "")
-#   ip       = each.value.network.private_address
+#   ip       = each.value.network.private_ipv4
 #   mac      = try(proxmox_virtual_environment_vm.vm[each.key].network_device[0].mac_address, each.value.network.mac_address)
 #   name     = each.value.name
 #   provider = openwrt.kr

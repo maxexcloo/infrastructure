@@ -13,6 +13,6 @@ global
 %{ for server in servers ~}
 backend ${server.host}
     mode tcp
-    server ${server.host} ${server.network.private_address}:443
+    server ${server.host} ${server.network.private_ipv4}:443
 
 %{ endfor ~}

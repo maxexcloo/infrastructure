@@ -94,14 +94,21 @@ locals {
         tag           = "router"
         network = merge(
           {
-            mac_address     = ""
-            private_address = ""
-            public_address  = ""
-            ssh_port        = 22
-            web_port        = 80
-            web_ssl         = false
+            mac_address    = ""
+            private_ipv4   = ""
+            public_address = ""
+            ssh_port       = 22
           },
           try(router.network, {})
+        )
+        service = merge(
+          {
+            description    = ""
+            enable_service = false
+            enable_ssl     = true
+            port           = 443
+          },
+          try(router.service, {}),
         )
         user = merge(
           {
@@ -133,14 +140,21 @@ locals {
           tag           = "server"
           network = merge(
             {
-              mac_address     = ""
-              private_address = ""
-              public_address  = cloudflare_record.router[router.location].name
-              ssh_port        = 22
-              web_port        = 80
-              web_ssl         = false
+              mac_address    = ""
+              private_ipv4   = ""
+              public_address = cloudflare_record.router[router.location].name
+              ssh_port       = 22
             },
             try(server.network, {})
+          )
+          service = merge(
+            {
+              description    = ""
+              enable_service = false
+              enable_ssl     = true
+              port           = 443
+            },
+            try(server.service, {}),
           )
           user = merge(
             {
@@ -180,23 +194,22 @@ locals {
         parent_flags  = ["cloud"]
         parent_name   = "cloud"
         tag           = "vm"
-        config = merge(
-          {
-            packages = []
-            timezone = var.default.timezone
-          },
-          try(vm.config, {})
-        )
         network = merge(
           {
-            ipv4            = ""
-            ipv6            = ""
-            private_address = ""
-            ssh_port        = 22
-            web_port        = 80
-            web_ssl         = false
+            public_ipv4 = ""
+            public_ipv6 = ""
+            ssh_port    = 22
           },
           try(vm.network, {})
+        )
+        service = merge(
+          {
+            description    = ""
+            enable_service = false
+            enable_ssl     = true
+            port           = 443
+          },
+          try(vm.service, {}),
         )
         user = merge(
           {
@@ -234,12 +247,18 @@ locals {
         )
         network = merge(
           {
-            private_address = ""
-            ssh_port        = 22
-            web_port        = 80
-            web_ssl         = false
+            ssh_port = 22
           },
           try(vm.network, {})
+        )
+        service = merge(
+          {
+            description    = ""
+            enable_service = false
+            enable_ssl     = true
+            port           = 443
+          },
+          try(vm.service, {}),
         )
         user = merge(
           {
@@ -299,16 +318,21 @@ locals {
           hostpci = try(vm.hostpci, [])
           network = merge(
             {
-              ipv4            = "dhcp"
-              ipv6            = "dhcp"
-              mac_address     = ""
-              private_address = ""
-              public_address  = cloudflare_record.router[server.location].name
-              ssh_port        = 22
-              web_port        = 80
-              web_ssl         = false
+              mac_address    = ""
+              private_ipv4   = ""
+              public_address = cloudflare_record.router[server.location].name
+              ssh_port       = 22
             },
             try(vm.network, {})
+          )
+          service = merge(
+            {
+              description    = ""
+              enable_service = false
+              enable_ssl     = true
+              port           = 443
+            },
+            try(vm.service, {}),
           )
           usb = try(vm.usb, [])
           user = merge(
