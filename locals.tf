@@ -236,7 +236,6 @@ locals {
         config = merge(
           {
             packages = []
-            timezone = var.default.timezone
           },
           try(vm.config, {})
         )
@@ -291,7 +290,6 @@ locals {
               disable_network     = false
               memory              = 4
               operating_system    = "l26"
-              timezone            = var.default.timezone
             },
             try(vm.config, {}),
             {

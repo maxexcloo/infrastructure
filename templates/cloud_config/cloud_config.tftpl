@@ -6,7 +6,7 @@ package_reboot_if_required: true
 package_update: true
 package_upgrade: true
 ssh_pwauth: false
-timezone: ${server.config.timezone}
+timezone: ${default.timezone}
 %{ if length(server.config.packages) > 0 ~}
 packages:
 %{ for package in server.config.packages ~}

@@ -165,6 +165,7 @@ resource "oci_core_instance" "vm" {
         "templates/cloud_config/cloud_config.tftpl",
         {
           cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[each.key]
+          default                 = var.default
           host                    = each.key
           password                = htpasswd_password.server[each.key].sha512
           server                  = each.value
