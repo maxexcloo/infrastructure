@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = each.key
+  url      = each.value.service.enable_service ? "${each.value.service.enable_ssl ? "https://" : "http://"}${each.value.fqdn_internal}${each.value.service.port == 80 || each.value.service.port == 443 ? "" : ":${each.value.service.port}"}" : each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
@@ -150,12 +150,12 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.ipv6) ? [true] : []
+      for_each = can(each.value.network.public_ipv6) ? [true] : []
 
       content {
         label = "Public IPv6"
         type  = "URL"
-        value = each.value.network.ipv6
+        value = each.value.network.public_ipv6
       }
     }
 
@@ -163,7 +163,7 @@ resource "onepassword_item" "server" {
       for_each = can(each.value.network.private_ipv4) ? [true] : []
 
       content {
-        label = "Private Address"
+        label = "Private IPv4"
         type  = "URL"
         value = each.value.network.private_ipv4
       }
