@@ -24,20 +24,6 @@ provider "onepassword" {
   service_account_token = var.terraform.onepassword.service_account_token
 }
 
-provider "openwrt" {
-  alias    = "au"
-  hostname = var.terraform.openwrt.au.hostname
-  password = var.terraform.openwrt.au.password
-  port     = var.terraform.openwrt.au.port
-}
-
-provider "openwrt" {
-  alias    = "kr"
-  hostname = var.terraform.openwrt.kr.hostname
-  password = var.terraform.openwrt.kr.password
-  port     = var.terraform.openwrt.kr.port
-}
-
 provider "proxmox" {
   endpoint = "https://${var.terraform.proxmox.pie.host}:${var.terraform.proxmox.pie.port}"
   insecure = var.terraform.proxmox.pie.insecure

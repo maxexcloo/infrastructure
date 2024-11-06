@@ -27,17 +27,11 @@ terraform {
     onepassword = {
       source = "1password/onepassword"
     }
-    openwrt = {
-      source = "joneshf/openwrt"
-    }
     proxmox = {
       source = "bpg/proxmox"
     }
     restapi = {
       source = "mastercard/restapi"
-    }
-    ssh = {
-      source = "loafoe/ssh"
     }
     tailscale = {
       source = "tailscale/tailscale"

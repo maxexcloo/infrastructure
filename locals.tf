@@ -23,14 +23,18 @@ locals {
     local.merged_vms_proxmox
   )
 
-  filtered_servers_openwrt = {
-    for k, server in local.filtered_servers_all : k => server
-    if contains(server.parent_flags, "proxmox") || try(server.network.mac_address, "") != ""
-  }
-
   filtered_servers_noncloud = {
     for k, server in local.filtered_servers_all : k => server
     if try(local.filtered_servers_all[server.parent_name].tag, "") == "router"
+  }
+
+  filtered_servers_services = {
+    for k, server in local.filtered_servers_all : k => merge(
+      server.service,
+      {
+        url = server.service.enable_service ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}" : ""
+      },
+    )
   }
 
   filtered_tags_tailscale_servers = [
@@ -92,8 +96,6 @@ locals {
         tag           = "router"
         network = merge(
           {
-            mac_address    = ""
-            private_ipv4   = ""
             public_address = ""
             ssh_port       = 22
           },
@@ -137,8 +139,6 @@ locals {
           tag           = "server"
           network = merge(
             {
-              mac_address    = ""
-              private_ipv4   = ""
               public_address = cloudflare_record.router[router.location].name
               ssh_port       = 22
             },
@@ -311,8 +311,6 @@ locals {
           hostpci = try(vm.hostpci, [])
           network = merge(
             {
-              mac_address    = ""
-              private_ipv4   = ""
               public_address = cloudflare_record.router[server.location].name
               ssh_port       = 22
             },

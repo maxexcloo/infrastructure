@@ -76,7 +76,7 @@ resource "local_file" "services_infrastructure" {
         parent_name             = server.parent_name
         resend_api_key          = local.output_resend_api_keys[k]
         secret_hash             = local.output_secret_hashes[k]
-        service                 = server.service
+        service                 = local.filtered_servers_services[k]
         ssh_port                = server.network.ssh_port
         ssh_user                = server.user.username
         tag                     = server.tag
