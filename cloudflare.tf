@@ -129,7 +129,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   for_each = local.filtered_servers_all
 
   account_id = cloudflare_account.default.id
-  name       = each.value.fqdn_external
+  name       = each.key
   secret     = random_password.cloudflare_tunnel_server[each.key].result
 }
 
