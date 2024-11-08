@@ -23,10 +23,10 @@ locals {
     local.merged_vms_proxmox
   )
 
-  filtered_servers_noncloud = {
-    for k, server in local.filtered_servers_all : k => server
-    if try(local.filtered_servers_all[server.parent_name].tag, "") == "router"
-  }
+  filtered_servers_noncloud = merge(
+    local.merged_servers,
+    local.merged_vms
+  )
 
   filtered_servers_services = {
     for k, server in local.filtered_servers_all : k => merge(
