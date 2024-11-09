@@ -42,7 +42,7 @@ if "mac" in host.data.get("flags"):
     server.shell(
         _env=env,
         name="Brew upgrade",
-        commands=["brew upgrade"],
+        commands=["brew upgrade --formula"],
     )
 
     # server.shell(
