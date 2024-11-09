@@ -44,13 +44,29 @@ resource "onepassword_item" "server" {
     }
   }
 
-  section {
-    label = "Cloudflare"
+  dynamic "section" {
+    for_each = contains(each.value.flags, "cloudflared") ? [true] : []
 
-    field {
-      label = "Tunnel Token"
-      type  = "CONCEALED"
-      value = local.output_cloudflare_tunnel_tokens[each.key]
+    content {
+      label = "Cloudflare Tunnel"
+
+      field {
+        label = "CNAME"
+        type  = "URL"
+        value = local.output_cloudflare_tunnels[each.key].cname
+      }
+
+      field {
+        label = "ID"
+        type  = "STRING"
+        value = local.output_cloudflare_tunnels[each.key].id
+      }
+
+      field {
+        label = "Token"
+        type  = "CONCEALED"
+        value = local.output_cloudflare_tunnels[each.key].token
+      }
     }
   }
 
@@ -91,26 +107,16 @@ resource "onepassword_item" "server" {
   }
 
   dynamic "section" {
-    for_each = local.filtered_servers_services[each.key].enable_service ? [true] : []
+    for_each = contains(each.value.flags, "tailscale") ? [true] : []
 
     content {
-      label = "Service"
+      label = "Tailscale"
 
       field {
-        label = local.filtered_servers_services[each.key].description
-        type  = "URL"
-        value = local.filtered_servers_services[each.key].url
+        label = "Tailnet Key"
+        type  = "CONCEALED"
+        value = local.output_tailscale_tailnet_keys[each.key]
       }
-    }
-  }
-
-  section {
-    label = "Tailscale"
-
-    field {
-      label = "Tailnet Key"
-      type  = "CONCEALED"
-      value = local.output_tailscale_tailnet_keys[each.key]
     }
   }
 
@@ -130,16 +136,6 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.public_address) ? [true] : []
-
-      content {
-        label = "Public Address"
-        type  = "URL"
-        value = each.value.network.public_address
-      }
-    }
-
-    dynamic "field" {
       for_each = can(each.value.network.public_ipv4) ? [true] : []
 
       content {
@@ -156,6 +152,26 @@ resource "onepassword_item" "server" {
         label = "Public IPv6"
         type  = "URL"
         value = each.value.network.public_ipv6
+      }
+    }
+
+    dynamic "field" {
+      for_each = can(each.value.network.public_address) ? [true] : []
+
+      content {
+        label = "Public Address"
+        type  = "URL"
+        value = each.value.network.public_address
+      }
+    }
+
+    dynamic "field" {
+      for_each = local.filtered_servers_services[each.key].enable_service ? [true] : []
+
+      content {
+        label = local.filtered_servers_services[each.key].description
+        type  = "URL"
+        value = local.filtered_servers_services[each.key].url
       }
     }
   }

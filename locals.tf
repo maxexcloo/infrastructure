@@ -305,10 +305,18 @@ locals {
                 path     = null
                 serial   = null
               },
-              try(disk, {})
+              disk
             )
           ]
-          hostpci = try(vm.hostpci, [])
+          hostpci = [
+            for i, hostpci in try(vm.hostpci, {}) : merge(
+              {
+                pcie = true
+                xvga = false
+              },
+              hostpci
+            )
+          ]
           network = merge(
             {
               public_address = cloudflare_record.router[server.location].name
@@ -325,7 +333,14 @@ locals {
             },
             try(vm.service, {}),
           )
-          usb = try(vm.usb, [])
+          usb = [
+            for i, usb in try(vm.usb, {}) : merge(
+              {
+                usb3 = true
+              },
+              usb
+            )
+          ]
           user = merge(
             {
               fullname = ""
@@ -343,34 +358,38 @@ locals {
   ]...)
 
   output_b2 = {
-    for k, server in local.filtered_servers_all : k => {
-      application_key    = try(b2_application_key.server[k].application_key_id, "")
-      application_secret = try(b2_application_key.server[k].application_key, "")
-      bucket_name        = try(b2_bucket.server[k].bucket_name, "")
+    for k, b2_bucket in b2_bucket.server : k => {
+      application_key    = b2_application_key.server[k].application_key_id
+      application_secret = b2_application_key.server[k].application_key
+      bucket_name        = b2_bucket.bucket_name
       endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
     }
   }
 
-  output_cloudflare_tunnel_tokens = {
-    for k, server in local.filtered_servers_all : k => try(cloudflare_zero_trust_tunnel_cloudflared.server[k].tunnel_token, "")
+  output_cloudflare_tunnels = {
+    for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
+      cname = cloudflare_zero_trust_tunnel_cloudflared.cname
+      id    = cloudflare_zero_trust_tunnel_cloudflared.id
+      token = cloudflare_zero_trust_tunnel_cloudflared.tunnel_token
+    }
   }
 
   output_resend_api_keys = {
-    for k, server in local.filtered_servers_all : k => try(jsondecode(restapi_object.resend_api_key_server[k].create_response).token, "")
+    for k, restapi_object in restapi_object.resend_api_key_server : k => jsondecode(restapi_object.create_response).token
   }
 
   output_secret_hashes = {
-    for k, server in local.filtered_servers_all : k => random_password.secret_hash_server[k].result
+    for k, random_password in random_password.secret_hash_server : k => random_password.result
   }
 
   output_ssh = {
-    for k, server in local.filtered_servers_all : k => {
-      private_key = trimspace(try(tls_private_key.ssh_key_server[k].private_key_openssh, ""))
-      public_key  = trimspace(try(tls_private_key.ssh_key_server[k].public_key_openssh, ""))
+    for k, tls_private_key in tls_private_key.ssh_key_server : k => {
+      private_key = trimspace(tls_private_key.private_key_openssh)
+      public_key  = trimspace(tls_private_key.public_key_openssh)
     }
   }
 
   output_tailscale_tailnet_keys = {
-    for k, server in local.filtered_servers_all : k => try(tailscale_tailnet_key.server[k].key, null)
+    for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => tailscale_tailnet_key.key
   }
 }

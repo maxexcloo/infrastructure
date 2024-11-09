@@ -3,9 +3,9 @@ output "b2" {
   value     = local.output_b2
 }
 
-output "cloudflare_tunnel_tokens" {
+output "cloudflare_tunnels" {
   sensitive = true
-  value     = local.output_cloudflare_tunnel_tokens
+  value     = local.output_cloudflare_tunnels
 }
 
 output "resend_api_keys" {
@@ -49,8 +49,8 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "templates/pyinfra/inventory.py.tftpl",
     {
-      cloudflare_tunnel_tokens = local.output_cloudflare_tunnel_tokens
-      servers                  = local.filtered_servers_all
+      cloudflare_tunnels = local.output_cloudflare_tunnels
+      servers            = local.filtered_servers_all
     }
   )
 }
@@ -65,22 +65,22 @@ resource "local_file" "services_infrastructure" {
 
     servers = {
       for k, server in local.filtered_servers_all : k => {
-        b2                      = local.output_b2[k]
-        cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[k]
-        description             = server.description
-        flags                   = server.flags
-        fqdn_external           = server.fqdn_external
-        fqdn_internal           = server.fqdn_internal
-        location                = server.location
-        parent_flags            = server.parent_flags
-        parent_name             = server.parent_name
-        resend_api_key          = local.output_resend_api_keys[k]
-        secret_hash             = local.output_secret_hashes[k]
-        service                 = local.filtered_servers_services[k]
-        ssh_port                = server.network.ssh_port
-        ssh_user                = server.user.username
-        tag                     = server.tag
-        tailscale_tailnet_key   = local.output_tailscale_tailnet_keys[k]
+        b2                    = local.output_b2[k]
+        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
+        description           = server.description
+        flags                 = server.flags
+        fqdn_external         = server.fqdn_external
+        fqdn_internal         = server.fqdn_internal
+        location              = server.location
+        parent_flags          = server.parent_flags
+        parent_name           = server.parent_name
+        resend_api_key        = local.output_resend_api_keys[k]
+        secret_hash           = local.output_secret_hashes[k]
+        service               = local.filtered_servers_services[k]
+        ssh_port              = server.network.ssh_port
+        ssh_user              = server.user.username
+        tag                   = server.tag
+        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], "")
       }
     }
   })

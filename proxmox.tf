@@ -29,13 +29,13 @@ resource "proxmox_virtual_environment_file" "vm" {
     data = templatefile(
       "templates/cloud_config/cloud_config.tftpl",
       {
-        cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[each.key]
+        cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[each.key].token, "")
         default                 = var.default
         host                    = each.key
         password                = htpasswd_password.server[each.key].sha512
         server                  = each.value
         ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])
-        tailscale_tailnet_key   = local.output_tailscale_tailnet_keys[each.key]
+        tailscale_tailnet_key   = try(local.output_tailscale_tailnet_keys[each.key], "")
       }
     )
   }
@@ -126,9 +126,9 @@ resource "proxmox_virtual_environment_vm" "vm" {
     content {
       device = "hostpci${hostpci.key}"
       id     = hostpci.value.id
-      pcie   = try(hostpci.value.pcie, true)
+      pcie   = hostpci.value.pcie
       rombar = true
-      xvga   = try(hostpci.value.xvga, false)
+      xvga   = hostpci.value.xvga
     }
   }
 
@@ -164,7 +164,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
     content {
       host = usb.value.host
-      usb3 = try(usb.value.usb3, true)
+      usb3 = usb.value.usb3
     }
   }
 }

@@ -164,13 +164,13 @@ resource "oci_core_instance" "vm" {
       templatefile(
         "templates/cloud_config/cloud_config.tftpl",
         {
-          cloudflare_tunnel_token = local.output_cloudflare_tunnel_tokens[each.key]
+          cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[each.key].token, "")
           default                 = var.default
           host                    = each.key
           password                = htpasswd_password.server[each.key].sha512
           server                  = each.value
           ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])
-          tailscale_tailnet_key   = local.output_tailscale_tailnet_keys[each.key]
+          tailscale_tailnet_key   = try(local.output_tailscale_tailnet_keys[each.key], "")
         }
       )
     )

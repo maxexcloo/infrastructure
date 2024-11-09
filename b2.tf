@@ -1,9 +1,9 @@
 data "b2_account_info" "default" {}
 
 resource "b2_application_key" "server" {
-  for_each = local.filtered_servers_all
+  for_each = b2_bucket.server
 
-  bucket_id = b2_bucket.server[each.key].id
+  bucket_id = each.value.id
   key_name  = each.key
 
   capabilities = [

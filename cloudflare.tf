@@ -96,21 +96,21 @@ resource "cloudflare_record" "vm_ipv6" {
 }
 
 resource "cloudflare_record" "vm_oci_ipv4" {
-  for_each = local.merged_vms_oci
+  for_each = data.oci_core_vnic.vm
 
   allow_overwrite = true
-  content         = data.oci_core_vnic.vm[each.key].public_ip_address
-  name            = each.value.fqdn_external
+  content         = each.value.public_ip_address
+  name            = local.merged_vms_oci[each.key].fqdn_external
   type            = "A"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_oci_ipv6" {
-  for_each = local.merged_vms_oci
+  for_each = data.oci_core_vnic.vm
 
   allow_overwrite = true
   content         = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
-  name            = each.value.fqdn_external
+  name            = local.merged_vms_oci[each.key].fqdn_external
   type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
@@ -126,7 +126,10 @@ resource "cloudflare_record" "wildcard" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
-  for_each = local.filtered_servers_all
+  for_each = {
+    for k, server in local.filtered_servers_all : k => server
+    if contains(server.flags, "cloudflared")
+  }
 
   account_id = cloudflare_account.default.id
   name       = each.key
