@@ -66,7 +66,7 @@ resource "local_file" "services_infrastructure" {
     servers = {
       for k, server in local.filtered_servers_all : k => {
         b2                    = local.output_b2[k]
-        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
+        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], null)
         description           = server.description
         flags                 = server.flags
         fqdn_external         = server.fqdn_external
@@ -80,7 +80,7 @@ resource "local_file" "services_infrastructure" {
         ssh_port              = server.network.ssh_port
         ssh_user              = server.user.username
         tag                   = server.tag
-        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], "")
+        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], null)
       }
     }
   })
