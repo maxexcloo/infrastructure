@@ -132,6 +132,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   }
 
   account_id = cloudflare_account.default.id
+  config_src = "cloudflare"
   name       = each.key
   secret     = random_password.cloudflare_tunnel_server[each.key].result
 }
