@@ -21,14 +21,14 @@ resource "onepassword_item" "server" {
 
     field {
       label = "Application Key"
-      type  = "STRING"
+      type  = "CONCEALED"
       value = local.output_b2[each.key].application_key
     }
 
     field {
-      label = "Application Secret"
-      type  = "CONCEALED"
-      value = local.output_b2[each.key].application_secret
+      label = "Application Key ID"
+      type  = "STRING"
+      value = local.output_b2[each.key].application_key_id
     }
 
     field {

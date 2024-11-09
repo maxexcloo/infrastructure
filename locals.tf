@@ -359,8 +359,8 @@ locals {
 
   output_b2 = {
     for k, b2_bucket in b2_bucket.server : k => {
-      application_key    = b2_application_key.server[k].application_key_id
-      application_secret = b2_application_key.server[k].application_key
+      application_key_id = b2_application_key.server[k].application_key_id
+      application_key    = b2_application_key.server[k].application_key
       bucket_name        = b2_bucket.bucket_name
       endpoint           = replace(data.b2_account_info.default.s3_api_url, "https://", "")
     }
