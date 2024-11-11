@@ -32,11 +32,9 @@ locals {
     for k, server in local.filtered_servers_all : k => merge(
       {
         icon = "homepage"
+        url  = server.service.enable ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}/" : ""
       },
       server.service,
-      {
-        url = server.service.enable ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}/" : ""
-      },
     )
   }
 
