@@ -30,9 +30,12 @@ locals {
 
   filtered_servers_services = {
     for k, server in local.filtered_servers_all : k => merge(
+      {
+        icon = "homepage"
+      },
       server.service,
       {
-        url = server.service.enable_service ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}" : ""
+        url = server.service.enable ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}/" : ""
       },
     )
   }
@@ -103,10 +106,10 @@ locals {
         )
         service = merge(
           {
-            description    = ""
-            enable_service = false
-            enable_ssl     = true
-            port           = 443
+            description = ""
+            enable      = false
+            enable_ssl  = true
+            port        = 443
           },
           try(router.service, {}),
         )
@@ -146,10 +149,10 @@ locals {
           )
           service = merge(
             {
-              description    = ""
-              enable_service = false
-              enable_ssl     = true
-              port           = 443
+              description = ""
+              enable      = false
+              enable_ssl  = true
+              port        = 443
             },
             try(server.service, {}),
           )
@@ -200,10 +203,10 @@ locals {
         )
         service = merge(
           {
-            description    = ""
-            enable_service = false
-            enable_ssl     = true
-            port           = 443
+            description = ""
+            enable      = false
+            enable_ssl  = true
+            port        = 443
           },
           try(vm.service, {}),
         )
@@ -247,10 +250,10 @@ locals {
         )
         service = merge(
           {
-            description    = ""
-            enable_service = false
-            enable_ssl     = true
-            port           = 443
+            description = ""
+            enable      = false
+            enable_ssl  = true
+            port        = 443
           },
           try(vm.service, {}),
         )
@@ -326,10 +329,10 @@ locals {
           )
           service = merge(
             {
-              description    = ""
-              enable_service = false
-              enable_ssl     = true
-              port           = 443
+              description = ""
+              enable      = false
+              enable_ssl  = true
+              port        = 443
             },
             try(vm.service, {}),
           )

@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = each.key
-  url      = local.filtered_servers_services[each.key].enable_service ? local.filtered_servers_services[each.key].url : each.key
+  url      = local.filtered_servers_services[each.key].enable ? local.filtered_servers_services[each.key].url : each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
@@ -166,7 +166,7 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = local.filtered_servers_services[each.key].enable_service ? [true] : []
+      for_each = local.filtered_servers_services[each.key].enable ? [true] : []
 
       content {
         label = local.filtered_servers_services[each.key].description
