@@ -6,7 +6,7 @@ resource "onepassword_item" "server" {
   for_each = local.filtered_servers_all
 
   category = "login"
-  title    = each.key
+  title    = "${each.value.description} (${each.key})"
   url      = local.filtered_servers_services[each.key].enable ? local.filtered_servers_services[each.key].url : each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
