@@ -285,12 +285,13 @@ locals {
           tag           = "vm"
           config = merge(
             {
-              boot_disk_image_url = ""
-              boot_disk_size      = 128
-              cpus                = 2
-              disable_network     = false
-              memory              = 4
-              operating_system    = "l26"
+              boot_disk_image_compression_algorithm = null
+              boot_disk_image_url                   = ""
+              boot_disk_size                        = 128
+              cpus                                  = 2
+              disable_network                       = false
+              memory                                = 4
+              operating_system                      = "l26"
             },
             try(vm.config, {}),
             {

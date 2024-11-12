@@ -4,13 +4,14 @@ resource "proxmox_virtual_environment_download_file" "vm" {
     if vm.config.boot_disk_image_url != ""
   }
 
-  content_type   = "iso"
-  datastore_id   = "local"
-  file_name      = "${each.value.name}${endswith(each.value.config.boot_disk_image_url, ".iso") ? ".iso" : ".img"}"
-  node_name      = each.value.parent
-  overwrite      = false
-  upload_timeout = 1800
-  url            = each.value.config.boot_disk_image_url
+  content_type            = "iso"
+  datastore_id            = "local"
+  decompression_algorithm = each.value.config.boot_disk_image_compression_algorithm
+  file_name               = "${each.value.name}${endswith(each.value.config.boot_disk_image_url, ".iso") ? ".iso" : ".img"}"
+  node_name               = each.value.parent
+  overwrite               = false
+  upload_timeout          = 1800
+  url                     = each.value.config.boot_disk_image_url
 }
 
 resource "proxmox_virtual_environment_file" "vm" {
