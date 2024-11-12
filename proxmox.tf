@@ -17,7 +17,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
 resource "proxmox_virtual_environment_file" "vm" {
   for_each = {
     for k, vm in local.merged_vms_proxmox : k => vm
-    if endswith(vm.config.boot_disk_image_url, ".img")
+    if !endswith(vm.config.boot_disk_image_url, ".iso")
   }
 
   content_type = "snippets"
@@ -61,7 +61,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
     datastore_id = "local-zfs"
     discard      = "on"
     file_format  = "raw"
-    file_id      = endswith(each.value.config.boot_disk_image_url, ".img") ? proxmox_virtual_environment_download_file.vm[each.key].id : null
+    file_id      = endswith(each.value.config.boot_disk_image_url, ".iso") ? null : proxmox_virtual_environment_download_file.vm[each.key].id
     interface    = "virtio0"
     iothread     = true
     size         = each.value.config.boot_disk_size
@@ -88,7 +88,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   dynamic "agent" {
-    for_each = endswith(each.value.config.boot_disk_image_url, ".img") ? [true] : []
+    for_each = endswith(each.value.config.boot_disk_image_url, ".iso") ? [] : [true]
 
     content {
       enabled = true
@@ -134,7 +134,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   dynamic "initialization" {
-    for_each = endswith(each.value.config.boot_disk_image_url, ".img") ? [true] : []
+    for_each = endswith(each.value.config.boot_disk_image_url, ".iso") ? [] : [true]
 
     content {
       datastore_id      = "local-zfs"

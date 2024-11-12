@@ -26,18 +26,12 @@ provider "onepassword" {
 
 provider "proxmox" {
   endpoint = "https://${var.terraform.proxmox.pie.host}:${var.terraform.proxmox.pie.port}"
-  insecure = var.terraform.proxmox.pie.insecure
   password = var.terraform.proxmox.pie.password
   username = "${var.terraform.proxmox.pie.username}@pam"
 
   ssh {
     agent    = true
     username = var.terraform.proxmox.pie.username
-
-    node {
-      address = var.terraform.proxmox.pie.host
-      name    = var.terraform.proxmox.pie.name
-    }
   }
 }
 
