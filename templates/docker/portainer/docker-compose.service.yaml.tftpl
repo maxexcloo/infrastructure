@@ -7,7 +7,6 @@ services:
     image: portainer/portainer-ce
     labels:
       caddy: portainer.${default.domain_internal}
-      caddy.import: internal
       caddy.reverse_proxy: "{{upstreams 9000}}"
     ports:
       - 8000:8000
