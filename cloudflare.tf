@@ -13,7 +13,7 @@ resource "cloudflare_api_token" "caddy" {
       data.cloudflare_api_token_permission_groups.default.zone["Zone Read"]
     ]
     resources = {
-      "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
+      "com.cloudflare.api.account.zone.*" = "*"
     }
   }
 }

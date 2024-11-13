@@ -8,7 +8,6 @@ services:
       - host.docker.internal:host-gateway
     image: ghcr.io/maxexcloo/caddy
     labels:
-      caddy: (internal)
       caddy.tls.dns: cloudflare ${cloudflare_api_token}
       caddy.tls.resolvers: 1.1.1.1
     ports:
