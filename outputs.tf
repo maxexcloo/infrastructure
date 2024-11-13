@@ -29,8 +29,15 @@ output "tailscale_tailnet_keys" {
 }
 
 resource "local_file" "docker_caddy" {
-  content  = templatefile("templates/docker/caddy/docker-compose.yaml.tftpl", { cloudflare_api_token = cloudflare_api_token.caddy.value })
   filename = "pyinfra/docker/caddy/docker-compose.yaml"
+
+  content = templatefile(
+    "templates/docker/caddy/docker-compose.yaml.tftpl",
+    {
+      cloudflare_api_token = cloudflare_api_token.caddy.value
+      email                = var.default.email
+    }
+  )
 }
 
 resource "local_file" "docker_portainer_agent" {

@@ -9,7 +9,9 @@ services:
     image: ghcr.io/maxexcloo/caddy
     labels:
       caddy_0: (external)
+      caddy_0.tls: ${email}
       caddy_1: (internal)
+      caddy_1.tls: ${email}
       caddy_1.tls.dns: cloudflare ${cloudflare_api_token}
       caddy_1.tls.resolvers: 1.1.1.1
     ports:
