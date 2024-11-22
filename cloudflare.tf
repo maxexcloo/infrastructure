@@ -33,9 +33,9 @@ resource "cloudflare_record" "router" {
   for_each = local.merged_routers
 
   allow_overwrite = true
-  content         = each.value.network.public_address
+  content         = each.value.networks[0].public_address
   name            = each.value.fqdn_external
-  type            = can(cidrhost("${each.value.network.public_address}/32", 0)) ? "A" : "CNAME"
+  type            = can(cidrhost("${each.value.networks[0].public_address}/32", 0)) ? "A" : "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
@@ -43,7 +43,7 @@ resource "cloudflare_record" "server" {
   for_each = local.filtered_servers_noncloud
 
   allow_overwrite = true
-  content         = each.value.network.public_address
+  content         = each.value.networks[0].public_address
   name            = each.value.fqdn_external
   type            = "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -72,11 +72,11 @@ resource "cloudflare_record" "tailscale_ipv6" {
 resource "cloudflare_record" "vm_ipv4" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
-    if vm.network.public_ipv4 != ""
+    if vm.networks[0].public_ipv4 != ""
   }
 
   allow_overwrite = true
-  content         = each.value.network.public_ipv4
+  content         = each.value.networks[0].public_ipv4
   name            = each.value.fqdn_external
   type            = "A"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -85,11 +85,11 @@ resource "cloudflare_record" "vm_ipv4" {
 resource "cloudflare_record" "vm_ipv6" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
-    if vm.network.public_ipv6 != ""
+    if vm.networks[0].public_ipv6 != ""
   }
 
   allow_overwrite = true
-  content         = each.value.network.public_ipv6
+  content         = each.value.networks[0].public_ipv6
   name            = each.value.fqdn_external
   type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id

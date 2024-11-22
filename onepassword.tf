@@ -7,8 +7,8 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = "${each.key} (${each.value.description})"
-  url      = local.filtered_servers_services[each.key].enable ? local.filtered_servers_services[each.key].url : each.key
-  username = each.value.user.username
+  url      = length(local.filtered_servers_services[each.key]) > 0 ? local.filtered_servers_services[each.key][0].url : each.key
+  username = each.value.users[0].username
   vault    = data.onepassword_vault.default.uuid
 
   password_recipe {
@@ -107,6 +107,24 @@ resource "onepassword_item" "server" {
   }
 
   dynamic "section" {
+    for_each = length(local.filtered_servers_services[each.key]) > 0 ? [true] : []
+
+    content {
+      label = "Services"
+
+      dynamic "field" {
+        for_each = local.filtered_servers_services[each.key]
+
+        content {
+          label = field.value.description
+          type  = "URL"
+          value = field.value.url
+        }
+      }
+    }
+  }
+
+  dynamic "section" {
     for_each = contains(each.value.flags, "tailscale") ? [true] : []
 
     content {
@@ -136,42 +154,41 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.public_ipv4) ? [true] : []
+      for_each = [
+        for network in each.value.networks : network
+        if can(network.public_ipv4)
+      ]
 
       content {
-        label = "Public IPv4"
+        label = "Public IPv4 ${field.key}"
         type  = "URL"
-        value = each.value.network.public_ipv4
+        value = field.value.public_ipv4
       }
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.public_ipv6) ? [true] : []
+      for_each = [
+        for network in each.value.networks : network
+        if can(network.public_ipv6)
+      ]
 
       content {
-        label = "Public IPv6"
+        label = "Public IPv6 ${field.key}"
         type  = "URL"
-        value = each.value.network.public_ipv6
+        value = field.value.public_ipv6
       }
     }
 
     dynamic "field" {
-      for_each = can(each.value.network.public_address) ? [true] : []
+      for_each = [
+        for network in each.value.networks : network
+        if can(network.public_address)
+      ]
 
       content {
-        label = "Public Address"
+        label = "Public Address ${field.key}"
         type  = "URL"
-        value = each.value.network.public_address
-      }
-    }
-
-    dynamic "field" {
-      for_each = local.filtered_servers_services[each.key].enable ? [true] : []
-
-      content {
-        label = local.filtered_servers_services[each.key].description
-        type  = "URL"
-        value = local.filtered_servers_services[each.key].url
+        value = field.value.public_address
       }
     }
   }

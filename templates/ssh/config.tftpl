@@ -18,6 +18,6 @@ Host ${host}
 
 Host ${host}
 	HostName ${host}
-	Port ${server.network.ssh_port}
-	User ${server.user.username}
+	Port ${server.networks[0].ssh_port}
+	User ${server.users[0].username}
 %{ endfor ~}

@@ -56,8 +56,15 @@ resource "local_file" "pyinfra_inventory" {
   content = templatefile(
     "templates/pyinfra/inventory.py.tftpl",
     {
-      cloudflare_tunnels = local.output_cloudflare_tunnels
-      servers            = local.filtered_servers_all
+      servers = {
+        for k, server in local.filtered_servers_all : k => merge(
+          server,
+          {
+            cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
+            password                = onepassword_item.server[k].password
+          }
+        )
+      }
     }
   )
 }
@@ -79,15 +86,15 @@ resource "local_file" "services_infrastructure" {
         fqdn_external         = server.fqdn_external
         fqdn_internal         = server.fqdn_internal
         location              = server.location
+        networks              = server.networks
         parent_flags          = server.parent_flags
         parent_name           = server.parent_name
         resend_api_key        = local.output_resend_api_keys[k]
         secret_hash           = local.output_secret_hashes[k]
-        service               = local.filtered_servers_services[k]
-        ssh_port              = server.network.ssh_port
-        ssh_user              = server.user.username
+        services              = local.filtered_servers_services[k]
         tag                   = server.tag
         tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], null)
+        users                 = server.users
       }
     }
   })

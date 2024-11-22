@@ -29,13 +29,15 @@ locals {
   )
 
   filtered_servers_services = {
-    for k, server in local.filtered_servers_all : k => merge(
-      {
-        icon = "homepage"
-        url  = server.service.enable ? "${server.service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${server.service.port == 80 || server.service.port == 443 ? "" : ":${server.service.port}"}/" : ""
-      },
-      server.service,
-    )
+    for k, server in local.filtered_servers_all : k => [
+      for service in server.services : merge(
+        {
+          icon = "homepage"
+          url  = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}/"
+        },
+        service
+      )
+    ]
   }
 
   filtered_tags_tailscale_servers = [
@@ -59,7 +61,7 @@ locals {
   }
 
   merged_devices = {
-    for i, device in var.devices : device.name => merge(
+    for device in var.devices : device.name => merge(
       {
         port     = 22
         username = "root"
@@ -83,8 +85,8 @@ locals {
     }
   ]...)
 
-  merged_routers = merge({
-    for i, router in var.routers : router.location => merge(
+  merged_routers = {
+    for router in var.routers : router.location => merge(
       router,
       {
         description   = try(router.description, upper(router.location))
@@ -95,39 +97,47 @@ locals {
         parent_flags  = []
         parent_name   = ""
         tag           = "router"
-        network = merge(
-          {
-            public_address = ""
-            ssh_port       = 22
-          },
-          try(router.network, {})
-        )
-        service = merge(
-          {
-            description = ""
-            enable      = false
-            enable_ssl  = true
-            port        = 443
-          },
-          try(router.service, {}),
-        )
-        user = merge(
-          {
-            fullname = ""
-            username = "root"
-          },
-          try(router.user, {}),
+        config = merge(
+          try(router.config, {}),
           {
             sftp_paths = concat(var.default.sftp_paths, try(router.config.sftp_paths, []))
           }
         )
+        networks = [
+          for network in try(router.networks, [{}]) : merge(
+            {
+              public_address = ""
+              ssh_port       = 22
+            },
+            network
+          )
+        ]
+        services = [
+          for service in try(router.services, []) : merge(
+            {
+              description = ""
+              enable_ssl  = true
+              port        = 443
+            },
+            service
+          )
+        ]
+        users = [
+          for user in try(router.users, [{}]) : merge(
+            {
+              fullname = ""
+              username = "root"
+            },
+            user
+          )
+        ]
       }
     )
-  })
+  }
 
   merged_servers = merge([
-    for k, router in local.merged_routers : {
-      for i, server in var.servers : "${router.location}-${server.name}" => merge(
+    for router in local.merged_routers : {
+      for server in var.servers : "${router.location}-${server.name}" => merge(
         server,
         {
           description   = try(server.description, title(server.name))
@@ -138,32 +148,40 @@ locals {
           parent_flags  = router.flags
           parent_name   = router.name
           tag           = "server"
-          network = merge(
-            {
-              public_address = cloudflare_record.router[router.location].name
-              ssh_port       = 22
-            },
-            try(server.network, {})
-          )
-          service = merge(
-            {
-              description = ""
-              enable      = false
-              enable_ssl  = true
-              port        = 443
-            },
-            try(server.service, {}),
-          )
-          user = merge(
-            {
-              fullname = ""
-              username = "root"
-            },
-            try(server.user, {}),
+          config = merge(
+            try(server.config, {}),
             {
               sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
             }
           )
+          networks = [
+            for network in try(server.networks, [{}]) : merge(
+              {
+                public_address = cloudflare_record.router[router.location].name
+                ssh_port       = 22
+              },
+              network
+            )
+          ]
+          services = [
+            for service in try(server.services, []) : merge(
+              {
+                description = ""
+                enable_ssl  = true
+                port        = 443
+              },
+              service
+            )
+          ]
+          users = [
+            for user in try(server.users, [{}]) : merge(
+              {
+                fullname = ""
+                username = "root"
+              },
+              user
+            )
+          ]
         },
       )
       if server.parent == router.name
@@ -171,7 +189,7 @@ locals {
   ]...)
 
   merged_tags_tailscale = {
-    for i, tag in var.tags : tag.name => merge(
+    for tag in var.tags : tag.name => merge(
       {
         tailscale_tag = "tag:${tag.name}"
       },
@@ -180,7 +198,7 @@ locals {
   }
 
   merged_vms = merge({
-    for i, vm in var.vms : "${vm.location}-${vm.name}" => merge(
+    for vm in var.vms : "${vm.location}-${vm.name}" => merge(
       vm,
       {
         description   = try(vm.description, title(vm.name))
@@ -191,39 +209,47 @@ locals {
         parent_flags  = ["cloud"]
         parent_name   = "cloud"
         tag           = "vm"
-        network = merge(
-          {
-            public_ipv4 = ""
-            public_ipv6 = ""
-            ssh_port    = 22
-          },
-          try(vm.network, {})
-        )
-        service = merge(
-          {
-            description = ""
-            enable      = false
-            enable_ssl  = true
-            port        = 443
-          },
-          try(vm.service, {}),
-        )
-        user = merge(
-          {
-            fullname = ""
-            username = "root"
-          },
-          try(vm.user, {}),
+        config = merge(
+          try(vm.config, {}),
           {
             sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
           }
         )
+        networks = [
+          for network in try(vm.networks, [{}]) : merge(
+            {
+              public_ipv4 = ""
+              public_ipv6 = ""
+              ssh_port    = 22
+            },
+            network
+          )
+        ]
+        services = [
+          for service in try(vm.services, []) : merge(
+            {
+              description = ""
+              enable_ssl  = true
+              port        = 443
+            },
+            service
+          )
+        ]
+        users = [
+          for user in try(vm.users, [{}]) : merge(
+            {
+              fullname = ""
+              username = "root"
+            },
+            user
+          )
+        ]
       }
     )
   })
 
   merged_vms_oci = merge({
-    for i, vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
+    for vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
         description   = try(vm.description, title(vm.name))
@@ -238,40 +264,45 @@ locals {
           {
             packages = []
           },
-          try(vm.config, {})
-        )
-        network = merge(
-          {
-            ssh_port = 22
-          },
-          try(vm.network, {})
-        )
-        service = merge(
-          {
-            description = ""
-            enable      = false
-            enable_ssl  = true
-            port        = 443
-          },
-          try(vm.service, {}),
-        )
-        user = merge(
-          {
-            fullname = ""
-            username = "root"
-          },
-          try(vm.user, {}),
+          try(vm.config, {}),
           {
             sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
           }
         )
+        networks = [
+          for network in try(vm.networks, [{}]) : merge(
+            {
+              ssh_port = 22
+            },
+            network
+          )
+        ]
+        services = [
+          for service in try(vm.services, []) : merge(
+            {
+              description = ""
+              enable_ssl  = true
+              port        = 443
+            },
+            service
+          )
+        ]
+        users = [
+          for user in try(vm.users, [{}]) : merge(
+            {
+              fullname = ""
+              username = "root"
+            },
+            user
+          )
+        ]
       }
     )
   })
 
   merged_vms_proxmox = merge([
-    for k, server in local.merged_servers : {
-      for i, vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
+    for server in local.merged_servers : {
+      for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
           description   = "${server.description} ${try(vm.description, title(vm.name))}"
@@ -289,29 +320,17 @@ locals {
               boot_disk_image_url                   = ""
               boot_disk_size                        = 128
               cpus                                  = 2
-              disable_network                       = false
               memory                                = 4
               operating_system                      = "l26"
             },
             try(vm.config, {}),
             {
-              packages = concat(["qemu-guest-agent"], try(vm.config.packages, []))
-            },
+              packages   = concat(["qemu-guest-agent"], try(vm.config.packages, []))
+              sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+            }
           )
-          disks = [
-            for i, disk in try(vm.disks, {}) : merge(
-              {
-                backup   = false
-                discard  = "ignore"
-                external = false
-                path     = null
-                serial   = null
-              },
-              disk
-            )
-          ]
           hostpci = [
-            for i, hostpci in try(vm.hostpci, {}) : merge(
+            for hostpci in try(vm.hostpci, {}) : merge(
               {
                 pcie = true
                 xvga = false
@@ -319,40 +338,46 @@ locals {
               hostpci
             )
           ]
-          network = merge(
-            {
-              public_address = cloudflare_record.router[server.location].name
-              ssh_port       = 22
-            },
-            try(vm.network, {})
-          )
-          service = merge(
-            {
-              description = ""
-              enable      = false
-              enable_ssl  = true
-              port        = 443
-            },
-            try(vm.service, {}),
-          )
+          networks = [
+            for network in try(vm.networks, [{}]) : merge(
+              {
+                enabled        = true
+                firewall       = true
+                mac_address    = null
+                public_address = cloudflare_record.router[server.location].name
+                ssh_port       = 22
+                vlan_id        = null
+              },
+              network
+            )
+          ]
+          services = [
+            for service in try(vm.services, []) : merge(
+              {
+                description = ""
+                enable_ssl  = true
+                port        = 443
+              },
+              service
+            )
+          ]
           usb = [
-            for i, usb in try(vm.usb, {}) : merge(
+            for usb in try(vm.usb, {}) : merge(
               {
                 usb3 = true
               },
               usb
             )
           ]
-          user = merge(
-            {
-              fullname = ""
-              username = "root"
-            },
-            try(vm.user, {}),
-            {
-              sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
-            }
-          )
+          users = [
+            for user in try(vm.users, [{}]) : merge(
+              {
+                fullname = ""
+                username = "root"
+              },
+              user
+            )
+          ]
         },
       )
       if vm.parent == server.name

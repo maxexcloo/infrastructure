@@ -106,21 +106,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
     }
   }
 
-  dynamic "disk" {
-    for_each = each.value.disks
-
-    content {
-      backup            = disk.value.backup
-      datastore_id      = disk.value.external ? "" : "local-zfs"
-      discard           = disk.value.discard
-      file_format       = "raw"
-      interface         = "virtio${disk.key + 1}"
-      path_in_datastore = disk.value.path
-      serial            = disk.value.serial
-      size              = disk.value.size
-    }
-  }
-
   dynamic "hostpci" {
     for_each = each.value.hostpci
 
@@ -153,10 +138,13 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   dynamic "network_device" {
-    for_each = each.value.config.disable_network ? [] : [true]
+    for_each = each.value.networks
 
     content {
-      firewall = true
+      enabled     = network_device.value.enabled
+      firewall    = network_device.value.firewall
+      mac_address = network_device.value.mac_address
+      vlan_id     = network_device.value.vlan_id
     }
   }
 

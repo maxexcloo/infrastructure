@@ -3,9 +3,11 @@ hosts = [
     (
         "${host}", 
         {
-            "ssh_port": ${server.network.ssh_port},
-            "ssh_user": "${server.user.username}",
-            "cloudflare_tunnel_token": "${try(cloudflare_tunnels[host].token, "")}",
+            "_use_sudo_password" : "${server.password}",
+            "ssh_password" : "${server.password}",
+            "ssh_port": ${server.networks[0].ssh_port},
+            "ssh_user": "${server.users[0].username}",
+            "cloudflare_tunnel_token": "${server.cloudflare_tunnel_token}",
             "description": "${server.description}",
             "flags": ${jsonencode(server.flags)},
             "fqdn_external": "${server.fqdn_external}",

@@ -14,16 +14,16 @@
 %{ endfor ~}
 %{ endfor ~}
 %{ for host, server in servers ~}
-%{ for sftp_path in server.user.sftp_paths ~}
+%{ for sftp_path in server.config.sftp_paths ~}
     {
         "agent": "/Users/max.schaefer/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock",
         "context": "Downloads/${host}",
         "host": "${host}",
         "name": "${host} (${sftp_path})",
-        "port": ${server.network.ssh_port},
+        "port": ${server.networks[0].ssh_port},
         "remotePath": "${sftp_path}",
         "uploadOnSave": true,
-        "username": "${server.user.username}"
+        "username": "${server.users[0].username}"
     },
 %{ endfor ~}
 %{ endfor ~}
