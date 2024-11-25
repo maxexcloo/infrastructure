@@ -1,7 +1,7 @@
 hosts = [
-%{ for host, server in servers ~}
+%{ for k, server in servers ~}
     (
-        "${host}", 
+        "${k}", 
         {
             "_use_sudo_password" : "${server.password}",
             "ssh_password" : "${server.password}",

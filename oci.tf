@@ -166,7 +166,7 @@ resource "oci_core_instance" "vm" {
         {
           cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[each.key].token, "")
           default                 = var.default
-          host                    = each.key
+          k                       = each.key
           password                = htpasswd_password.server[each.key].sha512
           server                  = each.value
           ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])
