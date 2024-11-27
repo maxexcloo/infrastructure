@@ -97,12 +97,6 @@ locals {
         parent_flags  = []
         parent_name   = ""
         tag           = "router"
-        config = merge(
-          try(router.config, {}),
-          {
-            sftp_paths = concat(var.default.sftp_paths, try(router.config.sftp_paths, []))
-          }
-        )
         networks = [
           for network in try(router.networks, [{}]) : merge(
             {
@@ -128,7 +122,10 @@ locals {
               fullname = ""
               username = "root"
             },
-            user
+            user,
+            {
+              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+            }
           )
         ]
       }
@@ -148,12 +145,6 @@ locals {
           parent_flags  = router.flags
           parent_name   = router.name
           tag           = "server"
-          config = merge(
-            try(server.config, {}),
-            {
-              sftp_paths = concat(var.default.sftp_paths, try(server.config.sftp_paths, []))
-            }
-          )
           networks = [
             for network in try(server.networks, [{}]) : merge(
               {
@@ -179,7 +170,10 @@ locals {
                 fullname = ""
                 username = "root"
               },
-              user
+              user,
+              {
+                sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              }
             )
           ]
         },
@@ -209,12 +203,6 @@ locals {
         parent_flags  = ["cloud"]
         parent_name   = "cloud"
         tag           = "vm"
-        config = merge(
-          try(vm.config, {}),
-          {
-            sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
-          }
-        )
         networks = [
           for network in try(vm.networks, [{}]) : merge(
             {
@@ -241,7 +229,10 @@ locals {
               fullname = ""
               username = "root"
             },
-            user
+            user,
+            {
+              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+            }
           )
         ]
       }
@@ -264,10 +255,7 @@ locals {
           {
             packages = []
           },
-          try(vm.config, {}),
-          {
-            sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
-          }
+          try(vm.config, {})
         )
         networks = [
           for network in try(vm.networks, [{}]) : merge(
@@ -293,7 +281,10 @@ locals {
               fullname = ""
               username = "root"
             },
-            user
+            user,
+            {
+              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+            }
           )
         ]
       }
@@ -325,8 +316,7 @@ locals {
             },
             try(vm.config, {}),
             {
-              packages   = concat(["qemu-guest-agent"], try(vm.config.packages, []))
-              sftp_paths = concat(var.default.sftp_paths, try(vm.config.sftp_paths, []))
+              packages = concat(["qemu-guest-agent"], try(vm.config.packages, []))
             }
           )
           hostpci = [
@@ -375,7 +365,10 @@ locals {
                 fullname = ""
                 username = "root"
               },
-              user
+              user,
+              {
+                sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              }
             )
           ]
         },
