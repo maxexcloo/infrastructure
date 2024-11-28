@@ -113,7 +113,7 @@ locals {
               enable_ssl = true
               port       = 443
               title      = ""
-              widget     = {}
+              widget     = null
             },
             service
           )
@@ -162,7 +162,7 @@ locals {
                 enable_ssl = true
                 port       = 443
                 title      = ""
-                widget     = {}
+                widget     = null
               },
               service
             )
@@ -222,7 +222,7 @@ locals {
               enable_ssl = true
               port       = 443
               title      = ""
-              widget     = {}
+              widget     = null
             },
             service
           )
@@ -275,7 +275,7 @@ locals {
               enable_ssl = true
               port       = 443
               title      = ""
-              widget     = {}
+              widget     = null
             },
             service
           )
@@ -352,7 +352,7 @@ locals {
                 enable_ssl = true
                 port       = 443
                 title      = ""
-                widget     = {}
+                widget     = null
               },
               service
             )
