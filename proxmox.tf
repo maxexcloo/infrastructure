@@ -141,10 +141,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
     for_each = each.value.networks
 
     content {
-      enabled     = network_device.value.enabled
-      firewall    = network_device.value.firewall
-      mac_address = network_device.value.mac_address
-      vlan_id     = network_device.value.vlan_id
+      firewall = network_device.value.firewall
+      vlan_id  = network_device.value.vlan_id
     }
   }
 

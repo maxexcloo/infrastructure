@@ -336,9 +336,7 @@ locals {
           networks = [
             for network in try(vm.networks, [{}]) : merge(
               {
-                enabled        = true
                 firewall       = true
-                mac_address    = null
                 public_address = cloudflare_record.router[server.location].name
                 ssh_port       = 22
                 vlan_id        = null
