@@ -8,7 +8,6 @@ hosts = [
             "ssh_port": ${server.networks[0].ssh_port},
             "ssh_user": "${server.users[0].username}",
             "cloudflare_tunnel_token": "${server.cloudflare_tunnel_token}",
-            "description": "${server.description}",
             "flags": ${jsonencode(server.flags)},
             "fqdn_external": "${server.fqdn_external}",
             "fqdn_internal": "${server.fqdn_internal}",
@@ -17,6 +16,7 @@ hosts = [
             "parent_flags": "$jsonencode(server.parent_flags)}",
             "parent_name": "${server.parent_name}",
             "tag": "${server.tag}",
+            "title": "${server.title}",
         }
     ),
 %{ endfor ~}

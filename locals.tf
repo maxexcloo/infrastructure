@@ -32,8 +32,9 @@ locals {
     for k, server in local.filtered_servers_all : k => [
       for service in server.services : merge(
         {
-          icon = "homepage"
-          url  = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}/"
+          enable_ssl_validation = true
+          icon                  = "homepage"
+          url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
         },
         service
       )
@@ -89,7 +90,6 @@ locals {
     for router in var.routers : router.location => merge(
       router,
       {
-        description   = try(router.description, upper(router.location))
         flags         = try(router.flags, [])
         fqdn_external = "${router.location}.${var.default.domain_external}"
         fqdn_internal = "${router.location}.${var.default.domain_internal}"
@@ -97,6 +97,7 @@ locals {
         parent_flags  = []
         parent_name   = ""
         tag           = "router"
+        title         = try(router.title, upper(router.location))
         networks = [
           for network in try(router.networks, [{}]) : merge(
             {
@@ -109,9 +110,10 @@ locals {
         services = [
           for service in try(router.services, []) : merge(
             {
-              description = ""
-              enable_ssl  = true
-              port        = 443
+              enable_ssl = true
+              port       = 443
+              title      = ""
+              widget     = {}
             },
             service
           )
@@ -137,7 +139,6 @@ locals {
       for server in var.servers : "${router.location}-${server.name}" => merge(
         server,
         {
-          description   = try(server.description, title(server.name))
           flags         = try(server.flags, [])
           fqdn_external = "${server.name}.${router.location}.${var.default.domain_external}"
           fqdn_internal = "${server.name}.${router.location}.${var.default.domain_internal}"
@@ -145,6 +146,7 @@ locals {
           parent_flags  = router.flags
           parent_name   = router.name
           tag           = "server"
+          title         = try(server.title, title(server.name))
           networks = [
             for network in try(server.networks, [{}]) : merge(
               {
@@ -157,9 +159,10 @@ locals {
           services = [
             for service in try(server.services, []) : merge(
               {
-                description = ""
-                enable_ssl  = true
-                port        = 443
+                enable_ssl = true
+                port       = 443
+                title      = ""
+                widget     = {}
               },
               service
             )
@@ -195,7 +198,6 @@ locals {
     for vm in var.vms : "${vm.location}-${vm.name}" => merge(
       vm,
       {
-        description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
@@ -203,6 +205,7 @@ locals {
         parent_flags  = ["cloud"]
         parent_name   = "cloud"
         tag           = "vm"
+        title         = try(vm.title, title(vm.name))
         networks = [
           for network in try(vm.networks, [{}]) : merge(
             {
@@ -216,9 +219,10 @@ locals {
         services = [
           for service in try(vm.services, []) : merge(
             {
-              description = ""
-              enable_ssl  = true
-              port        = 443
+              enable_ssl = true
+              port       = 443
+              title      = ""
+              widget     = {}
             },
             service
           )
@@ -243,7 +247,6 @@ locals {
     for vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       vm,
       {
-        description   = try(vm.description, title(vm.name))
         flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
@@ -251,6 +254,7 @@ locals {
         parent_flags  = ["cloud"]
         parent_name   = "oci"
         tag           = "vm"
+        title         = try(vm.title, title(vm.name))
         config = merge(
           {
             packages = []
@@ -268,9 +272,10 @@ locals {
         services = [
           for service in try(vm.services, []) : merge(
             {
-              description = ""
-              enable_ssl  = true
-              port        = 443
+              enable_ssl = true
+              port       = 443
+              title      = ""
+              widget     = {}
             },
             service
           )
@@ -296,7 +301,6 @@ locals {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         vm,
         {
-          description   = "${server.description} ${try(vm.description, title(vm.name))}"
           flags         = try(vm.flags, [])
           fqdn_external = "${vm.name}.${server.name}.${server.location}.${var.default.domain_external}"
           fqdn_internal = "${vm.name}.${server.name}.${server.location}.${var.default.domain_internal}"
@@ -305,6 +309,7 @@ locals {
           parent_flags  = server.flags
           parent_name   = server.name
           tag           = "vm"
+          title         = "${server.title} ${try(vm.title, title(vm.name))}"
           config = merge(
             {
               boot_disk_image_compression_algorithm = null
@@ -344,9 +349,10 @@ locals {
           services = [
             for service in try(vm.services, []) : merge(
               {
-                description = ""
-                enable_ssl  = true
-                port        = 443
+                enable_ssl = true
+                port       = 443
+                title      = ""
+                widget     = {}
               },
               service
             )
@@ -400,6 +406,22 @@ locals {
 
   output_secret_hashes = {
     for k, random_password in random_password.secret_hash_server : k => random_password.result
+  }
+
+  output_servers = {
+    for k, server in local.filtered_servers_all : k => merge(
+      {
+        b2                    = local.output_b2[k]
+        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
+        name                  = k
+        password              = onepassword_item.server[k].password
+        resend_api_key        = local.output_resend_api_keys[k]
+        secret_hash           = local.output_secret_hashes[k]
+        ssh                   = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
+        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], "")
+      },
+      server
+    )
   }
 
   output_ssh = {

@@ -6,7 +6,7 @@ resource "onepassword_item" "server" {
   for_each = local.filtered_servers_all
 
   category = "login"
-  title    = "${each.key} (${each.value.description})"
+  title    = "${each.key} (${each.value.title})"
   url      = length(local.filtered_servers_services[each.key]) > 0 ? local.filtered_servers_services[each.key][0].url : each.key
   username = each.value.users[0].username
   vault    = data.onepassword_vault.default.uuid
@@ -116,7 +116,7 @@ resource "onepassword_item" "server" {
         for_each = local.filtered_servers_services[each.key]
 
         content {
-          label = field.value.description
+          label = field.value.title
           type  = "URL"
           value = field.value.url
         }

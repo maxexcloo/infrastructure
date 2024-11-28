@@ -81,7 +81,6 @@ resource "local_file" "services_infrastructure" {
       for k, server in local.filtered_servers_all : k => {
         b2                    = local.output_b2[k]
         cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], null)
-        description           = server.description
         flags                 = server.flags
         fqdn_external         = server.fqdn_external
         fqdn_internal         = server.fqdn_internal
@@ -91,10 +90,24 @@ resource "local_file" "services_infrastructure" {
         parent_name           = server.parent_name
         resend_api_key        = local.output_resend_api_keys[k]
         secret_hash           = local.output_secret_hashes[k]
-        services              = local.filtered_servers_services[k]
         tag                   = server.tag
         tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], null)
+        title                 = server.title
         users                 = server.users
+
+        services = [
+          for service in local.filtered_servers_services[k] : merge(
+            service,
+            {
+              widget = jsondecode(templatestring(jsonencode(service.widget), {
+                default  = var.default
+                password = onepassword_item.server[k].password
+                server   = server
+                url      = service.url
+              }))
+            }
+          )
+        ]
       }
     }
   })
