@@ -85,7 +85,6 @@ resource "local_file" "services_infrastructure" {
         fqdn_external         = server.fqdn_external
         fqdn_internal         = server.fqdn_internal
         location              = server.location
-        networks              = server.networks
         parent_flags          = server.parent_flags
         parent_name           = server.parent_name
         resend_api_key        = local.output_resend_api_keys[k]
@@ -93,7 +92,6 @@ resource "local_file" "services_infrastructure" {
         tag                   = server.tag
         tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], null)
         title                 = server.title
-        users                 = server.users
 
         services = [
           for service in local.filtered_servers_services[k] : merge(
