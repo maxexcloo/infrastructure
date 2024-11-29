@@ -34,8 +34,11 @@ locals {
         {
           enable_metrics        = false
           enable_ssl_validation = true
-          icon                  = try(service.icon, service.service, "homepage")
+          icon                  = try(service.service, "homepage")
+          metrics_path          = "/metrics"
+          title                 = ""
           url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
+          widget                = null
         },
         service
       )
@@ -118,8 +121,6 @@ locals {
             {
               enable_ssl = true
               port       = 443
-              title      = ""
-              widget     = null
             },
             service
           )
@@ -172,8 +173,6 @@ locals {
               {
                 enable_ssl = true
                 port       = 443
-                title      = ""
-                widget     = null
               },
               service
             )
@@ -237,8 +236,6 @@ locals {
             {
               enable_ssl = true
               port       = 443
-              title      = ""
-              widget     = null
             },
             service
           )
@@ -286,8 +283,6 @@ locals {
             {
               enable_ssl = true
               port       = 443
-              title      = ""
-              widget     = null
             },
             service
           )
@@ -361,8 +356,6 @@ locals {
               {
                 enable_ssl = true
                 port       = 443
-                title      = ""
-                widget     = null
               },
               service
             )
