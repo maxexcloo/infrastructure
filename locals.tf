@@ -98,11 +98,16 @@ locals {
         parent_name   = ""
         tag           = "router"
         title         = try(router.title, upper(router.location))
+        config = merge(
+          {
+            ssh_port = 22
+          },
+          try(router.config, {})
+        )
         networks = [
           for network in try(router.networks, [{}]) : merge(
             {
               public_address = ""
-              ssh_port       = 22
             },
             network
           )
@@ -147,11 +152,16 @@ locals {
           parent_name   = router.name
           tag           = "server"
           title         = try(server.title, title(server.name))
+          config = merge(
+            {
+              ssh_port = 22
+            },
+            try(server.config, {})
+          )
           networks = [
             for network in try(server.networks, [{}]) : merge(
               {
                 public_address = cloudflare_record.router[router.location].name
-                ssh_port       = 22
               },
               network
             )
@@ -206,12 +216,17 @@ locals {
         parent_name   = "cloud"
         tag           = "vm"
         title         = try(vm.title, title(vm.name))
+        config = merge(
+          {
+            ssh_port = 22
+          },
+          try(vm.config, {})
+        )
         networks = [
           for network in try(vm.networks, [{}]) : merge(
             {
               public_ipv4 = ""
               public_ipv6 = ""
-              ssh_port    = 22
             },
             network
           )
@@ -258,16 +273,12 @@ locals {
         config = merge(
           {
             packages = []
+            ssh_port = 22
           },
           try(vm.config, {})
         )
         networks = [
-          for network in try(vm.networks, [{}]) : merge(
-            {
-              ssh_port = 22
-            },
-            network
-          )
+          for network in try(vm.networks, [{}]) : network
         ]
         services = [
           for service in try(vm.services, []) : merge(
@@ -318,6 +329,7 @@ locals {
               cpus                                  = 2
               memory                                = 4
               operating_system                      = "l26"
+              ssh_port                              = 22
             },
             try(vm.config, {}),
             {
@@ -338,7 +350,6 @@ locals {
               {
                 firewall       = true
                 public_address = cloudflare_record.router[server.location].name
-                ssh_port       = 22
                 vlan_id        = null
               },
               network

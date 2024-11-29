@@ -18,6 +18,6 @@ Host ${k}
 
 Host ${k}
 	HostName ${k}
-	Port ${try(server.networks[0].ssh_port, 22)}
+	Port ${server.config.ssh_port}
 	User ${server.users[0].username}
 %{ endfor ~}

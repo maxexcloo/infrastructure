@@ -5,7 +5,7 @@ hosts = [
         {
             "_use_sudo_password" : "${server.password}",
             "ssh_password" : "${server.password}",
-            "ssh_port": ${try(server.networks[0].ssh_port, 22)},
+            "ssh_port": ${server.config.ssh_port},
             "ssh_user": "${server.users[0].username}",
             "cloudflare_tunnel_token": "${server.cloudflare_tunnel_token}",
             "flags": ${jsonencode(server.flags)},
