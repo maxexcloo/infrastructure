@@ -35,7 +35,7 @@ locals {
           enable_metrics        = false
           enable_ssl_validation = true
           icon                  = try(service.service, "homepage")
-          metrics_path          = "/metrics"
+          metrics_suffix          = "/metrics"
           title                 = ""
           url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
           widget                = null
