@@ -45,11 +45,12 @@ if "mac" in host.data.get("flags"):
         commands=["brew upgrade --formula"],
     )
 
-    # server.shell(
-    #     _env=env,
-    #     name="Brew upgrade casks",
-    #     commands=["brew upgrade --cask --greedy"],
-    # )
+    server.shell(
+        _env=env,
+        _sudo=True,
+        name="Brew upgrade casks",
+        commands=["brew upgrade --cask --greedy"],
+    )
 
     server.shell(
         _env=env,
@@ -69,11 +70,11 @@ if "mac" in host.data.get("flags"):
         commands=["brew doctor"],
     )
 
-    # server.shell(
-    #     _env=env,
-    #     name="Mac App Store upgrade",
-    #     commands=["mas upgrade"],
-    # )
+    server.shell(
+        _env=env,
+        name="Mac App Store upgrade",
+        commands=["mas upgrade"],
+    )
 
     server.shell(
         _env=env,
