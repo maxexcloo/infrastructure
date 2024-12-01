@@ -28,7 +28,7 @@ resource "proxmox_virtual_environment_file" "vm" {
     file_name = "${each.value.name}.yaml"
 
     data = templatefile(
-      "templates/cloud_config/cloud_config.tftpl",
+      "templates/cloud_config/cloud_config",
       {
         cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[each.key].token, "")
         default                 = var.default

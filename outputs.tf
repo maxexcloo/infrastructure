@@ -32,7 +32,7 @@ resource "local_file" "docker_caddy" {
   filename = "pyinfra/docker/caddy/docker-compose.yaml"
 
   content = templatefile(
-    "templates/docker/caddy/docker-compose.yaml.tftpl",
+    "templates/docker/caddy/docker-compose.yaml",
     {
       cloudflare_api_token = cloudflare_api_token.caddy.value
       email                = var.default.email
@@ -41,12 +41,12 @@ resource "local_file" "docker_caddy" {
 }
 
 resource "local_file" "docker_portainer_agent" {
-  content  = templatefile("templates/docker/portainer/docker-compose.agent.yaml.tftpl", {})
+  content  = templatefile("templates/docker/portainer/docker-compose.agent.yaml", {})
   filename = "pyinfra/docker/portainer/docker-compose.agent.yaml"
 }
 
 resource "local_file" "docker_portainer_service" {
-  content  = templatefile("templates/docker/portainer/docker-compose.service.yaml.tftpl", { default = var.default })
+  content  = templatefile("templates/docker/portainer/docker-compose.service.yaml", { default = var.default })
   filename = "pyinfra/docker/portainer/docker-compose.service.yaml"
 }
 
@@ -54,7 +54,7 @@ resource "local_file" "pyinfra_inventory" {
   filename = "pyinfra/inventory.py"
 
   content = templatefile(
-    "templates/pyinfra/inventory.py.tftpl",
+    "templates/pyinfra/inventory.py",
     {
       servers = {
         for k, server in local.filtered_servers_all : k => merge(
@@ -115,7 +115,7 @@ resource "local_file" "ssh_config" {
   filename = "../../.ssh/config"
 
   content = templatefile(
-    "templates/ssh/config.tftpl",
+    "templates/ssh/config",
     {
       devices = local.merged_devices
       servers = local.filtered_servers_all
@@ -128,7 +128,7 @@ resource "local_file" "vscode_sftp" {
 
   content = replace(
     templatefile(
-      "templates/vscode/sftp.json.tftpl",
+      "templates/vscode/sftp.json",
       {
         devices = local.merged_devices
         servers = local.filtered_servers_all
