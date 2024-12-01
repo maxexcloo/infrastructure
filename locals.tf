@@ -409,7 +409,7 @@ locals {
   }
 
   output_secret_hashes = {
-    for k, random_password in random_password.secret_hash_server : k => random_password.result
+    for k, random_password in random_password.secret_hash : k => random_password.result
   }
 
   output_servers = {
@@ -429,7 +429,7 @@ locals {
   }
 
   output_ssh = {
-    for k, tls_private_key in tls_private_key.ssh_key_server : k => {
+    for k, tls_private_key in tls_private_key.ssh_key : k => {
       private_key = trimspace(tls_private_key.private_key_openssh)
       public_key  = trimspace(tls_private_key.public_key_openssh)
     }

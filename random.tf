@@ -1,4 +1,4 @@
-resource "random_password" "b2_server" {
+resource "random_password" "b2" {
   for_each = local.filtered_servers_all
 
   length  = 6
@@ -6,14 +6,14 @@ resource "random_password" "b2_server" {
   upper   = false
 }
 
-resource "random_password" "cloudflare_tunnel_server" {
+resource "random_password" "cloudflare_tunnel" {
   for_each = local.filtered_servers_all
 
   length  = 64
   special = false
 }
 
-resource "random_password" "secret_hash_server" {
+resource "random_password" "secret_hash" {
   for_each = local.filtered_servers_all
 
   length  = 24
