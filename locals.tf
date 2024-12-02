@@ -32,6 +32,7 @@ locals {
     for k, server in local.filtered_servers_all : k => [
       for service in server.services : merge(
         {
+          description           = ""
           enable_metrics        = false
           enable_ssl_validation = true
           icon                  = try(service.service, "homepage")
