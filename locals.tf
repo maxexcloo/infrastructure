@@ -418,6 +418,7 @@ locals {
           enable_ssl_validation = true
           metrics_path          = "/metrics"
           monitoring_path       = ""
+          server                = k
           title                 = ""
           url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
         },
@@ -426,12 +427,10 @@ locals {
           widgets = [
             for widget in try(service.widgets, []) : merge(
               {
-                description       = "$${service.description}"
                 enable_href       = true
                 enable_monitoring = true
                 icon              = try(service.service, "homepage")
-                title             = "$${service.title}"
-                url               = "$${service.url}"
+                priority          = false
                 widget            = null
               },
               widget
