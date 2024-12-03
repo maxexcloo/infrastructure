@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = "${each.key} (${each.value.title})"
-  url      = length(local.filtered_servers_services[each.key]) > 0 ? local.filtered_servers_services[each.key][0].url : each.key
+  url      = length(local.output_services_all[each.key]) > 0 ? local.output_services_all[each.key][0].url : each.key
   username = each.value.users[0].username
   vault    = data.onepassword_vault.default.uuid
 
@@ -107,13 +107,13 @@ resource "onepassword_item" "server" {
   }
 
   dynamic "section" {
-    for_each = length(local.filtered_servers_services[each.key]) > 0 ? [true] : []
+    for_each = length(local.output_services_all[each.key]) > 0 ? [true] : []
 
     content {
       label = "Services"
 
       dynamic "field" {
-        for_each = local.filtered_servers_services[each.key]
+        for_each = local.output_services_all[each.key]
 
         content {
           label = field.value.title

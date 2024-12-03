@@ -28,25 +28,6 @@ locals {
     local.merged_vms
   )
 
-  filtered_servers_services = {
-    for k, server in local.filtered_servers_all : k => [
-      for service in server.services : merge(
-        {
-          description           = ""
-          enable_metrics        = false
-          enable_ssl_validation = true
-          icon                  = try(service.service, "homepage")
-          metrics_path          = "/metrics"
-          monitoring_path       = ""
-          title                 = ""
-          url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
-          widget                = null
-        },
-        service
-      )
-    ]
-  }
-
   filtered_tags_tailscale_servers = [
     for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
   ]
@@ -413,13 +394,12 @@ locals {
     for k, random_password in random_password.secret_hash : k => random_password.result
   }
 
-  output_servers = {
+  output_servers_all = {
     for k, server in local.filtered_servers_all : k => merge(
       {
         b2                    = local.output_b2[k]
         cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
         name                  = k
-        password              = onepassword_item.server[k].password
         resend_api_key        = local.output_resend_api_keys[k]
         secret_hash           = local.output_secret_hashes[k]
         ssh                   = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
@@ -427,6 +407,39 @@ locals {
       },
       server
     )
+  }
+
+  output_services_all = {
+    for k, server in local.output_servers_all : k => [
+      for service in server.services : merge(
+        {
+          description           = ""
+          enable_metrics        = false
+          enable_ssl_validation = true
+          metrics_path          = "/metrics"
+          monitoring_path       = ""
+          title                 = ""
+          url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
+        },
+        service,
+        {
+          widgets = [
+            for widget in try(service.widgets, []) : merge(
+              {
+                description       = "$${service.description}"
+                enable_href       = true
+                enable_monitoring = true
+                icon              = try(service.service, "homepage")
+                title             = "$${service.title}"
+                url               = "$${service.url}"
+                widget            = null
+              },
+              widget
+            )
+          ]
+        }
+      )
+    ]
   }
 
   output_ssh = {

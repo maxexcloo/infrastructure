@@ -78,7 +78,7 @@ resource "local_file" "services_infrastructure" {
     tags    = local.merged_tags_tailscale
 
     servers = {
-      for k, server in local.filtered_servers_all : k => {
+      for k, server in local.output_servers_all : k => {
         b2                    = local.output_b2[k]
         cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], null)
         flags                 = server.flags
@@ -94,14 +94,19 @@ resource "local_file" "services_infrastructure" {
         title                 = server.title
 
         services = [
-          for service in local.filtered_servers_services[k] : merge(
+          for service in local.output_services_all[k] : merge(
             service,
             {
-              widget = jsondecode(templatestring(jsonencode(service.widget), {
-                default  = var.default
-                password = onepassword_item.server[k].password
-                server   = server
-                url      = service.url
+              widgets = jsondecode(templatestring(jsonencode(service.widgets), {
+                default = var.default
+                service = service
+
+                server = merge(
+                  server,
+                  {
+                    password = onepassword_item.server[k].password
+                  }
+                )
               }))
             }
           )
