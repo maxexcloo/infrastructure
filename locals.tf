@@ -415,6 +415,7 @@ locals {
         {
           description           = ""
           enable_metrics        = false
+          enable_monitoring     = true
           enable_ssl_validation = true
           metrics_path          = "/metrics"
           monitoring_path       = ""
@@ -428,7 +429,7 @@ locals {
             for widget in try(service.widgets, []) : merge(
               {
                 enable_href       = true
-                enable_monitoring = true
+                enable_monitoring = try(service.enable_monitoring, true)
                 icon              = try(service.service, "homepage")
                 priority          = false
                 widget            = null
