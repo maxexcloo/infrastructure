@@ -1,7 +1,14 @@
 locals {
   default_service_config = {
-    enable_ssl = true
-    port       = 443
+    description           = ""
+    enable_metrics        = false
+    enable_monitoring     = true
+    enable_ssl            = true
+    enable_ssl_validation = true
+    metrics_path          = "/metrics"
+    monitoring_path       = ""
+    port                  = 443
+    title                 = ""
   }
 
   default_user_config = {
@@ -395,15 +402,8 @@ locals {
     for k, server in local.output_servers_all : k => [
       for service in server.services : merge(
         {
-          description           = ""
-          enable_metrics        = false
-          enable_monitoring     = true
-          enable_ssl_validation = true
-          metrics_path          = "/metrics"
-          monitoring_path       = ""
-          server                = k
-          title                 = ""
-          url                   = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
+          server = k
+          url    = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
         },
         service,
         {
