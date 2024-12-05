@@ -157,22 +157,25 @@ resource "onepassword_item" "server" {
       for_each = flatten([
         for k, network in each.value.networks : [
           {
-            label = "Public IPv4 ${k}"
+            k = k
+            label = "Public IPv4"
             value = try(network.public_ipv4, null)
           },
           {
-            label = "Public IPv6 ${k}"
+            k = k
+            label = "Public IPv6"
             value = try(network.public_ipv6, null)
           },
           {
-            label = "Public Address ${k}"
+            k = k
+            label = "Public Address"
             value = try(network.public_address, null)
           }
         ]
       ])
 
       content {
-        label = field.value.label
+        label = "${field.value.label}${k > 0 ? " ${k + 1}" : ""}"
         type  = "URL"
         value = field.value.value
       }
