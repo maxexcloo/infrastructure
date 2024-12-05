@@ -3,7 +3,7 @@ data "onepassword_vault" "default" {
 }
 
 resource "onepassword_item" "server" {
-  for_each = local.filtered_servers_all
+  for_each = local.filtered_servers.all
 
   category = "login"
   title    = "${each.key} (${each.value.title})"
@@ -154,41 +154,27 @@ resource "onepassword_item" "server" {
     }
 
     dynamic "field" {
-      for_each = [
-        for network in each.value.networks : network
-        if can(network.public_ipv4)
-      ]
+      for_each = flatten([
+        for k, network in each.value.networks : [
+          {
+            label = "Public IPv4 ${k}"
+            value = try(network.public_ipv4, null)
+          },
+          {
+            label = "Public IPv6 ${k}"
+            value = try(network.public_ipv6, null)
+          },
+          {
+            label = "Public Address ${k}"
+            value = try(network.public_address, null)
+          }
+        ]
+      ])
 
       content {
-        label = "Public IPv4 ${field.key}"
+        label = field.value.label
         type  = "URL"
-        value = field.value.public_ipv4
-      }
-    }
-
-    dynamic "field" {
-      for_each = [
-        for network in each.value.networks : network
-        if can(network.public_ipv6)
-      ]
-
-      content {
-        label = "Public IPv6 ${field.key}"
-        type  = "URL"
-        value = field.value.public_ipv6
-      }
-    }
-
-    dynamic "field" {
-      for_each = [
-        for network in each.value.networks : network
-        if can(network.public_address)
-      ]
-
-      content {
-        label = "Public Address ${field.key}"
-        type  = "URL"
-        value = field.value.public_address
+        value = field.value.value
       }
     }
   }

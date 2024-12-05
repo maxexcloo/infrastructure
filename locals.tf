@@ -1,4 +1,14 @@
 locals {
+  default_service_config = {
+    enable_ssl = true
+    port       = 443
+  }
+
+  default_user_config = {
+    fullname = ""
+    username = "root"
+  }
+
   filtered_cloudflare_records = merge(
     {
       for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
@@ -15,25 +25,27 @@ locals {
     cloudflare_record.vm_oci_ipv6
   )
 
-  filtered_servers_all = merge(
-    local.merged_routers,
-    local.merged_servers,
-    local.merged_vms,
-    local.merged_vms_oci,
-    local.merged_vms_proxmox
-  )
+  filtered_servers = {
+    all = merge(
+      local.merged_routers,
+      local.merged_servers,
+      local.merged_vms,
+      local.merged_vms_oci,
+      local.merged_vms_proxmox
+    )
 
-  filtered_servers_noncloud = merge(
-    local.merged_servers,
-    local.merged_vms
-  )
+    noncloud = merge(
+      local.merged_servers,
+      local.merged_vms
+    )
+  }
 
   filtered_tags_tailscale_servers = [
     for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
   ]
 
   filtered_tailscale_devices = {
-    for k, server in local.filtered_servers_all : k => {
+    for k, server in local.filtered_servers.all : k => {
       fqdn_external = server.fqdn_external
       fqdn_internal = server.fqdn_internal
       private_ipv4 = [for device in data.tailscale_devices.default.devices :
@@ -101,19 +113,13 @@ locals {
         ]
         services = [
           for service in try(router.services, []) : merge(
-            {
-              enable_ssl = true
-              port       = 443
-            },
+            local.default_service_config,
             service
           )
         ]
         users = [
           for user in try(router.users, [{}]) : merge(
-            {
-              fullname = ""
-              username = "root"
-            },
+            local.default_user_config,
             user,
             {
               sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
@@ -153,19 +159,13 @@ locals {
           ]
           services = [
             for service in try(server.services, []) : merge(
-              {
-                enable_ssl = true
-                port       = 443
-              },
+              local.default_service_config,
               service
             )
           ]
           users = [
             for user in try(server.users, [{}]) : merge(
-              {
-                fullname = ""
-                username = "root"
-              },
+              local.default_user_config,
               user,
               {
                 sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
@@ -216,19 +216,13 @@ locals {
         ]
         services = [
           for service in try(vm.services, []) : merge(
-            {
-              enable_ssl = true
-              port       = 443
-            },
+            local.default_service_config,
             service
           )
         ]
         users = [
           for user in try(vm.users, [{}]) : merge(
-            {
-              fullname = ""
-              username = "root"
-            },
+            local.default_user_config,
             user,
             {
               sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
@@ -263,19 +257,13 @@ locals {
         ]
         services = [
           for service in try(vm.services, []) : merge(
-            {
-              enable_ssl = true
-              port       = 443
-            },
+            local.default_service_config,
             service
           )
         ]
         users = [
           for user in try(vm.users, [{}]) : merge(
-            {
-              fullname = ""
-              username = "root"
-            },
+            local.default_user_config,
             user,
             {
               sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
@@ -336,10 +324,7 @@ locals {
           ]
           services = [
             for service in try(vm.services, []) : merge(
-              {
-                enable_ssl = true
-                port       = 443
-              },
+              local.default_service_config,
               service
             )
           ]
@@ -353,10 +338,7 @@ locals {
           ]
           users = [
             for user in try(vm.users, [{}]) : merge(
-              {
-                fullname = ""
-                username = "root"
-              },
+              local.default_user_config,
               user,
               {
                 sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
@@ -395,7 +377,7 @@ locals {
   }
 
   output_servers_all = {
-    for k, server in local.filtered_servers_all : k => merge(
+    for k, server in local.filtered_servers.all : k => merge(
       {
         b2                    = local.output_b2[k]
         cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")

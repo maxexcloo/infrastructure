@@ -40,7 +40,7 @@ resource "cloudflare_record" "router" {
 }
 
 resource "cloudflare_record" "server" {
-  for_each = local.filtered_servers_noncloud
+  for_each = local.filtered_servers.noncloud
 
   allow_overwrite = true
   content         = each.value.networks[0].public_address
@@ -127,7 +127,7 @@ resource "cloudflare_record" "wildcard" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   for_each = {
-    for k, server in local.filtered_servers_all : k => server
+    for k, server in local.filtered_servers.all : k => server
     if contains(server.flags, "cloudflared")
   }
 

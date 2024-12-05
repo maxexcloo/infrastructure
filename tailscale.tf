@@ -29,7 +29,7 @@ resource "tailscale_acl" "default" {
 
 resource "tailscale_tailnet_key" "server" {
   for_each = {
-    for k, server in local.filtered_servers_all : k => server
+    for k, server in local.filtered_servers.all : k => server
     if contains(server.flags, "tailscale")
   }
 
