@@ -10,6 +10,7 @@ locals {
     enable_monitoring     = true
     enable_ssl            = true
     enable_ssl_validation = true
+    icon                  = "homepage"
     metrics_path          = "/metrics"
     monitoring_path       = ""
     port                  = 443
@@ -22,10 +23,13 @@ locals {
   }
 
   default_widget_config = {
+    description       = null
     enable_href       = true
     enable_monitoring = true
     icon              = "homepage"
     priority          = false
+    title             = null
+    url               = null
     widget            = null
   }
 
