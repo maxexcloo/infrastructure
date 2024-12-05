@@ -1,4 +1,9 @@
 locals {
+  default_server_config = {
+    packages = []
+    ssh_port = 22
+  }
+
   default_service_config = {
     description           = ""
     enable_metrics        = false
@@ -16,10 +21,18 @@ locals {
     username = "root"
   }
 
+  default_widget_config = {
+    enable_href       = true
+    enable_monitoring = true
+    icon              = "homepage"
+    priority          = false
+    widget            = null
+  }
+
   filtered_cloudflare_records = merge(
     {
       for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
-      if try(local.merged_dns[k].wildcard, false)
+      if local.merged_dns[k].wildcard
     },
     {
       for k, cloudflare_record in cloudflare_record.tailscale_ipv4 : "${k}-internal" => cloudflare_record
@@ -75,7 +88,7 @@ locals {
       },
       device,
       {
-        sftp_paths = concat(var.default.sftp_paths, try(device.sftp_paths, []))
+        sftp_paths = concat(var.default.sftp_paths, coalesce(device.sftp_paths, []))
       }
     )
   }
@@ -85,6 +98,7 @@ locals {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
         {
           priority = null
+          wildcard = false
           zone     = zone
         },
         record
@@ -94,20 +108,20 @@ locals {
 
   merged_routers = {
     for router in var.routers : router.location => merge(
+      {
+        flags        = []
+        parent_flags = []
+        parent_name  = ""
+        tag          = "router"
+      },
       router,
       {
-        flags         = try(router.flags, [])
         fqdn_external = "${router.location}.${var.default.domain_external}"
         fqdn_internal = "${router.location}.${var.default.domain_internal}"
         name          = router.location
-        parent_flags  = []
-        parent_name   = ""
-        tag           = "router"
         title         = try(router.title, upper(router.location))
         config = merge(
-          {
-            ssh_port = 22
-          },
+          local.default_server_config,
           try(router.config, {})
         )
         networks = [
@@ -140,20 +154,20 @@ locals {
   merged_servers = merge([
     for router in local.merged_routers : {
       for server in var.servers : "${router.location}-${server.name}" => merge(
+        {
+          flags = []
+          tag   = "server"
+        },
         server,
         {
-          flags         = try(server.flags, [])
           fqdn_external = "${server.name}.${router.location}.${var.default.domain_external}"
           fqdn_internal = "${server.name}.${router.location}.${var.default.domain_internal}"
           location      = router.location
           parent_flags  = router.flags
           parent_name   = router.name
-          tag           = "server"
           title         = try(server.title, title(server.name))
           config = merge(
-            {
-              ssh_port = 22
-            },
+            local.default_server_config,
             try(server.config, {})
           )
           networks = [
@@ -196,20 +210,20 @@ locals {
 
   merged_vms = merge({
     for vm in var.vms : "${vm.location}-${vm.name}" => merge(
+      {
+        flags        = []
+        location     = "cloud"
+        parent_flags = ["cloud"]
+        parent_name  = "cloud"
+        tag          = "vm"
+      },
       vm,
       {
-        flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
-        location      = try(vm.location, "cloud")
-        parent_flags  = ["cloud"]
-        parent_name   = "cloud"
-        tag           = "vm"
         title         = try(vm.title, title(vm.name))
         config = merge(
-          {
-            ssh_port = 22
-          },
+          local.default_server_config,
           try(vm.config, {})
         )
         networks = [
@@ -242,21 +256,20 @@ locals {
 
   merged_vms_oci = merge({
     for vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
+      {
+        flags        = []
+        location     = "cloud"
+        parent_flags = ["cloud"]
+        parent_name  = "oci"
+        tag          = "vm"
+      },
       vm,
       {
-        flags         = try(vm.flags, [])
         fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
-        location      = try(vm.location, "cloud")
-        parent_flags  = ["cloud"]
-        parent_name   = "oci"
-        tag           = "vm"
         title         = try(vm.title, title(vm.name))
         config = merge(
-          {
-            packages = []
-            ssh_port = 22
-          },
+          local.default_server_config,
           try(vm.config, {})
         )
         networks = [
@@ -284,18 +297,21 @@ locals {
   merged_vms_proxmox = merge([
     for server in local.merged_servers : {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
+        {
+          flags = []
+          tag   = "vm"
+        },
         vm,
         {
-          flags         = try(vm.flags, [])
           fqdn_external = "${vm.name}.${server.name}.${server.location}.${var.default.domain_external}"
           fqdn_internal = "${vm.name}.${server.name}.${server.location}.${var.default.domain_internal}"
           location      = server.location
           name          = "${server.name}-${vm.name}"
           parent_flags  = server.flags
           parent_name   = server.name
-          tag           = "vm"
           title         = "${server.title} ${try(vm.title, title(vm.name))}"
           config = merge(
+            local.default_server_config,
             {
               boot_disk_image_compression_algorithm = null
               boot_disk_image_url                   = ""
@@ -303,7 +319,6 @@ locals {
               cpus                                  = 2
               memory                                = 4
               operating_system                      = "l26"
-              ssh_port                              = 22
             },
             try(vm.config, {}),
             {
@@ -409,12 +424,10 @@ locals {
         {
           widgets = [
             for widget in try(service.widgets, []) : merge(
+              local.default_widget_config,
               {
-                enable_href       = true
-                enable_monitoring = try(service.enable_monitoring, true)
-                icon              = try(service.service, "homepage")
-                priority          = false
-                widget            = null
+                enable_monitoring = coalesce(service.enable_monitoring, local.default_widget_config.enable_monitoring)
+                icon              = try(service.service, local.default_widget_config.icon)
               },
               widget
             )
