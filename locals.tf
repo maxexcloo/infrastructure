@@ -430,8 +430,10 @@ locals {
             for widget in try(service.widgets, []) : merge(
               local.default_widget_config,
               {
+                description       = try(service.description, local.default_widget_config.description)
                 enable_monitoring = coalesce(service.enable_monitoring, local.default_widget_config.enable_monitoring)
                 icon              = try(service.service, local.default_widget_config.icon)
+                title             = try(service.title, local.default_widget_config.title)
               },
               widget
             )
