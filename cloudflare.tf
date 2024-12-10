@@ -4,8 +4,8 @@ resource "cloudflare_account" "default" {
   name = var.terraform.cloudflare.email
 }
 
-resource "cloudflare_api_token" "caddy" {
-  name = "caddy"
+resource "cloudflare_api_token" "internal" {
+  name = "internal"
 
   policy {
     permission_groups = [
@@ -29,18 +29,24 @@ resource "cloudflare_record" "dns" {
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }
 
-resource "cloudflare_record" "router" {
-  for_each = local.merged_routers
+resource "cloudflare_record" "internal" {
+  for_each = {
+    for k, server in local.filtered_servers.all : k => server
+    if contains(server.flags, "tailscale")
+  }
 
   allow_overwrite = true
-  content         = each.value.networks[0].public_address
-  name            = each.value.fqdn_external
-  type            = can(cidrhost("${each.value.networks[0].public_address}/32", 0)) ? "A" : "CNAME"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content         = "${each.key}.${var.terraform.tailscale.tailnet}"
+  name            = each.value.fqdn_internal
+  type            = "CNAME"
+  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
-resource "cloudflare_record" "server" {
-  for_each = local.filtered_servers.noncloud
+resource "cloudflare_record" "noncloud" {
+  for_each = {
+    for k, server in local.filtered_servers.noncloud : k => server
+    if length(server.networks) > 0
+  }
 
   allow_overwrite = true
   content         = each.value.networks[0].public_address
@@ -49,30 +55,23 @@ resource "cloudflare_record" "server" {
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "tailscale_ipv4" {
-  for_each = local.filtered_tailscale_devices
+resource "cloudflare_record" "router" {
+  for_each = {
+    for k, router in local.merged_routers : k => router
+    if length(router.networks) > 0
+  }
 
   allow_overwrite = true
-  content         = each.value.private_ipv4
-  name            = each.value.fqdn_internal
-  type            = "A"
-  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
-}
-
-resource "cloudflare_record" "tailscale_ipv6" {
-  for_each = local.filtered_tailscale_devices
-
-  allow_overwrite = true
-  content         = each.value.private_ipv6
-  name            = each.value.fqdn_internal
-  type            = "AAAA"
-  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
+  content         = each.value.networks[0].public_address
+  name            = each.value.fqdn_external
+  type            = "CNAME"
+  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
 }
 
 resource "cloudflare_record" "vm_ipv4" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
-    if vm.networks[0].public_ipv4 != ""
+    if length(vm.networks) > 0
   }
 
   allow_overwrite = true
@@ -85,7 +84,7 @@ resource "cloudflare_record" "vm_ipv4" {
 resource "cloudflare_record" "vm_ipv6" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
-    if vm.networks[0].public_ipv6 != ""
+    if length(vm.networks) > 0
   }
 
   allow_overwrite = true

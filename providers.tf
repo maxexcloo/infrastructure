@@ -50,5 +50,5 @@ provider "restapi" {
 provider "tailscale" {
   oauth_client_id     = var.terraform.tailscale.oauth_client_id
   oauth_client_secret = var.terraform.tailscale.oauth_client_secret
-  tailnet             = var.terraform.tailscale.tailnet
+  tailnet             = var.terraform.tailscale.organization
 }

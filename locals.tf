@@ -1,48 +1,13 @@
 locals {
-  default_server_config = {
-    packages = []
-    ssh_port = 22
-  }
-
-  default_service_config = {
-    description           = ""
-    enable_metrics        = false
-    enable_monitoring     = true
-    enable_ssl            = true
-    enable_ssl_validation = true
-    icon                  = "homepage"
-    metrics_path          = "/metrics"
-    monitoring_path       = ""
-    port                  = 443
-    title                 = ""
-  }
-
-  default_user_config = {
-    fullname = ""
-    username = "root"
-  }
-
-  default_widget_config = {
-    description       = null
-    enable_href       = true
-    enable_monitoring = true
-    icon              = "homepage"
-    priority          = false
-    title             = null
-    url               = null
-    widget            = null
-  }
-
   filtered_cloudflare_records = merge(
     {
       for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
       if local.merged_dns[k].wildcard
     },
     {
-      for k, cloudflare_record in cloudflare_record.tailscale_ipv4 : "${k}-internal" => cloudflare_record
+      for k, cloudflare_record in cloudflare_record.internal : "${k}-internal" => cloudflare_record
     },
-    cloudflare_record.router,
-    cloudflare_record.server,
+    cloudflare_record.noncloud,
     cloudflare_record.vm_ipv4,
     cloudflare_record.vm_ipv6,
     cloudflare_record.vm_oci_ipv4,
@@ -60,28 +25,9 @@ locals {
 
     noncloud = merge(
       local.merged_servers,
-      local.merged_vms
+      local.merged_vms,
+      local.merged_vms_proxmox
     )
-  }
-
-  filtered_tags_tailscale_servers = [
-    for k, tag in local.merged_tags_tailscale : tag.tailscale_tag
-  ]
-
-  filtered_tailscale_devices = {
-    for k, server in local.filtered_servers.all : k => {
-      fqdn_external = server.fqdn_external
-      fqdn_internal = server.fqdn_internal
-      private_ipv4 = [for device in data.tailscale_devices.default.devices :
-        [for address in device.addresses : address if can(cidrhost("${address}/32", 0))][0]
-        if element(split(".", device.name), 0) == k
-      ][0]
-      private_ipv6 = [for device in data.tailscale_devices.default.devices :
-        [for address in device.addresses : address if can(cidrhost("${address}/128", 0))][0]
-        if element(split(".", device.name), 0) == k
-      ][0]
-    }
-    if length([for device in data.tailscale_devices.default.devices : device if element(split(".", device.name), 0) == k]) > 0
   }
 
   merged_devices = {
@@ -92,7 +38,7 @@ locals {
       },
       device,
       {
-        sftp_paths = concat(var.default.sftp_paths, coalesce(device.sftp_paths, []))
+        sftp_paths = concat(var.default.server_config.sftp_paths, try(device.sftp_paths, []))
       }
     )
   }
@@ -123,9 +69,9 @@ locals {
         fqdn_external = "${router.location}.${var.default.domain_external}"
         fqdn_internal = "${router.location}.${var.default.domain_internal}"
         name          = router.location
-        title         = try(router.title, upper(router.location))
+        title         = try(router.title, upper(router.name), upper(router.location))
         config = merge(
-          local.default_server_config,
+          var.default.server_config,
           try(router.config, {})
         )
         networks = [
@@ -138,16 +84,16 @@ locals {
         ]
         services = [
           for service in try(router.services, []) : merge(
-            local.default_service_config,
+            var.default.service_config,
             service
           )
         ]
         users = [
           for user in try(router.users, [{}]) : merge(
-            local.default_user_config,
+            var.default.user_config,
             user,
             {
-              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
             }
           )
         ]
@@ -171,7 +117,7 @@ locals {
           parent_name   = router.name
           title         = try(server.title, title(server.name))
           config = merge(
-            local.default_server_config,
+            var.default.server_config,
             try(server.config, {})
           )
           networks = [
@@ -184,16 +130,15 @@ locals {
           ]
           services = [
             for service in try(server.services, []) : merge(
-              local.default_service_config,
+              var.default.service_config,
               service
             )
           ]
           users = [
             for user in try(server.users, [{}]) : merge(
-              local.default_user_config,
+              var.default.user_config,
               user,
-              {
-                sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              { sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
               }
             )
           ]
@@ -227,7 +172,7 @@ locals {
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
         title         = try(vm.title, title(vm.name))
         config = merge(
-          local.default_server_config,
+          var.default.server_config,
           try(vm.config, {})
         )
         networks = [
@@ -241,16 +186,16 @@ locals {
         ]
         services = [
           for service in try(vm.services, []) : merge(
-            local.default_service_config,
+            var.default.service_config,
             service
           )
         ]
         users = [
           for user in try(vm.users, [{}]) : merge(
-            local.default_user_config,
+            var.default.user_config,
             user,
             {
-              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
             }
           )
         ]
@@ -273,7 +218,7 @@ locals {
         fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
         title         = try(vm.title, title(vm.name))
         config = merge(
-          local.default_server_config,
+          var.default.server_config,
           try(vm.config, {})
         )
         networks = [
@@ -281,16 +226,16 @@ locals {
         ]
         services = [
           for service in try(vm.services, []) : merge(
-            local.default_service_config,
+            var.default.service_config,
             service
           )
         ]
         users = [
           for user in try(vm.users, [{}]) : merge(
-            local.default_user_config,
+            var.default.user_config,
             user,
             {
-              sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
             }
           )
         ]
@@ -315,7 +260,7 @@ locals {
           parent_name   = server.name
           title         = "${server.title} ${try(vm.title, title(vm.name))}"
           config = merge(
-            local.default_server_config,
+            var.default.server_config,
             {
               boot_disk_image_compression_algorithm = null
               boot_disk_image_url                   = ""
@@ -326,7 +271,7 @@ locals {
             },
             try(vm.config, {}),
             {
-              packages = concat(["qemu-guest-agent"], try(vm.config.packages, []))
+              packages = concat(["qemu-guest-agent"], try(vm.config.packages, []), var.default.server_config.packages)
             }
           )
           hostpci = [
@@ -350,7 +295,7 @@ locals {
           ]
           services = [
             for service in try(vm.services, []) : merge(
-              local.default_service_config,
+              var.default.service_config,
               service
             )
           ]
@@ -364,10 +309,10 @@ locals {
           ]
           users = [
             for user in try(vm.users, [{}]) : merge(
-              local.default_user_config,
+              var.default.user_config,
               user,
               {
-                sftp_paths = concat(var.default.sftp_paths, try(user.sftp_paths, []))
+                sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
               }
             )
           ]
@@ -386,12 +331,31 @@ locals {
     }
   }
 
+  output_cloud_config = {
+    for k, server in local.filtered_servers.all : k => templatefile(
+      "templates/cloud_config/cloud_config",
+      {
+        cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
+        default                 = var.default
+        k                       = k
+        password                = htpasswd_password.server[k].sha512
+        server                  = server
+        ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
+        tailscale_tailnet_key   = try(local.output_tailscale_tailnet_keys[k], "")
+      }
+    )
+  }
+
   output_cloudflare_tunnels = {
     for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
       cname = cloudflare_zero_trust_tunnel_cloudflared.cname
       id    = cloudflare_zero_trust_tunnel_cloudflared.id
       token = cloudflare_zero_trust_tunnel_cloudflared.tunnel_token
     }
+  }
+
+  output_ignition = {
+    for k, server in local.filtered_servers.all : k => ""
   }
 
   output_resend_api_keys = {
@@ -428,12 +392,12 @@ locals {
         {
           widgets = [
             for widget in try(service.widgets, []) : merge(
-              local.default_widget_config,
+              var.default.widget_config,
               {
-                description       = try(service.description, local.default_widget_config.description)
-                enable_monitoring = coalesce(service.enable_monitoring, local.default_widget_config.enable_monitoring)
-                icon              = try(service.service, local.default_widget_config.icon)
-                title             = try(service.title, local.default_widget_config.title)
+                description       = try(service.description, var.default.widget_config.description)
+                enable_monitoring = coalesce(service.enable_monitoring, var.default.widget_config.enable_monitoring)
+                icon              = try(service.service, var.default.widget_config.icon)
+                title             = try(service.title, var.default.widget_config.title)
               },
               widget
             )

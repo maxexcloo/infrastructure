@@ -1,5 +1,3 @@
-data "tailscale_devices" "default" {}
-
 resource "tailscale_acl" "default" {
   acl = jsonencode({
     acls = [
@@ -11,16 +9,10 @@ resource "tailscale_acl" "default" {
     ]
     autoApprovers = {
       routes = {
-        "::/0"      = local.filtered_tags_tailscale_servers
-        "0.0.0.0/0" = local.filtered_tags_tailscale_servers
+        "::/0"      = [for tag in local.merged_tags_tailscale : tag.tailscale_tag]
+        "0.0.0.0/0" = [for tag in local.merged_tags_tailscale : tag.tailscale_tag]
       }
     }
-    nodeAttrs = [
-      {
-        attr   = ["nextdns:65188d"]
-        target = local.filtered_tags_tailscale_servers
-      }
-    ]
     tagOwners = {
       for k, tag in local.merged_tags_tailscale : tag.tailscale_tag => [var.default.email]
     }

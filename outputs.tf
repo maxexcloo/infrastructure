@@ -34,7 +34,7 @@ resource "local_file" "docker_caddy" {
   content = templatefile(
     "templates/docker/caddy/docker-compose.yaml",
     {
-      cloudflare_api_token = cloudflare_api_token.caddy.value
+      cloudflare_api_token = cloudflare_api_token.internal.value
       email                = var.default.email
     }
   )

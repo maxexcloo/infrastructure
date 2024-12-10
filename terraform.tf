@@ -21,6 +21,9 @@ terraform {
     htpasswd = {
       source = "loafoe/htpasswd"
     }
+    ignition = {
+      source = "community-terraform-providers/ignition"
+    }
     oci = {
       source = "oracle/oci"
     }

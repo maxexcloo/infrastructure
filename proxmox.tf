@@ -25,20 +25,8 @@ resource "proxmox_virtual_environment_file" "vm" {
   node_name    = each.value.parent
 
   source_raw {
+    data      = each.value.config.enable_ignition ? local.output_cloud_config[each.key] : local.output_ignition[each.key]
     file_name = "${each.value.name}.yaml"
-
-    data = templatefile(
-      "templates/cloud_config/cloud_config",
-      {
-        cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[each.key].token, "")
-        default                 = var.default
-        k                       = each.key
-        password                = htpasswd_password.server[each.key].sha512
-        server                  = each.value
-        ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[each.key].public_key])
-        tailscale_tailnet_key   = try(local.output_tailscale_tailnet_keys[each.key], "")
-      }
-    )
   }
 }
 
