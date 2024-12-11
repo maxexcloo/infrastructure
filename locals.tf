@@ -391,11 +391,11 @@ locals {
     for k, server in local.output_servers_all : k => [
       for service in server.services : merge(
         {
-          server = k
-          url    = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
+          url = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
         },
         service,
         {
+          server = k
           widgets = [
             for widget in try(service.widgets, []) : merge(
               var.default.widget_config,
