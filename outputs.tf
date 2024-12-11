@@ -57,7 +57,7 @@ resource "local_file" "pyinfra_inventory" {
     "templates/pyinfra/inventory.py",
     {
       servers = {
-        for k, server in local.filtered_servers.all : k => merge(
+        for k, server in local.filtered_servers_all : k => merge(
           server,
           {
             cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
@@ -75,7 +75,7 @@ resource "local_file" "services_infrastructure" {
   content = jsonencode({
     default = var.default
     devices = var.devices
-    tags    = local.merged_tags_tailscale
+    tags    = local.merged_tags
 
     servers = {
       for k, server in local.output_servers_all : k => {
@@ -123,7 +123,7 @@ resource "local_file" "ssh_config" {
     "templates/ssh/config",
     {
       devices = local.merged_devices
-      servers = local.filtered_servers.all
+      servers = local.filtered_servers_all
     }
   )
 }
@@ -136,7 +136,7 @@ resource "local_file" "vscode_sftp" {
       "templates/vscode/sftp.json",
       {
         devices = local.merged_devices
-        servers = local.filtered_servers.all
+        servers = local.filtered_servers_all
       }
     ),
     "},\n]",

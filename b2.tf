@@ -24,7 +24,7 @@ resource "b2_application_key" "server" {
 }
 
 resource "b2_bucket" "server" {
-  for_each = local.filtered_servers.all
+  for_each = local.filtered_servers_all
 
   bucket_name = "${each.key}-${random_password.b2[each.key].result}"
   bucket_type = "allPrivate"

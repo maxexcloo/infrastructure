@@ -3,7 +3,7 @@ data "onepassword_vault" "default" {
 }
 
 resource "onepassword_item" "server" {
-  for_each = local.filtered_servers.all
+  for_each = local.filtered_servers_all
 
   category = "login"
   title    = "${each.key} (${each.value.title})"

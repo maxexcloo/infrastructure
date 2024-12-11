@@ -29,22 +29,29 @@ resource "cloudflare_record" "dns" {
   zone_id         = cloudflare_zone.zone[each.value.zone].id
 }
 
-resource "cloudflare_record" "internal" {
-  for_each = {
-    for k, server in local.filtered_servers.all : k => server
-    if contains(server.flags, "tailscale")
-  }
+resource "cloudflare_record" "internal_ipv4" {
+  for_each = local.filtered_tailscale_devices
 
   allow_overwrite = true
-  content         = "${each.key}.${var.terraform.tailscale.tailnet}"
+  content         = each.value.private_ipv4
   name            = each.value.fqdn_internal
-  type            = "CNAME"
+  type            = "A"
+  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
+}
+
+resource "cloudflare_record" "internal_ipv6" {
+  for_each = local.filtered_tailscale_devices
+
+  allow_overwrite = true
+  content         = each.value.private_ipv6
+  name            = each.value.fqdn_internal
+  type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
 resource "cloudflare_record" "noncloud" {
   for_each = {
-    for k, server in local.filtered_servers.noncloud : k => server
+    for k, server in local.filtered_servers_noncloud : k => server
     if length(server.networks) > 0
   }
 
@@ -115,7 +122,7 @@ resource "cloudflare_record" "vm_oci_ipv6" {
 }
 
 resource "cloudflare_record" "wildcard" {
-  for_each = local.filtered_cloudflare_records
+  for_each = local.filtered_cloudflare_records_wildcard
 
   allow_overwrite = true
   content         = each.value.hostname
@@ -126,7 +133,7 @@ resource "cloudflare_record" "wildcard" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   for_each = {
-    for k, server in local.filtered_servers.all : k => server
+    for k, server in local.filtered_servers_all : k => server
     if contains(server.flags, "cloudflared")
   }
 

@@ -1,33 +1,39 @@
 locals {
-  filtered_cloudflare_records = merge(
+  filtered_cloudflare_records_wildcard = merge(
     {
       for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
       if local.merged_dns[k].wildcard
     },
     {
-      for k, cloudflare_record in cloudflare_record.internal : "${k}-internal" => cloudflare_record
+      for k, cloudflare_record in cloudflare_record.internal_ipv4 : "${k}-internal" => cloudflare_record
     },
     cloudflare_record.noncloud,
     cloudflare_record.vm_ipv4,
-    cloudflare_record.vm_ipv6,
-    cloudflare_record.vm_oci_ipv4,
-    cloudflare_record.vm_oci_ipv6
+    cloudflare_record.vm_oci_ipv4
   )
 
-  filtered_servers = {
-    all = merge(
-      local.merged_routers,
-      local.merged_servers,
-      local.merged_vms,
-      local.merged_vms_oci,
-      local.merged_vms_proxmox
-    )
+  filtered_servers_all = merge(
+    local.merged_routers,
+    local.merged_servers,
+    local.merged_vms,
+    local.merged_vms_oci,
+    local.merged_vms_proxmox
+  )
 
-    noncloud = merge(
-      local.merged_servers,
-      local.merged_vms,
-      local.merged_vms_proxmox
-    )
+  filtered_servers_noncloud = merge(
+    local.merged_servers,
+    local.merged_vms,
+    local.merged_vms_proxmox
+  )
+
+  filtered_tailscale_devices = {
+    for k, server in local.filtered_servers_all : k => {
+      fqdn_external = server.fqdn_external
+      fqdn_internal = server.fqdn_internal
+      private_ipv4  = [for device in data.tailscale_devices.default.devices : [for address in device.addresses : address if can(cidrhost("${address}/32", 0))][0] if element(split(".", device.name), 0) == k][0]
+      private_ipv6  = [for device in data.tailscale_devices.default.devices : [for address in device.addresses : address if can(cidrhost("${address}/128", 0))][0] if element(split(".", device.name), 0) == k][0]
+    }
+    if length([for device in data.tailscale_devices.default.devices : device if element(split(".", device.name), 0) == k]) > 0
   }
 
   merged_devices = {
@@ -148,7 +154,7 @@ locals {
     }
   ]...)
 
-  merged_tags_tailscale = {
+  merged_tags = {
     for tag in var.tags : tag.name => merge(
       {
         tailscale_tag = "tag:${tag.name}"
@@ -332,7 +338,7 @@ locals {
   }
 
   output_cloud_config = {
-    for k, server in local.filtered_servers.all : k => templatefile(
+    for k, server in local.filtered_servers_all : k => templatefile(
       "templates/cloud_config/cloud_config",
       {
         cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
@@ -355,7 +361,7 @@ locals {
   }
 
   output_ignition = {
-    for k, server in local.filtered_servers.all : k => ""
+    for k, server in local.filtered_servers_all : k => ""
   }
 
   output_resend_api_keys = {
@@ -367,7 +373,7 @@ locals {
   }
 
   output_servers_all = {
-    for k, server in local.filtered_servers.all : k => merge(
+    for k, server in local.filtered_servers_all : k => merge(
       {
         b2                    = local.output_b2[k]
         cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
