@@ -105,7 +105,7 @@ resource "oci_core_instance" "vm" {
   shape               = each.value.config.shape
 
   metadata = {
-    user_data = base64encode(each.value.config.enable_ignition ? local.output_cloud_config[each.key] : local.output_ignition[each.key])
+    user_data = try(base64encode(local.output_user_data[each.key]), null)
   }
 
   create_vnic_details {

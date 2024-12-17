@@ -8,6 +8,16 @@ output "cloudflare_tunnels" {
   value     = local.output_cloudflare_tunnels
 }
 
+output "init_commands" {
+  sensitive = true
+  value     = local.output_init_commands
+}
+
+output "user_data" {
+  sensitive = true
+  value     = local.output_user_data
+}
+
 output "resend_api_keys" {
   sensitive = true
   value     = local.output_resend_api_keys
@@ -26,47 +36,6 @@ output "ssh" {
 output "tailscale_tailnet_keys" {
   sensitive = true
   value     = local.output_tailscale_tailnet_keys
-}
-
-resource "local_file" "docker_caddy" {
-  filename = "pyinfra/docker/caddy/docker-compose.yaml"
-
-  content = templatefile(
-    "templates/docker/caddy/docker-compose.yaml",
-    {
-      cloudflare_api_token = cloudflare_api_token.internal.value
-      email                = var.default.email
-    }
-  )
-}
-
-resource "local_file" "docker_portainer_agent" {
-  content  = templatefile("templates/docker/portainer/docker-compose.agent.yaml", {})
-  filename = "pyinfra/docker/portainer/docker-compose.agent.yaml"
-}
-
-resource "local_file" "docker_portainer_service" {
-  content  = templatefile("templates/docker/portainer/docker-compose.service.yaml", { default = var.default })
-  filename = "pyinfra/docker/portainer/docker-compose.service.yaml"
-}
-
-resource "local_file" "pyinfra_inventory" {
-  filename = "pyinfra/inventory.py"
-
-  content = templatefile(
-    "templates/pyinfra/inventory.py",
-    {
-      servers = {
-        for k, server in local.filtered_servers_all : k => merge(
-          server,
-          {
-            cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
-            password                = onepassword_item.server[k].password
-          }
-        )
-      }
-    }
-  )
 }
 
 resource "local_file" "services_infrastructure" {
@@ -125,21 +94,5 @@ resource "local_file" "ssh_config" {
       devices = local.merged_devices
       servers = local.filtered_servers_all
     }
-  )
-}
-
-resource "local_file" "vscode_sftp" {
-  filename = "../.vscode/sftp.json"
-
-  content = replace(
-    templatefile(
-      "templates/vscode/sftp.json",
-      {
-        devices = local.merged_devices
-        servers = local.filtered_servers_all
-      }
-    ),
-    "},\n]",
-    "}\n]"
   )
 }

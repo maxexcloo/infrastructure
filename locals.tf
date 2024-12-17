@@ -22,7 +22,6 @@ locals {
 
   filtered_servers_noncloud = merge(
     local.merged_servers,
-    local.merged_vms,
     local.merged_vms_proxmox
   )
 
@@ -44,7 +43,7 @@ locals {
       },
       device,
       {
-        sftp_paths = concat(var.default.server_config.sftp_paths, try(device.sftp_paths, []))
+        sftp_paths = concat(var.default.user_config.sftp_paths, try(device.sftp_paths, []))
       }
     )
   }
@@ -94,15 +93,13 @@ locals {
             service
           )
         ]
-        users = [
-          for user in try(router.users, [{}]) : merge(
-            var.default.user_config,
-            user,
-            {
-              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
-            }
-          )
-        ]
+        user = merge(
+          var.default.user_config,
+          try(router.user, {}),
+          {
+            sftp_paths = concat(var.default.user_config.sftp_paths, try(router.user.sftp_paths, []))
+          }
+        )
       }
     )
   }
@@ -140,14 +137,13 @@ locals {
               service
             )
           ]
-          users = [
-            for user in try(server.users, [{}]) : merge(
-              var.default.user_config,
-              user,
-              { sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
-              }
-            )
-          ]
+          user = merge(
+            var.default.user_config,
+            try(server.user, {}),
+            {
+              sftp_paths = concat(var.default.user_config.sftp_paths, try(server.user.sftp_paths, []))
+            }
+          )
         },
       )
       if server.parent == router.name
@@ -196,15 +192,13 @@ locals {
             service
           )
         ]
-        users = [
-          for user in try(vm.users, [{}]) : merge(
-            var.default.user_config,
-            user,
-            {
-              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
-            }
-          )
-        ]
+        user = merge(
+          var.default.user_config,
+          try(vm.user, {}),
+          {
+            sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
+          }
+        )
       }
     )
   })
@@ -236,15 +230,13 @@ locals {
             service
           )
         ]
-        users = [
-          for user in try(vm.users, [{}]) : merge(
-            var.default.user_config,
-            user,
-            {
-              sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
-            }
-          )
-        ]
+        user = merge(
+          var.default.user_config,
+          try(vm.user, {}),
+          {
+            sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
+          }
+        )
       }
     )
   })
@@ -313,15 +305,13 @@ locals {
               usb
             )
           ]
-          users = [
-            for user in try(vm.users, [{}]) : merge(
-              var.default.user_config,
-              user,
-              {
-                sftp_paths = concat(var.default.server_config.sftp_paths, try(user.sftp_paths, []))
-              }
-            )
-          ]
+          user = merge(
+            var.default.user_config,
+            try(vm.user, {}),
+            {
+              sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
+            }
+          )
         },
       )
       if vm.parent == server.name
@@ -337,21 +327,6 @@ locals {
     }
   }
 
-  output_cloud_config = {
-    for k, server in local.filtered_servers_all : k => templatefile(
-      "templates/cloud_config/cloud_config",
-      {
-        cloudflare_tunnel_token = try(local.output_cloudflare_tunnels[k].token, "")
-        default                 = var.default
-        k                       = k
-        password                = htpasswd_password.server[k].sha512
-        server                  = server
-        ssh_keys                = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
-        tailscale_tailnet_key   = try(local.output_tailscale_tailnet_keys[k], "")
-      }
-    )
-  }
-
   output_cloudflare_tunnels = {
     for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
       cname = cloudflare_zero_trust_tunnel_cloudflared.cname
@@ -360,8 +335,25 @@ locals {
     }
   }
 
-  output_ignition = {
-    for k, server in local.filtered_servers_all : k => ""
+  output_init_commands = {
+    for k, server in local.filtered_servers_all : k => concat(
+      contains(server.flags, "docker") ? concat(
+        [
+          "curl -fsLS https://get.docker.com | sh",
+          "docker network create ${var.default.organisation}",
+          "docker run --name portainer-agent --restart unless-stopped -p 9001:9001 -v /:/host -v /var/lib/docker/volumes:/var/lib/docker/volumes -v /var/run/docker.sock:/var/run/docker.sock portainer/agent",
+        ],
+        contains(server.flags, "caddy") ? [
+          "docker run --add-host host.docker.internal:host-gateway --name caddy --network ${var.default.organisation} --restart unless-stopped -l \"caddy_0=(external)\" -l \"caddy_0.tls=${var.default.email}\" -l \"caddy_1=(internal)\" -l \"caddy_1.tls=${var.default.email}\" -l \"caddy_1.tls.dns=cloudflare ${cloudflare_api_token.internal.value}\" -l \"caddy_1.tls.resolvers=1.1.1.1\" -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v caddy_data:/data ghcr.io/maxexcloo/caddy"
+        ] : [],
+        contains(server.flags, "cloudflared") ? [
+          "docker run --name cloudflared --network host --restart unless-stopped cloudflare/cloudflared tunnel run --token ${local.output_cloudflare_tunnels[k].token}"
+        ] : [],
+        contains(server.flags, "tailscale") ? [
+          "docker run --cap-add NET_ADMIN --cap-add NET_RAW --device /dev/net/tun --name tailscale --network host --restart unless-stopped -e TS_ACCEPT_DNS=true -e TS_AUTH_ONCE=true -e TS_AUTHKEY=${local.output_tailscale_tailnet_keys[k]} -e TS_EXTRA_ARGS=--advertise-exit-node -e TS_HOSTNAME=${k} -e TS_STATE_DIR=/data -e TS_USERSPACE=false -v /etc/resolv.conf:/etc/resolv.conf -v /var/run/dbus:/var/run/dbus -v /run/systemd/resolve:/run/systemd/resolve -v tailscale_data:/data tailscale/tailscale"
+        ] : []
+      ) : []
+    )
   }
 
   output_resend_api_keys = {
@@ -422,5 +414,21 @@ locals {
 
   output_tailscale_tailnet_keys = {
     for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => tailscale_tailnet_key.key
+  }
+
+  output_user_data = {
+    for k, server in local.filtered_servers_all : k => coalesce(
+      server.config.enable_cloud_config ? templatefile(
+        "templates/cloud_config/cloud_config.yaml",
+        {
+          init_commands = local.output_init_commands[k]
+          password_hash = htpasswd_password.server[k].sha512
+          server        = server
+          ssh_keys      = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
+        }
+      ) : null,
+      server.config.enable_ignition ? data.ct_config.server[k].rendered : null
+    )
+    if server.config.enable_cloud_config || server.config.enable_ignition
   }
 }

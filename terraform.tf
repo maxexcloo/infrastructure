@@ -15,14 +15,14 @@ terraform {
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
+    ct = {
+      source = "poseidon/ct"
+    }
     github = {
       source = "integrations/github"
     }
     htpasswd = {
       source = "loafoe/htpasswd"
-    }
-    ignition = {
-      source = "community-terraform-providers/ignition"
     }
     oci = {
       source = "oracle/oci"
