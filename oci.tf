@@ -105,7 +105,7 @@ resource "oci_core_instance" "vm" {
   shape               = each.value.config.shape
 
   metadata = {
-    user_data = try(base64encode(local.output_user_data[each.key]), null)
+    user_data = each.value.config.enable_cloud_config ? base64encode(local.output_cloud_config[each.key]) : null
   }
 
   create_vnic_details {
@@ -131,7 +131,7 @@ resource "oci_core_instance" "vm" {
   source_details {
     boot_volume_size_in_gbs = each.value.config.boot_disk_size
     source_id               = each.value.config.boot_disk_image_id
-    source_type             = each.value.config.boot_disk_image_type
+    source_type             = "image"
   }
 }
 

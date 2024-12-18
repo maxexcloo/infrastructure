@@ -15,9 +15,6 @@ terraform {
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
-    ct = {
-      source = "poseidon/ct"
-    }
     github = {
       source = "integrations/github"
     }

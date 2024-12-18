@@ -17,7 +17,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
 resource "proxmox_virtual_environment_file" "vm" {
   for_each = {
     for k, vm in local.merged_vms_proxmox : k => vm
-    if vm.config.enable_cloud_config || vm.config.enable_ignition
+    if vm.config.enable_cloud_config
   }
 
   content_type = "snippets"
@@ -25,7 +25,7 @@ resource "proxmox_virtual_environment_file" "vm" {
   node_name    = each.value.parent
 
   source_raw {
-    data      = local.output_user_data[each.key]
+    data      = local.output_cloud_config[each.key]
     file_name = "${each.value.name}.yaml"
   }
 }
@@ -107,7 +107,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   }
 
   dynamic "initialization" {
-    for_each = each.value.config.enable_cloud_config || each.value.config.enable_ignition ? [true] : []
+    for_each = each.value.config.enable_cloud_config ? [true] : []
 
     content {
       datastore_id      = "local-zfs"

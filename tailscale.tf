@@ -10,9 +10,10 @@ resource "tailscale_acl" "default" {
       }
     ]
     autoApprovers = {
+      exitNode = [for tag in local.merged_tags : tag.tailscale_tag]
       routes = {
-        "::/0"      = [for tag in local.merged_tags : tag.tailscale_tag]
         "0.0.0.0/0" = [for tag in local.merged_tags : tag.tailscale_tag]
+        "::/0"      = [for tag in local.merged_tags : tag.tailscale_tag]
       }
     }
     tagOwners = {
