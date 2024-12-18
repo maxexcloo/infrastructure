@@ -12,9 +12,6 @@ runcmd:
 %{ for init_command in init_commands ~}
   - ${init_command}
 %{ endfor ~}
-%{ if contains(server.config.packages, "qemu-guest-agent") ~}
-  - systemctl enable --now qemu-guest-agent
-%{ endif ~}
 users:
   - name: ${server.user.username}
     gecos: ${server.user.fullname}

@@ -350,6 +350,12 @@ locals {
 
   output_init_commands = {
     for k, server in local.filtered_servers_all : k => concat(
+      [
+        "sysctl --system"
+      ],
+      contains(server.config.packages, "qemu-guest-agent") ? [
+        "systemctl enable --now qemu-guest-agent"
+      ] : [],
       contains(server.flags, "docker") ? concat(
         [
           "curl -fsLS https://get.docker.com | sh",
@@ -358,7 +364,7 @@ locals {
           "docker run --name portainer-agent --restart unless-stopped -d -p 9001:9001 -v /:/host -v /var/lib/docker/volumes:/var/lib/docker/volumes -v /var/run/docker.sock:/var/run/docker.sock portainer/agent",
         ],
         contains(server.flags, "cloudflared") ? [
-          "docker run --name cloudflared --network host --privileged --restart unless-stopped -d cloudflare/cloudflared tunnel run --token ${local.output_cloudflare_tunnels[k].token}"
+          "docker run --name cloudflared --network host --restart unless-stopped -d cloudflare/cloudflared tunnel run --token ${local.output_cloudflare_tunnels[k].token}"
         ] : [],
         contains(server.flags, "tailscale") ? [
           "docker run --name tailscale --network host --privileged --restart unless-stopped --security-opt apparmor=unconfined -d -e TS_ACCEPT_DNS=true -e TS_AUTH_ONCE=true -e TS_AUTHKEY=${local.output_tailscale_tailnet_keys[k]} -e TS_EXTRA_ARGS=--advertise-exit-node -e TS_HOSTNAME=${k} -e TS_STATE_DIR=/data -e TS_USERSPACE=false -v /etc/resolv.conf:/etc/resolv.conf -v /var/run/dbus:/var/run/dbus -v /run/systemd/resolve:/run/systemd/resolve -v tailscale_data:/data tailscale/tailscale"
