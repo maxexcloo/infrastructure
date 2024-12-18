@@ -366,6 +366,9 @@ locals {
         contains(server.flags, "cloudflared") ? [
           "docker run --name cloudflared --network host --restart unless-stopped -d cloudflare/cloudflared tunnel run --token ${local.output_cloudflare_tunnels[k].token}"
         ] : [],
+        contains(server.flags, "portainer") ? [
+          "docker run --name portainer --network ${var.default.organisation} --restart unless-stopped -d -l \"caddy.reverse_proxy={{upstreams 9000}}\" -l \"caddy.import=internal\" -l \"caddy=portainer.${var.default.domain_internal}\" -p 8000:8000 -p 9000:9000 -p 9443:9443 -v portainer_data:/data portainer/portainer-ce"
+        ] : [],
         contains(server.flags, "tailscale") ? [
           "docker run --name tailscale --network host --privileged --restart unless-stopped --security-opt apparmor=unconfined -d -e TS_ACCEPT_DNS=true -e TS_AUTH_ONCE=true -e TS_AUTHKEY=${local.output_tailscale_tailnet_keys[k]} -e TS_EXTRA_ARGS=--advertise-exit-node -e TS_HOSTNAME=${k} -e TS_STATE_DIR=/data -e TS_USERSPACE=false -v /etc/resolv.conf:/etc/resolv.conf -v /var/run/dbus:/var/run/dbus -v /run/systemd/resolve:/run/systemd/resolve -v tailscale_data:/data tailscale/tailscale"
         ] : []

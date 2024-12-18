@@ -15,7 +15,7 @@ output "cloudflare_tunnels" {
 
 output "init_commands" {
   sensitive = true
-  value     = local.output_init_commands
+  value     = { for k, v in local.output_init_commands : k => join("\n", v) }
 }
 
 output "resend_api_keys" {
