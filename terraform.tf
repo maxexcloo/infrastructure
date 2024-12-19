@@ -30,11 +30,17 @@ terraform {
     proxmox = {
       source = "bpg/proxmox"
     }
+    random = {
+      source = "hashicorp/random"
+    }
     restapi = {
       source = "mastercard/restapi"
     }
     tailscale = {
       source = "tailscale/tailscale"
+    }
+    tls = {
+      source = "hashicorp/tls"
     }
   }
 }
