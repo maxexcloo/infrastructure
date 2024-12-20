@@ -56,7 +56,7 @@ resource "cloudflare_record" "noncloud" {
   }
 
   allow_overwrite = true
-  content         = each.value.networks[0].public_address
+  content         = element(each.value.networks, 0).public_address
   name            = each.value.fqdn_external
   type            = "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -69,7 +69,7 @@ resource "cloudflare_record" "router" {
   }
 
   allow_overwrite = true
-  content         = each.value.networks[0].public_address
+  content         = element(each.value.networks, 0).public_address
   name            = each.value.fqdn_external
   type            = "CNAME"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -82,7 +82,7 @@ resource "cloudflare_record" "vm_ipv4" {
   }
 
   allow_overwrite = true
-  content         = each.value.networks[0].public_ipv4
+  content         = element(each.value.networks, 0).public_ipv4
   name            = each.value.fqdn_external
   type            = "A"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -95,7 +95,7 @@ resource "cloudflare_record" "vm_ipv6" {
   }
 
   allow_overwrite = true
-  content         = each.value.networks[0].public_ipv6
+  content         = element(each.value.networks, 0).public_ipv6
   name            = each.value.fqdn_external
   type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id
@@ -115,7 +115,7 @@ resource "cloudflare_record" "vm_oci_ipv6" {
   for_each = data.oci_core_vnic.vm
 
   allow_overwrite = true
-  content         = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
+  content         = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
   name            = local.merged_vms_oci[each.key].fqdn_external
   type            = "AAAA"
   zone_id         = cloudflare_zone.zone[var.default.domain_external].id

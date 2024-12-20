@@ -1,13 +1,13 @@
 data "oci_core_ipv6s" "vm" {
   for_each = data.oci_core_vnic_attachments.vm
 
-  vnic_id = each.value.vnic_attachments[0].id
+  vnic_id = element(each.value.vnic_attachments, 0).id
 }
 
 data "oci_core_vnic" "vm" {
   for_each = data.oci_core_vnic_attachments.vm
 
-  vnic_id = each.value.vnic_attachments[0].vnic_id
+  vnic_id = element(each.value.vnic_attachments, 0).vnic_id
 }
 
 data "oci_core_vnic_attachments" "vm" {
@@ -85,7 +85,7 @@ resource "oci_core_default_security_list" "au" {
 
     content {
       protocol  = 6
-      source    = ingress_security_rules.value[0]
+      source    = element(ingress_security_rules.value, 0)
       stateless = false
 
       tcp_options {
@@ -146,7 +146,7 @@ resource "oci_core_subnet" "au" {
   compartment_id = var.terraform.oci.tenancy_ocid
   display_name   = "${var.terraform.oci.location}.${var.default.domain_external}"
   dns_label      = var.terraform.oci.location
-  ipv6cidr_block = replace(oci_core_vcn.au.ipv6cidr_blocks[0], "/56", "/64")
+  ipv6cidr_block = replace(element(oci_core_vcn.au.ipv6cidr_blocks, 0), "/56", "/64")
   vcn_id         = oci_core_vcn.au.id
 }
 

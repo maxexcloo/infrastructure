@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = "${each.key} (${each.value.title})"
-  url      = length(local.output_services_all[each.key]) > 0 ? local.output_services_all[each.key][0].url : each.key
+  url      = length(local.output_services_all[each.key]) > 0 ? element(local.output_services_all[each.key], 0).url : each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
