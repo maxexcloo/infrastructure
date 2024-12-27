@@ -403,7 +403,9 @@ locals {
     for k, server in local.output_servers_all : k => [
       for service in server.services : merge(
         {
-          url = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
+          fqdn = server.fqdn_internal
+          name = try(service.service, var.default.service_config.name)
+          url  = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
         },
         service,
         {
