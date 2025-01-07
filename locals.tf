@@ -219,6 +219,13 @@ locals {
         title         = try(vm.title, title(vm.name))
         config = merge(
           var.default.server_config,
+          {
+            boot_disk_image_id = ""
+            boot_disk_size     = 128
+            cpus               = 4
+            memory             = 8
+            shape              = "VM.Standard.A1.Flex"
+          },
           try(vm.config, {})
         )
         networks = [
@@ -263,8 +270,9 @@ locals {
               boot_disk_image_compression_algorithm = null
               boot_disk_image_url                   = ""
               boot_disk_size                        = 128
-              cpus                                  = 2
-              memory                                = 4
+              cpus                                  = 4
+              enable_serial                         = false
+              memory                                = 8
               operating_system                      = "l26"
             },
             try(vm.config, {}),

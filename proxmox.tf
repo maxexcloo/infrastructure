@@ -62,6 +62,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   lifecycle {
     ignore_changes = [
+      disk,
       initialization
     ]
   }
@@ -132,6 +133,12 @@ resource "proxmox_virtual_environment_vm" "vm" {
       firewall = network_device.value.firewall
       vlan_id  = network_device.value.vlan_id
     }
+  }
+
+  dynamic "serial_device" {
+    for_each = each.value.config.enable_serial ? [true] : []
+
+    content {}
   }
 
   dynamic "usb" {
