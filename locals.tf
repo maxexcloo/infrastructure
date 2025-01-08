@@ -425,6 +425,7 @@ locals {
                 description       = try(service.description, var.default.widget_config.description)
                 enable_monitoring = coalesce(service.enable_monitoring, var.default.widget_config.enable_monitoring)
                 icon              = try(service.service, var.default.widget_config.icon)
+                monitoring_path   = try(service.monitoring_path, var.default.widget_config.monitoring_path)
                 title             = try(service.title, var.default.widget_config.title)
               },
               widget
