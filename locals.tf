@@ -140,14 +140,9 @@ locals {
     }
   ]...)
 
-  merged_tags = {
-    for tag in var.tags : tag.name => merge(
-      {
-        tailscale_tag = "tag:${tag.name}"
-      },
-      tag
-    )
-  }
+  merged_tags_tailscale = [
+    for tag in var.tags : "tag:${tag}"
+  ]
 
   merged_vms = merge({
     for vm in var.vms : "${vm.location}-${vm.name}" => merge(

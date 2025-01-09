@@ -10,14 +10,14 @@ resource "tailscale_acl" "default" {
       }
     ]
     autoApprovers = {
-      exitNode = [for tag in local.merged_tags : tag.tailscale_tag]
+      exitNode = local.merged_tags_tailscale
       routes = {
-        "0.0.0.0/0" = [for tag in local.merged_tags : tag.tailscale_tag]
-        "::/0"      = [for tag in local.merged_tags : tag.tailscale_tag]
+        "0.0.0.0/0" = local.merged_tags_tailscale
+        "::/0"      = local.merged_tags_tailscale
       }
     }
     tagOwners = {
-      for k, tag in local.merged_tags : tag.tailscale_tag => [var.default.email]
+      for tag in local.merged_tags_tailscale : tag => [var.default.email]
     }
   })
 }
@@ -31,7 +31,7 @@ resource "tailscale_tailnet_key" "server" {
   description   = "${each.value.tag}-${each.key}"
   preauthorized = true
   reusable      = true
-  tags          = [local.merged_tags[each.value.tag].tailscale_tag]
+  tags          = ["tag:${each.value.tag}"]
 
   depends_on = [
     tailscale_acl.default
