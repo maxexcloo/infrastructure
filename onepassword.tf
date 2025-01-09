@@ -7,7 +7,7 @@ resource "onepassword_item" "server" {
 
   category = "login"
   title    = "${each.key} (${each.value.title})"
-  url      = length(local.output_services_all[each.key]) > 0 ? element(local.output_services_all[each.key], 0).url : each.key
+  url      = each.key
   username = each.value.user.username
   vault    = data.onepassword_vault.default.uuid
 
@@ -103,24 +103,6 @@ resource "onepassword_item" "server" {
       label = "Secret Hash"
       type  = "CONCEALED"
       value = local.output_secret_hashes[each.key]
-    }
-  }
-
-  dynamic "section" {
-    for_each = length(local.output_services_all[each.key]) > 0 ? [true] : []
-
-    content {
-      label = "Services"
-
-      dynamic "field" {
-        for_each = local.output_services_all[each.key]
-
-        content {
-          label = field.value.title
-          type  = "URL"
-          value = field.value.url
-        }
-      }
     }
   }
 

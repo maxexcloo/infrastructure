@@ -67,6 +67,7 @@ locals {
         flags        = []
         parent_flags = []
         parent_name  = ""
+        services     = []
         tag          = "router"
       },
       router,
@@ -87,12 +88,6 @@ locals {
             network
           )
         ]
-        services = [
-          for service in try(router.services, []) : merge(
-            var.default.service_config,
-            service
-          )
-        ]
         user = merge(
           var.default.user_config,
           try(router.user, {}),
@@ -108,8 +103,9 @@ locals {
     for router in local.merged_routers : {
       for server in var.servers : "${router.location}-${server.name}" => merge(
         {
-          flags = []
-          tag   = "server"
+          flags    = []
+          services = []
+          tag      = "server"
         },
         server,
         {
@@ -129,12 +125,6 @@ locals {
                 public_address = cloudflare_record.router[router.location].name
               },
               network
-            )
-          ]
-          services = [
-            for service in try(server.services, []) : merge(
-              var.default.service_config,
-              service
             )
           ]
           user = merge(
@@ -166,6 +156,7 @@ locals {
         location     = "cloud"
         parent_flags = ["cloud"]
         parent_name  = "cloud"
+        services     = []
         tag          = "vm"
       },
       vm,
@@ -186,12 +177,6 @@ locals {
             network
           )
         ]
-        services = [
-          for service in try(vm.services, []) : merge(
-            var.default.service_config,
-            service
-          )
-        ]
         user = merge(
           var.default.user_config,
           try(vm.user, {}),
@@ -210,6 +195,7 @@ locals {
         location     = "cloud"
         parent_flags = ["cloud"]
         parent_name  = "oci"
+        services     = []
         tag          = "vm"
       },
       vm,
@@ -231,12 +217,6 @@ locals {
         networks = [
           for network in try(vm.networks, [{}]) : network
         ]
-        services = [
-          for service in try(vm.services, []) : merge(
-            var.default.service_config,
-            service
-          )
-        ]
         user = merge(
           var.default.user_config,
           try(vm.user, {}),
@@ -252,8 +232,9 @@ locals {
     for server in local.merged_servers : {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         {
-          flags = []
-          tag   = "vm"
+          flags    = []
+          services = []
+          tag      = "vm"
         },
         vm,
         {
@@ -297,12 +278,6 @@ locals {
                 vlan_id        = null
               },
               network
-            )
-          ]
-          services = [
-            for service in try(vm.services, []) : merge(
-              var.default.service_config,
-              service
             )
           ]
           usb = [
@@ -390,50 +365,6 @@ locals {
 
   output_secret_hashes = {
     for k, random_password in random_password.secret_hash : k => random_password.result
-  }
-
-  output_servers_all = {
-    for k, server in local.filtered_servers_all : k => merge(
-      {
-        b2                    = local.output_b2[k]
-        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
-        name                  = k
-        resend_api_key        = local.output_resend_api_keys[k]
-        secret_hash           = local.output_secret_hashes[k]
-        ssh                   = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
-        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], "")
-      },
-      server
-    )
-  }
-
-  output_services_all = {
-    for k, server in local.output_servers_all : k => [
-      for service in server.services : merge(
-        {
-          fqdn = server.fqdn_internal
-          name = try(service.service, var.default.service_config.name)
-          url  = "${service.enable_ssl ? "https://" : "http://"}${server.fqdn_internal}${service.port == 80 || service.port == 443 ? "" : ":${service.port}"}"
-        },
-        service,
-        {
-          server = k
-          widgets = [
-            for widget in try(service.widgets, []) : merge(
-              var.default.widget_config,
-              {
-                description       = try(service.description, var.default.widget_config.description)
-                enable_monitoring = coalesce(service.enable_monitoring, var.default.widget_config.enable_monitoring)
-                icon              = try(service.service, var.default.widget_config.icon)
-                monitoring_path   = try(service.monitoring_path, var.default.widget_config.monitoring_path)
-                title             = try(service.title, var.default.widget_config.title)
-              },
-              widget
-            )
-          ]
-        }
-      )
-    ]
   }
 
   output_ssh = {
