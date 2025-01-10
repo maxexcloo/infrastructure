@@ -69,6 +69,33 @@ resource "onepassword_item" "server" {
       }
     }
   }
+  section {
+    label = "Mail"
+
+    field {
+      label = "SMTP Host"
+      type  = "STRING"
+      value = var.terraform.resend.smtp_host
+    }
+
+    field {
+      label = "SMTP Port"
+      type  = "STRING"
+      value = var.terraform.resend.smtp_port
+    }
+
+    field {
+      label = "SMTP Username"
+      type  = "STRING"
+      value = var.terraform.resend.smtp_username
+    }
+
+    field {
+      label = "SMTP Password"
+      type  = "CONCEALED"
+      value = local.output_resend_api_keys[each.key]
+    }
+  }
 
   section {
     label = "Resend"

@@ -39,7 +39,7 @@ provider "restapi" {
   alias                 = "resend"
   create_returns_object = true
   rate_limit            = 1
-  uri                   = "https://api.resend.com"
+  uri                   = var.terraform.resend.url
 
   headers = {
     "Authorization" = "Bearer ${var.terraform.resend.api_key}",
