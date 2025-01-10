@@ -20,25 +20,25 @@ resource "onepassword_item" "server" {
     label = "B2"
 
     field {
-      label = "Application Key"
+      label = "B2 Application Key"
       type  = "CONCEALED"
       value = local.output_b2[each.key].application_key
     }
 
     field {
-      label = "Application Key ID"
+      label = "B2 Application Key ID"
       type  = "STRING"
       value = local.output_b2[each.key].application_key_id
     }
 
     field {
-      label = "Bucket Name"
+      label = "B2 Bucket Name"
       type  = "STRING"
       value = local.output_b2[each.key].bucket_name
     }
 
     field {
-      label = "Endpoint"
+      label = "B2 Endpoint"
       type  = "URL"
       value = local.output_b2[each.key].endpoint
     }
@@ -51,19 +51,19 @@ resource "onepassword_item" "server" {
       label = "Cloudflare Tunnel"
 
       field {
-        label = "CNAME"
+        label = "Cloudflare Tunnel CNAME"
         type  = "URL"
         value = local.output_cloudflare_tunnels[each.key].cname
       }
 
       field {
-        label = "ID"
+        label = "Cloudflare Tunnel ID"
         type  = "STRING"
         value = local.output_cloudflare_tunnels[each.key].id
       }
 
       field {
-        label = "Token"
+        label = "Cloudflare Tunnel Token"
         type  = "CONCEALED"
         value = local.output_cloudflare_tunnels[each.key].token
       }
@@ -74,7 +74,7 @@ resource "onepassword_item" "server" {
     label = "Resend"
 
     field {
-      label = "API Key"
+      label = "Resend API Key"
       type  = "CONCEALED"
       value = local.output_resend_api_keys[each.key]
     }
@@ -84,13 +84,13 @@ resource "onepassword_item" "server" {
     label = "SSH"
 
     field {
-      label = "Private Key"
+      label = "SSH Private Key"
       type  = "CONCEALED"
       value = local.output_ssh[each.key].private_key
     }
 
     field {
-      label = "Public Key"
+      label = "SSH Public Key"
       type  = "STRING"
       value = local.output_ssh[each.key].public_key
     }
@@ -113,7 +113,7 @@ resource "onepassword_item" "server" {
       label = "Tailscale"
 
       field {
-        label = "Tailnet Key"
+        label = "Tailscale Tailnet Key"
         type  = "CONCEALED"
         value = local.output_tailscale_tailnet_keys[each.key]
       }
