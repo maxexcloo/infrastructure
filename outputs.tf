@@ -35,6 +35,7 @@ output "servers" {
       server,
       {
         b2                    = local.output_b2[k]
+        cloudflare_tunnel     = local.output_cloudflare_tunnels[k]
         name                  = k
         password              = onepassword_item.server[k].password
         resend_api_key        = local.output_resend_api_keys[k]
