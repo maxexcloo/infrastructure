@@ -10,7 +10,7 @@ ssh_pwauth: false
 timezone: ${server.config.timezone}
 runcmd:
 %{ for init_command in init_commands ~}
-  - ${init_command}
+  - sh -c "${init_command}"
 %{ endfor ~}
 users:
   - name: ${server.user.username}

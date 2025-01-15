@@ -115,6 +115,15 @@ resource "cloudflare_record" "wildcard" {
   zone_id         = each.value.zone_id
 }
 
+resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
+  for_each = local.filtered_servers_all
+
+  account_id = cloudflare_account.default.id
+  config_src = "cloudflare"
+  name       = each.key
+  secret     = random_password.cloudflare_tunnel[each.key].result
+}
+
 resource "cloudflare_zone" "zone" {
   for_each = var.dns
 

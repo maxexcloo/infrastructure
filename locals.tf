@@ -318,6 +318,14 @@ locals {
     if server.config.enable_cloud_config
   }
 
+  output_cloudflare_tunnels = {
+    for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
+      cname = cloudflare_zero_trust_tunnel_cloudflared.cname
+      id    = cloudflare_zero_trust_tunnel_cloudflared.id
+      token = cloudflare_zero_trust_tunnel_cloudflared.tunnel_token
+    }
+  }
+
   output_init_commands = {
     for k, server in local.filtered_servers_all : k => concat(
       [
@@ -337,7 +345,9 @@ locals {
         ] : [],
       ) : [],
       [
+        "curl -fsLS https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$(dpkg --print-architecture).deb -o /tmp/cloudflared.deb && dpkg -i /tmp/cloudflared.deb && rm /tmp/cloudflared.deb",
         "curl -fsLS https://tailscale.com/install.sh | sh",
+        "cloudflared service install ${local.output_cloudflare_tunnels[k].token}",
         "tailscale up --advertise-exit-node --authkey ${local.output_tailscale_tailnet_keys[k]} --hostname ${k}"
       ]
     )

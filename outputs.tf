@@ -8,6 +8,11 @@ output "cloud_config" {
   value     = local.output_cloud_config
 }
 
+output "cloudflare_tunnels" {
+  sensitive = true
+  value     = local.output_cloudflare_tunnels
+}
+
 output "init_commands" {
   sensitive = true
   value     = { for k, v in local.output_init_commands : k => join("\n", v) }

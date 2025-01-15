@@ -45,30 +45,24 @@ resource "onepassword_item" "server" {
   }
 
   section {
-    label = "Mail"
+    label = "Cloudflare Tunnel"
 
     field {
-      label = "SMTP Host"
-      type  = "STRING"
-      value = var.terraform.resend.smtp_host
+      label = "Cloudflare Tunnel CNAME"
+      type  = "URL"
+      value = local.output_cloudflare_tunnels[each.key].cname
     }
 
     field {
-      label = "SMTP Port"
+      label = "Cloudflare Tunnel ID"
       type  = "STRING"
-      value = var.terraform.resend.smtp_port
+      value = local.output_cloudflare_tunnels[each.key].id
     }
 
     field {
-      label = "SMTP Username"
-      type  = "STRING"
-      value = var.terraform.resend.smtp_username
-    }
-
-    field {
-      label = "SMTP Password"
+      label = "Cloudflare Tunnel Token"
       type  = "CONCEALED"
-      value = local.output_resend_api_keys[each.key]
+      value = local.output_cloudflare_tunnels[each.key].token
     }
   }
 
