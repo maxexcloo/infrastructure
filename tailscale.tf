@@ -23,10 +23,7 @@ resource "tailscale_acl" "default" {
 }
 
 resource "tailscale_tailnet_key" "server" {
-  for_each = {
-    for k, server in local.filtered_servers_all : k => server
-    if contains(server.flags, "tailscale")
-  }
+  for_each = local.filtered_servers_all
 
   description   = "${each.value.tag}-${each.key}"
   preauthorized = true

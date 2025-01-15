@@ -44,31 +44,6 @@ resource "onepassword_item" "server" {
     }
   }
 
-  dynamic "section" {
-    for_each = contains(each.value.flags, "cloudflared") ? [true] : []
-
-    content {
-      label = "Cloudflare Tunnel"
-
-      field {
-        label = "Cloudflare Tunnel CNAME"
-        type  = "URL"
-        value = local.output_cloudflare_tunnels[each.key].cname
-      }
-
-      field {
-        label = "Cloudflare Tunnel ID"
-        type  = "STRING"
-        value = local.output_cloudflare_tunnels[each.key].id
-      }
-
-      field {
-        label = "Cloudflare Tunnel Token"
-        type  = "CONCEALED"
-        value = local.output_cloudflare_tunnels[each.key].token
-      }
-    }
-  }
   section {
     label = "Mail"
 
@@ -108,22 +83,6 @@ resource "onepassword_item" "server" {
   }
 
   section {
-    label = "SSH"
-
-    field {
-      label = "SSH Private Key"
-      type  = "CONCEALED"
-      value = local.output_ssh[each.key].private_key
-    }
-
-    field {
-      label = "SSH Public Key"
-      type  = "STRING"
-      value = local.output_ssh[each.key].public_key
-    }
-  }
-
-  section {
     label = "Secret Hash"
 
     field {
@@ -133,17 +92,13 @@ resource "onepassword_item" "server" {
     }
   }
 
-  dynamic "section" {
-    for_each = contains(each.value.flags, "tailscale") ? [true] : []
+  section {
+    label = "Tailscale"
 
-    content {
-      label = "Tailscale"
-
-      field {
-        label = "Tailscale Tailnet Key"
-        type  = "CONCEALED"
-        value = local.output_tailscale_tailnet_keys[each.key]
-      }
+    field {
+      label = "Tailscale Tailnet Key"
+      type  = "CONCEALED"
+      value = local.output_tailscale_tailnet_keys[each.key]
     }
   }
 

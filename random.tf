@@ -6,13 +6,6 @@ resource "random_password" "b2" {
   upper   = false
 }
 
-resource "random_password" "cloudflare_tunnel" {
-  for_each = local.filtered_servers_all
-
-  length  = 64
-  special = false
-}
-
 resource "random_password" "secret_hash" {
   for_each = local.filtered_servers_all
 

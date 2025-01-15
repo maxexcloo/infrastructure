@@ -8,11 +8,6 @@ output "cloud_config" {
   value     = local.output_cloud_config
 }
 
-output "cloudflare_tunnels" {
-  sensitive = true
-  value     = local.output_cloudflare_tunnels
-}
-
 output "init_commands" {
   sensitive = true
   value     = { for k, v in local.output_init_commands : k => join("\n", v) }
@@ -35,21 +30,14 @@ output "servers" {
       server,
       {
         b2                    = local.output_b2[k]
-        cloudflare_tunnel     = try(local.output_cloudflare_tunnels[k], "")
         name                  = k
         password              = onepassword_item.server[k].password
         resend_api_key        = local.output_resend_api_keys[k]
         secret_hash           = local.output_secret_hashes[k]
-        ssh                   = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
-        tailscale_tailnet_key = try(local.output_tailscale_tailnet_keys[k], "")
+        tailscale_tailnet_key = local.output_tailscale_tailnet_keys[k]
       }
     )
   })
-}
-
-output "ssh" {
-  sensitive = true
-  value     = local.output_ssh
 }
 
 output "tailscale_tailnet_keys" {

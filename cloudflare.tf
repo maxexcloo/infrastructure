@@ -1,21 +1,5 @@
-data "cloudflare_api_token_permission_groups" "default" {}
-
 resource "cloudflare_account" "default" {
   name = var.terraform.cloudflare.email
-}
-
-resource "cloudflare_api_token" "internal" {
-  name = "internal"
-
-  policy {
-    permission_groups = [
-      data.cloudflare_api_token_permission_groups.default.zone["DNS Write"],
-      data.cloudflare_api_token_permission_groups.default.zone["Zone Read"]
-    ]
-    resources = {
-      "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
-    }
-  }
 }
 
 resource "cloudflare_record" "dns" {
@@ -129,18 +113,6 @@ resource "cloudflare_record" "wildcard" {
   name            = "*.${each.value.name}"
   type            = "CNAME"
   zone_id         = each.value.zone_id
-}
-
-resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
-  for_each = {
-    for k, server in local.filtered_servers_all : k => server
-    if contains(server.flags, "cloudflared")
-  }
-
-  account_id = cloudflare_account.default.id
-  config_src = "cloudflare"
-  name       = each.key
-  secret     = random_password.cloudflare_tunnel[each.key].result
 }
 
 resource "cloudflare_zone" "zone" {

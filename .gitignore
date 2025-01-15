@@ -2,5 +2,3 @@
 .terraform.*
 *.log
 *.tfvars
-pyinfra/docker
-pyinfra/inventory.py

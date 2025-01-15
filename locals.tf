@@ -312,18 +312,10 @@ locals {
         init_commands = local.output_init_commands[k]
         password_hash = htpasswd_password.server[k].sha512
         server        = server
-        ssh_keys      = concat(data.github_user.default.ssh_keys, [local.output_ssh[k].public_key])
+        ssh_keys      = data.github_user.default.ssh_keys
       }
     )
     if server.config.enable_cloud_config
-  }
-
-  output_cloudflare_tunnels = {
-    for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
-      cname = cloudflare_zero_trust_tunnel_cloudflared.cname
-      id    = cloudflare_zero_trust_tunnel_cloudflared.id
-      token = cloudflare_zero_trust_tunnel_cloudflared.tunnel_token
-    }
   }
 
   output_init_commands = {
@@ -338,19 +330,16 @@ locals {
         [
           "curl -fsLS https://get.docker.com | sh",
           "docker network create ${var.default.organisation}",
-          "docker run --add-host host.docker.internal:host-gateway --name caddy --network ${var.default.organisation} --restart unless-stopped -d -l \"caddy_0=(external)\" -l \"caddy_0.tls=${var.default.email}\" -l \"caddy_1=(internal)\" -l \"caddy_1.tls=${var.default.email}\" -l \"caddy_1.tls.dns=cloudflare ${cloudflare_api_token.internal.value}\" -l \"caddy_1.tls.resolvers=1.1.1.1\" -p 80:80 -p 443:443 -v /var/run/docker.sock:/var/run/docker.sock -v caddy_data:/data ghcr.io/maxexcloo/caddy",
-          "docker run --name portainer-agent --restart unless-stopped -d -p 9001:9001 -v /:/host -v /var/lib/docker/volumes:/var/lib/docker/volumes -v /var/run/docker.sock:/var/run/docker.sock portainer/agent",
+          "docker run --name portainer-agent --restart unless-stopped -d -p 9001:9001 -v /:/host -v ${contains(server.flags, "truenas") ? "/mnt/.ix-apps/docker/volumes:/mnt/.ix-apps/docker/volumes" : "/var/lib/docker/volumes:/var/lib/docker/volumes"} -v /var/run/docker.sock:/var/run/docker.sock portainer/agent",
         ],
-        contains(server.flags, "cloudflared") ? [
-          "docker run --name cloudflared --network host --restart unless-stopped -d cloudflare/cloudflared tunnel run --token ${local.output_cloudflare_tunnels[k].token}"
-        ] : [],
         contains(server.flags, "portainer") ? [
           "docker run --name portainer --network ${var.default.organisation} --restart unless-stopped -d -l \"caddy.reverse_proxy={{upstreams 9000}}\" -l \"caddy.import=internal\" -l \"caddy=portainer.${var.default.domain_internal}\" -p 8000:8000 -p 9000:9000 -p 9443:9443 -v portainer_data:/data portainer/portainer-ce"
         ] : [],
-        contains(server.flags, "tailscale") ? [
-          "docker run --name tailscale --network host --privileged --restart unless-stopped --security-opt apparmor=unconfined -d -e TS_ACCEPT_DNS=true -e TS_AUTH_ONCE=true -e TS_AUTHKEY=${local.output_tailscale_tailnet_keys[k]} -e TS_EXTRA_ARGS=--advertise-exit-node -e TS_HOSTNAME=${k} -e TS_STATE_DIR=/data -e TS_USERSPACE=false -v /etc/resolv.conf:/etc/resolv.conf -v /var/run/dbus:/var/run/dbus -v /run/systemd/resolve:/run/systemd/resolve -v tailscale_data:/data tailscale/tailscale"
-        ] : []
       ) : [],
+      [
+        "curl -fsLS https://tailscale.com/install.sh | sh",
+        "tailscale up --advertise-exit-node --authkey ${local.output_tailscale_tailnet_keys[k]} --hostname ${k}"
+      ]
     )
   }
 
@@ -360,13 +349,6 @@ locals {
 
   output_secret_hashes = {
     for k, random_password in random_password.secret_hash : k => random_password.result
-  }
-
-  output_ssh = {
-    for k, tls_private_key in tls_private_key.ssh_key : k => {
-      private_key = trimspace(tls_private_key.private_key_openssh)
-      public_key  = trimspace(tls_private_key.public_key_openssh)
-    }
   }
 
   output_tailscale_tailnet_keys = {
