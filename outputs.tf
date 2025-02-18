@@ -8,6 +8,11 @@ output "cloud_config" {
   value     = local.output_cloud_config
 }
 
+output "cloudflare_api_tokens" {
+  sensitive = true
+  value     = local.output_cloudflare_api_tokens
+}
+
 output "cloudflare_tunnels" {
   sensitive = true
   value     = local.output_cloudflare_tunnels
@@ -35,6 +40,7 @@ output "servers" {
       server,
       {
         b2                    = local.output_b2[k]
+        cloudflare_api_token  = local.output_cloudflare_api_tokens[k]
         cloudflare_tunnel     = local.output_cloudflare_tunnels[k]
         name                  = k
         password              = onepassword_item.server[k].password

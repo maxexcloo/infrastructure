@@ -318,6 +318,10 @@ locals {
     if server.config.enable_cloud_config
   }
 
+  output_cloudflare_api_tokens = {
+    for k, cloudflare_api_token in cloudflare_api_token.server : k => cloudflare_api_token.value
+  }
+
   output_cloudflare_tunnels = {
     for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
       cname = cloudflare_zero_trust_tunnel_cloudflared.cname
