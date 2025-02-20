@@ -32,6 +32,11 @@ provider "proxmox" {
   ssh {
     agent    = true
     username = var.terraform.proxmox.pie.username
+
+    node {
+      address = var.terraform.proxmox.pie.host
+      name    = "pie"
+    }
   }
 }
 
