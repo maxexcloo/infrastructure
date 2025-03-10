@@ -204,6 +204,7 @@ locals {
             boot_disk_image_id = ""
             boot_disk_size     = 128
             cpus               = 4
+            ingress_ports      = [22, 80, 443]
             memory             = 8
             shape              = "VM.Standard.A1.Flex"
           },
