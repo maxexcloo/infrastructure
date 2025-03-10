@@ -94,6 +94,21 @@ resource "oci_core_default_security_list" "au" {
       }
     }
   }
+
+  dynamic "ingress_security_rules" {
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.merged_vms_oci : vm.config.ingress_ports]))
+
+    content {
+      protocol  = 17
+      source    = element(ingress_security_rules.value, 0)
+      stateless = false
+
+      tcp_options {
+        max = ingress_security_rules.value[1]
+        min = ingress_security_rules.value[1]
+      }
+    }
+  }
 }
 
 resource "oci_core_instance" "vm" {
