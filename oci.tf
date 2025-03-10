@@ -81,7 +81,7 @@ resource "oci_core_default_security_list" "au" {
   }
 
   dynamic "ingress_security_rules" {
-    for_each = setproduct(["::/0", "0.0.0.0/0"], [for vm in local.merged_vms_oci : flatten([for port in vm.config.ingress_ports : port])])
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.merged_vms_oci : vm.config.ingress_ports]))
 
     content {
       protocol  = 6
