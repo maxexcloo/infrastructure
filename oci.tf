@@ -89,8 +89,8 @@ resource "oci_core_default_security_list" "au" {
       stateless = false
 
       tcp_options {
-        max = ingress_security_rules.value[1]
-        min = ingress_security_rules.value[1]
+        max = element(ingress_security_rules.value, 1)
+        min = element(ingress_security_rules.value, 1)
       }
     }
   }
@@ -103,9 +103,9 @@ resource "oci_core_default_security_list" "au" {
       source    = element(ingress_security_rules.value, 0)
       stateless = false
 
-      tcp_options {
-        max = ingress_security_rules.value[1]
-        min = ingress_security_rules.value[1]
+      udp_options {
+        max = element(ingress_security_rules.value, 1)
+        min = element(ingress_security_rules.value, 1)
       }
     }
   }
