@@ -41,10 +41,7 @@ locals {
         port     = 22
         username = "root"
       },
-      device,
-      {
-        sftp_paths = concat(var.default.user_config.sftp_paths, try(device.sftp_paths, []))
-      }
+      device
     )
   }
 
@@ -90,10 +87,7 @@ locals {
         ]
         user = merge(
           var.default.user_config,
-          try(router.user, {}),
-          {
-            sftp_paths = concat(var.default.user_config.sftp_paths, try(router.user.sftp_paths, []))
-          }
+          try(router.user, {})
         )
       }
     )
@@ -129,10 +123,7 @@ locals {
           ]
           user = merge(
             var.default.user_config,
-            try(server.user, {}),
-            {
-              sftp_paths = concat(var.default.user_config.sftp_paths, try(server.user.sftp_paths, []))
-            }
+            try(server.user, {})
           )
         },
       )
@@ -174,10 +165,7 @@ locals {
         ]
         user = merge(
           var.default.user_config,
-          try(vm.user, {}),
-          {
-            sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
-          }
+          try(vm.user, {})
         )
       }
     )
@@ -215,10 +203,7 @@ locals {
         ]
         user = merge(
           var.default.user_config,
-          try(vm.user, {}),
-          {
-            sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
-          }
+          try(vm.user, {})
         )
       }
     )
@@ -286,10 +271,7 @@ locals {
           ]
           user = merge(
             var.default.user_config,
-            try(vm.user, {}),
-            {
-              sftp_paths = concat(var.default.user_config.sftp_paths, try(vm.user.sftp_paths, []))
-            }
+            try(vm.user, {})
           )
         },
       )

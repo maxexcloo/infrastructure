@@ -6,7 +6,7 @@ package_reboot_if_required: true
 package_update: true
 package_upgrade: true
 packages: ${jsonencode(server.config.packages)}
-ssh_pwauth: false
+ssh_pwauth: ${server.config.enable_ssh_password_auth}
 timezone: ${server.config.timezone}
 runcmd:
 %{ for init_command in init_commands ~}
@@ -18,7 +18,7 @@ users:
     groups: ${jsonencode(server.user.groups)}
     hashed_passwd: ${password_hash}
     lock_passwd: false
-    shell: ${server.config.shell}
+    shell: ${server.user.shell}
     ssh_authorized_keys: ${jsonencode(ssh_keys)}
 write_files:
 %{ if contains(server.flags, "ubuntu") ~}
