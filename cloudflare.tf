@@ -38,6 +38,12 @@ resource "cloudflare_account_token" "server" {
       }
     }
   ]
+
+  lifecycle {
+    ignore_changes = [
+      policies
+    ]
+  }
 }
 
 resource "cloudflare_dns_record" "dns" {
