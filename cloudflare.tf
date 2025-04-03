@@ -24,18 +24,14 @@ resource "cloudflare_account_token" "server" {
     {
       effect = "allow"
       permission_groups = [
-        {
-          id = element(
-            data.cloudflare_account_api_token_permission_groups_list.default.result,
-            index(data.cloudflare_account_api_token_permission_groups_list.default.result.*.name, "DNS Write")
-          ).id
-        },
-        {
-          id = element(
-            data.cloudflare_account_api_token_permission_groups_list.default.result,
-            index(data.cloudflare_account_api_token_permission_groups_list.default.result.*.name, "Zone Read")
-          ).id
-        }
+        for permission_id in sort([
+          one([
+            for group in data.cloudflare_account_api_token_permission_groups_list.default.result : group.id if group.name == "DNS Write"
+          ]),
+          one([
+            for group in data.cloudflare_account_api_token_permission_groups_list.default.result : group.id if group.name == "Zone Read"
+          ])
+        ]) : { id = permission_id }
       ]
       resources = {
         "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
