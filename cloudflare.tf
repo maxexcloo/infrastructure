@@ -1,136 +1,160 @@
-data "cloudflare_api_token_permission_groups" "default" {}
+data "cloudflare_account_api_token_permission_groups_list" "default" {
+  account_id = cloudflare_account.default.id
+}
+
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "server" {
+  for_each = cloudflare_zero_trust_tunnel_cloudflared.server
+
+  account_id = cloudflare_account.default.id
+  tunnel_id  = each.value.id
+}
 
 resource "cloudflare_account" "default" {
   name = var.terraform.cloudflare.email
+  type = "standard"
 }
 
-resource "cloudflare_api_token" "server" {
+resource "cloudflare_account_token" "server" {
   for_each = local.filtered_servers_all
 
-  name = each.key
+  account_id = cloudflare_account.default.id
+  name       = each.key
 
-  policy {
-    permission_groups = [
-      data.cloudflare_api_token_permission_groups.default.zone["DNS Write"],
-      data.cloudflare_api_token_permission_groups.default.zone["Zone Read"]
-    ]
-    resources = {
-      "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
+  policies = [
+    {
+      effect = "allow"
+      permission_groups = [
+        {
+          id = element(
+            data.cloudflare_account_api_token_permission_groups_list.default.result,
+            index(data.cloudflare_account_api_token_permission_groups_list.default.result.*.name, "DNS Write")
+          ).id
+        },
+        {
+          id = element(
+            data.cloudflare_account_api_token_permission_groups_list.default.result,
+            index(data.cloudflare_account_api_token_permission_groups_list.default.result.*.name, "Zone Read")
+          ).id
+        }
+      ]
+      resources = {
+        "com.cloudflare.api.account.zone.${cloudflare_zone.zone[var.default.domain_internal].id}" = "*"
+      }
     }
-  }
+  ]
 }
 
-resource "cloudflare_record" "dns" {
+resource "cloudflare_dns_record" "dns" {
   for_each = local.merged_dns
 
-  allow_overwrite = true
-  content         = each.value.content
-  name            = each.value.name == "@" ? each.value.zone : each.value.name
-  priority        = each.value.priority
-  type            = each.value.type
-  zone_id         = cloudflare_zone.zone[each.value.zone].id
+  content  = each.value.content
+  name     = each.value.name == "@" ? each.value.zone : "${each.value.name}.${each.value.zone}"
+  priority = each.value.priority
+  ttl      = 1
+  type     = each.value.type
+  zone_id  = cloudflare_zone.zone[each.value.zone].id
 }
 
-resource "cloudflare_record" "internal_ipv4" {
+resource "cloudflare_dns_record" "internal_ipv4" {
   for_each = local.filtered_tailscale_devices
 
-  allow_overwrite = true
-  content         = each.value.private_ipv4
-  name            = each.value.fqdn_internal
-  type            = "A"
-  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
+  content = each.value.private_ipv4
+  name    = each.value.fqdn_internal
+  ttl     = 1
+  type    = "A"
+  zone_id = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
-resource "cloudflare_record" "internal_ipv6" {
+resource "cloudflare_dns_record" "internal_ipv6" {
   for_each = local.filtered_tailscale_devices
 
-  allow_overwrite = true
-  content         = each.value.private_ipv6
-  name            = each.value.fqdn_internal
-  type            = "AAAA"
-  zone_id         = cloudflare_zone.zone[var.default.domain_internal].id
+  content = each.value.private_ipv6
+  name    = each.value.fqdn_internal
+  ttl     = 1
+  type    = "AAAA"
+  zone_id = cloudflare_zone.zone[var.default.domain_internal].id
 }
 
-resource "cloudflare_record" "noncloud" {
+resource "cloudflare_dns_record" "noncloud" {
   for_each = {
     for k, server in local.filtered_servers_noncloud : k => server
     if length(server.networks) > 0
   }
 
-  allow_overwrite = true
-  content         = element(each.value.networks, 0).public_address
-  name            = each.value.fqdn_external
-  type            = "CNAME"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = element(each.value.networks, 0).public_address
+  name    = each.value.fqdn_external
+  ttl     = 1
+  type    = "CNAME"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "router" {
+resource "cloudflare_dns_record" "router" {
   for_each = {
     for k, router in local.merged_routers : k => router
     if length(router.networks) > 0
   }
 
-  allow_overwrite = true
-  content         = element(each.value.networks, 0).public_address
-  name            = each.value.fqdn_external
-  type            = "CNAME"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = element(each.value.networks, 0).public_address
+  name    = each.value.fqdn_external
+  ttl     = 1
+  type    = "CNAME"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "vm_ipv4" {
+resource "cloudflare_dns_record" "vm_ipv4" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
     if length(vm.networks) > 0
   }
 
-  allow_overwrite = true
-  content         = element(each.value.networks, 0).public_ipv4
-  name            = each.value.fqdn_external
-  type            = "A"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = element(each.value.networks, 0).public_ipv4
+  name    = each.value.fqdn_external
+  ttl     = 1
+  type    = "A"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "vm_ipv6" {
+resource "cloudflare_dns_record" "vm_ipv6" {
   for_each = {
     for k, vm in local.merged_vms : k => vm
     if length(vm.networks) > 0
   }
 
-  allow_overwrite = true
-  content         = element(each.value.networks, 0).public_ipv6
-  name            = each.value.fqdn_external
-  type            = "AAAA"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = element(each.value.networks, 0).public_ipv6
+  name    = each.value.fqdn_external
+  ttl     = 1
+  type    = "AAAA"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "vm_oci_ipv4" {
+resource "cloudflare_dns_record" "vm_oci_ipv4" {
   for_each = data.oci_core_vnic.vm
 
-  allow_overwrite = true
-  content         = each.value.public_ip_address
-  name            = local.merged_vms_oci[each.key].fqdn_external
-  type            = "A"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = each.value.public_ip_address
+  name    = local.merged_vms_oci[each.key].fqdn_external
+  ttl     = 1
+  type    = "A"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "vm_oci_ipv6" {
+resource "cloudflare_dns_record" "vm_oci_ipv6" {
   for_each = data.oci_core_vnic.vm
 
-  allow_overwrite = true
-  content         = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
-  name            = local.merged_vms_oci[each.key].fqdn_external
-  type            = "AAAA"
-  zone_id         = cloudflare_zone.zone[var.default.domain_external].id
+  content = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
+  name    = local.merged_vms_oci[each.key].fqdn_external
+  ttl     = 1
+  type    = "AAAA"
+  zone_id = cloudflare_zone.zone[var.default.domain_external].id
 }
 
-resource "cloudflare_record" "wildcard" {
-  for_each = local.filtered_cloudflare_records_wildcard
+resource "cloudflare_dns_record" "wildcard" {
+  for_each = local.filtered_cloudflare_dns_record_wildcard
 
-  allow_overwrite = true
-  content         = each.value.hostname
-  name            = "*.${each.value.name}"
-  type            = "CNAME"
-  zone_id         = each.value.zone_id
+  content = each.value.name
+  name    = "*.${each.value.name}"
+  ttl     = 1
+  type    = "CNAME"
+  zone_id = each.value.zone_id
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
@@ -139,12 +163,14 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   account_id = cloudflare_account.default.id
   config_src = "cloudflare"
   name       = each.key
-  secret     = random_password.cloudflare_tunnel[each.key].result
 }
 
 resource "cloudflare_zone" "zone" {
   for_each = var.dns
 
-  account_id = cloudflare_account.default.id
-  zone       = each.key
+  name = each.key
+
+  account = {
+    id = cloudflare_account.default.id
+  }
 }

@@ -89,7 +89,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
     for_each = endswith(each.value.config.boot_disk_image_url, ".iso") ? [true] : []
 
     content {
-      enabled   = true
       file_id   = proxmox_virtual_environment_download_file.vm[each.key].id
       interface = "ide0"
     }

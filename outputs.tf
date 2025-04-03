@@ -8,9 +8,9 @@ output "cloud_config" {
   value     = local.output_cloud_config
 }
 
-output "cloudflare_api_tokens" {
+output "cloudflare_account_tokens" {
   sensitive = true
-  value     = local.output_cloudflare_api_tokens
+  value     = local.output_cloudflare_account_tokens
 }
 
 output "cloudflare_tunnels" {
@@ -39,14 +39,14 @@ output "servers" {
     for k, server in local.filtered_servers_all : k => merge(
       server,
       {
-        b2                    = local.output_b2[k]
-        cloudflare_api_token  = local.output_cloudflare_api_tokens[k]
-        cloudflare_tunnel     = local.output_cloudflare_tunnels[k]
-        name                  = k
-        password              = onepassword_item.server[k].password
-        resend_api_key        = local.output_resend_api_keys[k]
-        secret_hash           = local.output_secret_hashes[k]
-        tailscale_tailnet_key = local.output_tailscale_tailnet_keys[k]
+        b2                       = local.output_b2[k]
+        cloudflare_account_token = local.output_cloudflare_account_tokens[k]
+        cloudflare_tunnel        = local.output_cloudflare_tunnels[k]
+        name                     = k
+        password                 = onepassword_item.server[k].password
+        resend_api_key           = local.output_resend_api_keys[k]
+        secret_hash              = local.output_secret_hashes[k]
+        tailscale_tailnet_key    = local.output_tailscale_tailnet_keys[k]
       }
     )
   })

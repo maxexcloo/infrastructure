@@ -1,15 +1,15 @@
 locals {
-  filtered_cloudflare_records_wildcard = merge(
+  filtered_cloudflare_dns_record_wildcard = merge(
     {
-      for k, cloudflare_record in cloudflare_record.dns : k => cloudflare_record
+      for k, cloudflare_dns_record in cloudflare_dns_record.dns : k => cloudflare_dns_record
       if local.merged_dns[k].wildcard
     },
     {
-      for k, cloudflare_record in cloudflare_record.internal_ipv4 : "${k}-internal" => cloudflare_record
+      for k, cloudflare_dns_record in cloudflare_dns_record.internal_ipv4 : "${k}-internal" => cloudflare_dns_record
     },
-    cloudflare_record.noncloud,
-    cloudflare_record.vm_ipv4,
-    cloudflare_record.vm_oci_ipv4
+    cloudflare_dns_record.noncloud,
+    cloudflare_dns_record.vm_ipv4,
+    cloudflare_dns_record.vm_oci_ipv4
   )
 
   filtered_servers_all = merge(
@@ -116,7 +116,7 @@ locals {
           networks = [
             for network in try(server.networks, [{}]) : merge(
               {
-                public_address = cloudflare_record.router[router.location].name
+                public_address = cloudflare_dns_record.router[router.location].name
               },
               network
             )
@@ -255,7 +255,7 @@ locals {
             for network in try(vm.networks, [{}]) : merge(
               {
                 firewall       = true
-                public_address = cloudflare_record.router[server.location].name
+                public_address = cloudflare_dns_record.router[server.location].name
                 vlan_id        = null
               },
               network
@@ -301,15 +301,15 @@ locals {
     if server.config.enable_cloud_config
   }
 
-  output_cloudflare_api_tokens = {
-    for k, cloudflare_api_token in cloudflare_api_token.server : k => cloudflare_api_token.value
+  output_cloudflare_account_tokens = {
+    for k, cloudflare_account_token in cloudflare_account_token.server : k => cloudflare_account_token.value
   }
 
   output_cloudflare_tunnels = {
-    for k, cloudflare_zero_trust_tunnel_cloudflared in cloudflare_zero_trust_tunnel_cloudflared.server : k => {
-      cname = cloudflare_zero_trust_tunnel_cloudflared.cname
-      id    = cloudflare_zero_trust_tunnel_cloudflared.id
-      token = cloudflare_zero_trust_tunnel_cloudflared.tunnel_token
+    for k, cloudflare_zero_trust_tunnel_cloudflared_token in data.cloudflare_zero_trust_tunnel_cloudflared_token.server : k => {
+      cname = "${cloudflare_zero_trust_tunnel_cloudflared_token.tunnel_id}.cfargotunnel.com"
+      id    = cloudflare_zero_trust_tunnel_cloudflared_token.tunnel_id
+      token = cloudflare_zero_trust_tunnel_cloudflared_token.token
     }
   }
 
