@@ -1,23 +1,18 @@
 data "cloudflare_account_api_token_permission_groups_list" "default" {
-  account_id = cloudflare_account.default.id
+  account_id = var.terraform.cloudflare.account_id
 }
 
 data "cloudflare_zero_trust_tunnel_cloudflared_token" "server" {
   for_each = cloudflare_zero_trust_tunnel_cloudflared.server
 
-  account_id = cloudflare_account.default.id
+  account_id = var.terraform.cloudflare.account_id
   tunnel_id  = each.value.id
-}
-
-resource "cloudflare_account" "default" {
-  name = var.terraform.cloudflare.email
-  type = "standard"
 }
 
 resource "cloudflare_account_token" "server" {
   for_each = local.filtered_servers_all
 
-  account_id = cloudflare_account.default.id
+  account_id = var.terraform.cloudflare.account_id
   name       = each.key
 
   policies = [
@@ -162,7 +157,7 @@ resource "cloudflare_dns_record" "wildcard" {
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
   for_each = local.filtered_servers_all
 
-  account_id = cloudflare_account.default.id
+  account_id = var.terraform.cloudflare.account_id
   config_src = "cloudflare"
   name       = each.key
 }
@@ -173,6 +168,6 @@ resource "cloudflare_zone" "zone" {
   name = each.key
 
   account = {
-    id = cloudflare_account.default.id
+    id = var.terraform.cloudflare.account_id
   }
 }
