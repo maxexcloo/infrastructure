@@ -15,6 +15,12 @@ resource "cloudflare_account_token" "server" {
   account_id = var.terraform.cloudflare.account_id
   name       = each.key
 
+  lifecycle {
+    ignore_changes = [
+      policies
+    ]
+  }
+
   policies = [
     {
       effect = "allow"
@@ -33,12 +39,6 @@ resource "cloudflare_account_token" "server" {
       }
     }
   ]
-
-  lifecycle {
-    ignore_changes = [
-      policies
-    ]
-  }
 }
 
 resource "cloudflare_dns_record" "dns" {

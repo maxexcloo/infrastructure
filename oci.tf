@@ -1,9 +1,3 @@
-data "oci_core_ipv6s" "vm" {
-  for_each = data.oci_core_vnic_attachments.vm
-
-  vnic_id = element(each.value.vnic_attachments, 0).id
-}
-
 data "oci_core_vnic" "vm" {
   for_each = data.oci_core_vnic_attachments.vm
 
