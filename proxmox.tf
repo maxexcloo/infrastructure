@@ -10,6 +10,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
   file_name               = "${each.value.name}${endswith(each.value.config.boot_disk_image_url, ".iso") ? ".iso" : ".img"}"
   node_name               = each.value.parent
   overwrite               = false
+  provider                = proxmox.by_host[each.value.parent]
   upload_timeout          = 1800
   url                     = each.value.config.boot_disk_image_url
 }
@@ -22,6 +23,7 @@ resource "proxmox_virtual_environment_file" "vm" {
 
   content_type = "snippets"
   datastore_id = "local"
+  provider     = proxmox.by_host[each.value.parent]
   node_name    = each.value.parent
 
   source_raw {
@@ -37,6 +39,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   machine       = "q35"
   name          = each.value.name
   node_name     = each.value.parent
+  provider      = proxmox.by_host[each.value.parent]
   scsi_hardware = "virtio-scsi-single"
 
   cpu {
