@@ -45,6 +45,16 @@ resource "onepassword_item" "server" {
   }
 
   section {
+    label = "Cloudflare Account"
+
+    field {
+      label = "Cloudflare Account Token"
+      type  = "CONCEALED"
+      value = local.output_cloudflare_account_tokens[each.key]
+    }
+  }
+
+  section {
     label = "Cloudflare Tunnel"
 
     field {
