@@ -29,6 +29,7 @@ provider "proxmox" {
 
   alias    = "by_host"
   endpoint = "https://${each.value.host}:${each.value.port}"
+  insecure = true
   password = each.value.password
   username = "${each.value.username}@pam"
 
