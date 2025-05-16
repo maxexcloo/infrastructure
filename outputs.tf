@@ -33,6 +33,11 @@ output "secret_hashes" {
   value     = local.output_secret_hashes
 }
 
+output "sftpgo" {
+  sensitive = true
+  value     = local.output_sftpgo
+}
+
 output "servers" {
   sensitive = true
   value = jsonencode({
@@ -46,6 +51,7 @@ output "servers" {
         password                 = onepassword_item.server[k].password
         resend_api_key           = local.output_resend_api_keys[k]
         secret_hash              = local.output_secret_hashes[k]
+        sftpgo                   = local.output_sftpgo[k]
         tailscale_tailnet_key    = local.output_tailscale_tailnet_keys[k]
       }
     )

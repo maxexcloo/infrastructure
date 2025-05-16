@@ -348,6 +348,15 @@ locals {
     for k, random_password in random_password.secret_hash : k => random_password.result
   }
 
+  output_sftpgo = {
+    for k, sftpgo_user in sftpgo_user.server : k => {
+      home_directory = sftpgo_user.home_dir
+      password       = sftpgo_user.password
+      username       = sftpgo_user.username
+      webdav_url     = var.terraform.sftpgo.webdav_url
+    }
+  }
+
   output_tailscale_tailnet_keys = {
     for k, tailscale_tailnet_key in tailscale_tailnet_key.server : k => tailscale_tailnet_key.key
   }

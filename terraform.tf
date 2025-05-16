@@ -33,6 +33,9 @@ terraform {
     restapi = {
       source = "mastercard/restapi"
     }
+    sftpgo = {
+      source = "drakkan/sftpgo"
+    }
     tailscale = {
       source = "tailscale/tailscale"
     }

@@ -45,7 +45,7 @@ resource "onepassword_item" "server" {
   }
 
   section {
-    label = "Cloudflare Account"
+    label = "Cloudflare"
 
     field {
       label = "Cloudflare Account Token"
@@ -93,6 +93,34 @@ resource "onepassword_item" "server" {
       label = "Secret Hash"
       type  = "CONCEALED"
       value = local.output_secret_hashes[each.key]
+    }
+  }
+
+  section {
+    label = "SFTPGo"
+
+    field {
+      label = "SFTPGo Username"
+      type  = "STRING"
+      value = local.output_sftpgo[each.key].username
+    }
+
+    field {
+      label = "SFTPGo Password"
+      type  = "CONCEALED"
+      value = local.output_sftpgo[each.key].password
+    }
+
+    field {
+      label = "SFTPGo Home Directory"
+      type  = "STRING"
+      value = local.output_sftpgo[each.key].home_directory
+    }
+
+    field {
+      label = "SFTPGo WebDAV URL"
+      type  = "URL"
+      value = local.output_sftpgo[each.key].webdav_url
     }
   }
 

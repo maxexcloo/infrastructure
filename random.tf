@@ -12,3 +12,10 @@ resource "random_password" "secret_hash" {
   length  = 24
   special = false
 }
+
+resource "random_password" "sftpgo" {
+  for_each = local.filtered_servers_all
+
+  length  = 24
+  special = false
+}

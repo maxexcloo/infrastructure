@@ -56,6 +56,12 @@ provider "restapi" {
   }
 }
 
+provider "sftpgo" {
+  host     = var.terraform.sftpgo.host
+  password = var.terraform.sftpgo.password
+  username = var.terraform.sftpgo.username
+}
+
 provider "tailscale" {
   oauth_client_id     = var.terraform.tailscale.oauth_client_id
   oauth_client_secret = var.terraform.tailscale.oauth_client_secret
