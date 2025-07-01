@@ -321,16 +321,10 @@ locals {
       contains(server.config.packages, "qemu-guest-agent") ? [
         "systemctl enable --now qemu-guest-agent"
       ] : [],
-      contains(server.flags, "docker") ? concat(
-        [
-          "curl -fsLS https://get.docker.com | sh",
-          "docker network create ${var.default.organisation}",
-          "docker run --name portainer-agent --restart unless-stopped -d -p 9001:9001 -v /:/host -v ${contains(server.flags, "truenas") ? "/mnt/.ix-apps/docker/volumes:/mnt/.ix-apps/docker/volumes" : "/var/lib/docker/volumes:/var/lib/docker/volumes"} -v /var/run/docker.sock:/var/run/docker.sock portainer/agent",
-        ],
-        contains(server.flags, "portainer") ? [
-          "docker run --name portainer --network ${var.default.organisation} --restart unless-stopped -d -l \"caddy.reverse_proxy={{upstreams 9000}}\" -l \"caddy.import=internal\" -l \"caddy=portainer.${var.default.domain_internal}\" -p 8000:8000 -p 9000:9000 -p 9443:9443 -v portainer_data:/data portainer/portainer-ce"
-        ] : [],
-      ) : [],
+      contains(server.flags, "docker") ? [
+        "curl -fsLS https://get.docker.com | sh",
+        "docker network create ${var.default.organisation}",
+      ] : [],
       [
         "curl -fsLS https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$(dpkg --print-architecture).deb -o /tmp/cloudflared.deb && dpkg -i /tmp/cloudflared.deb && rm /tmp/cloudflared.deb",
         "curl -fsLS https://tailscale.com/install.sh | sh",
