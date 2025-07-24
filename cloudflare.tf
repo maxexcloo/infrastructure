@@ -1,5 +1,5 @@
 resource "cloudflare_account_token" "server" {
-  for_each = local.servers_filtered_all
+  for_each = local.servers
 
   account_id = var.terraform.cloudflare.account_id
   name       = each.key
@@ -31,7 +31,7 @@ resource "cloudflare_account_token" "server" {
 }
 
 resource "cloudflare_dns_record" "dns" {
-  for_each = local.dns_merged
+  for_each = local.dns
 
   content  = each.value.content
   name     = each.value.name == "@" ? each.value.zone : "${each.value.name}.${each.value.zone}"
@@ -42,7 +42,7 @@ resource "cloudflare_dns_record" "dns" {
 }
 
 resource "cloudflare_dns_record" "internal_ipv4" {
-  for_each = local.tailscale_filtered_devices
+  for_each = local.tailscale_devices
 
   content = each.value.private_ipv4
   name    = each.value.fqdn_internal
@@ -52,7 +52,7 @@ resource "cloudflare_dns_record" "internal_ipv4" {
 }
 
 resource "cloudflare_dns_record" "internal_ipv6" {
-  for_each = local.tailscale_filtered_devices
+  for_each = local.tailscale_devices
 
   content = each.value.private_ipv6
   name    = each.value.fqdn_internal
@@ -63,7 +63,7 @@ resource "cloudflare_dns_record" "internal_ipv6" {
 
 resource "cloudflare_dns_record" "noncloud" {
   for_each = {
-    for k, server in local.servers_filtered_noncloud : k => server
+    for k, server in local.servers_onprem : k => server
     if length(server.networks) > 0
   }
 
@@ -76,7 +76,7 @@ resource "cloudflare_dns_record" "noncloud" {
 
 resource "cloudflare_dns_record" "router" {
   for_each = {
-    for k, router in local.servers_merged_routers : k => router
+    for k, router in local.routers : k => router
     if length(router.networks) > 0
   }
 
@@ -89,7 +89,7 @@ resource "cloudflare_dns_record" "router" {
 
 resource "cloudflare_dns_record" "vm_ipv4" {
   for_each = {
-    for k, vm in local.vms_merged : k => vm
+    for k, vm in local.vms : k => vm
     if length(vm.networks) > 0
   }
 
@@ -102,7 +102,7 @@ resource "cloudflare_dns_record" "vm_ipv4" {
 
 resource "cloudflare_dns_record" "vm_ipv6" {
   for_each = {
-    for k, vm in local.vms_merged : k => vm
+    for k, vm in local.vms : k => vm
     if length(vm.networks) > 0
   }
 
@@ -117,7 +117,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv4" {
   for_each = data.oci_core_vnic.vm
 
   content = each.value.public_ip_address
-  name    = local.vms_merged_oci[each.key].fqdn_external
+  name    = local.vms_oci[each.key].fqdn_external
   ttl     = 1
   type    = "A"
   zone_id = cloudflare_zone.zone[var.default.domain_external].id
@@ -127,7 +127,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv6" {
   for_each = data.oci_core_vnic.vm
 
   content = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
-  name    = local.vms_merged_oci[each.key].fqdn_external
+  name    = local.vms_oci[each.key].fqdn_external
   ttl     = 1
   type    = "AAAA"
   zone_id = cloudflare_zone.zone[var.default.domain_external].id
@@ -144,7 +144,7 @@ resource "cloudflare_dns_record" "wildcard" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
-  for_each = local.servers_filtered_all
+  for_each = local.servers
 
   account_id = var.terraform.cloudflare.account_id
   config_src = "cloudflare"

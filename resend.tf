@@ -1,5 +1,5 @@
 resource "restapi_object" "resend_api_key_server" {
-  for_each = local.servers_filtered_all
+  for_each = local.servers
 
   data                      = jsonencode({ name = each.key })
   id_attribute              = "id"

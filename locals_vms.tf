@@ -1,5 +1,5 @@
 locals {
-  vms_merged = merge({
+  vms = merge({
     for vm in var.vms : "${vm.location}-${vm.name}" => merge(
       {
         flags        = []
@@ -35,7 +35,7 @@ locals {
     )
   })
 
-  vms_merged_oci = merge({
+  vms_oci = merge({
     for vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
       {
         flags        = []
@@ -73,8 +73,8 @@ locals {
     )
   })
 
-  vms_merged_proxmox = merge([
-    for server in local.servers_merged : {
+  vms_proxmox = merge([
+    for server in local.servers_physical : {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         {
           flags    = []

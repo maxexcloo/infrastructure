@@ -13,7 +13,7 @@ resource "b2_application_key" "server" {
 }
 
 resource "b2_bucket" "server" {
-  for_each = local.servers_filtered_all
+  for_each = local.servers
 
   bucket_name = "${each.key}-${random_password.b2[each.key].result}"
   bucket_type = "allPrivate"

@@ -1,10 +1,11 @@
 resource "local_file" "ssh_config" {
+  filename = "../../.ssh/config"
+
   content = templatefile(
     "templates/ssh/config",
     {
-      devices = local.servers_merged_devices
-      servers = local.servers_filtered_all
+      devices = local.devices
+      servers = local.servers
     }
   )
-  filename = "../../.ssh/config"
 }

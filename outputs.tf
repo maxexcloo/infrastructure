@@ -41,7 +41,7 @@ output "sftpgo" {
 output "servers" {
   sensitive = true
   value = jsonencode({
-    for k, server in local.servers_filtered_all : k => merge(
+    for k, server in local.servers : k => merge(
       server,
       {
         b2                       = local.output_b2[k]
