@@ -15,7 +15,6 @@
 
 ## Directory Structure
 ```
-Infrastructure/
 ├── data.tf                  # All data sources
 ├── locals_*.tf              # All locals
 ├── variables.tf             # Variable definitions

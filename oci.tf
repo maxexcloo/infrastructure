@@ -57,7 +57,7 @@ resource "oci_core_default_security_list" "au" {
   }
 
   dynamic "ingress_security_rules" {
-    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.merged_vms_oci : vm.config.ingress_ports]))
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_merged_oci : vm.config.ingress_ports]))
 
     content {
       protocol  = 6
@@ -72,7 +72,7 @@ resource "oci_core_default_security_list" "au" {
   }
 
   dynamic "ingress_security_rules" {
-    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.merged_vms_oci : vm.config.ingress_ports]))
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_merged_oci : vm.config.ingress_ports]))
 
     content {
       protocol  = 17
@@ -88,7 +88,7 @@ resource "oci_core_default_security_list" "au" {
 }
 
 resource "oci_core_instance" "vm" {
-  for_each = local.merged_vms_oci
+  for_each = local.vms_merged_oci
 
   availability_domain = data.oci_identity_availability_domain.au.name
   compartment_id      = var.terraform.oci.tenancy_ocid

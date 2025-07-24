@@ -15,6 +15,7 @@ data "github_user" "default" {
   username = var.terraform.github.username
 }
 
+
 data "oci_core_vnic" "vm" {
   for_each = data.oci_core_vnic_attachments.vm
 
@@ -38,3 +39,4 @@ data "onepassword_vault" "default" {
 }
 
 data "tailscale_devices" "default" {}
+

@@ -1,6 +1,6 @@
 resource "proxmox_virtual_environment_download_file" "vm" {
   for_each = {
-    for k, vm in local.merged_vms_proxmox : k => vm
+    for k, vm in local.vms_merged_proxmox : k => vm
     if vm.config.boot_disk_image_url != ""
   }
 
@@ -17,7 +17,7 @@ resource "proxmox_virtual_environment_download_file" "vm" {
 
 resource "proxmox_virtual_environment_file" "vm" {
   for_each = {
-    for k, vm in local.merged_vms_proxmox : k => vm
+    for k, vm in local.vms_merged_proxmox : k => vm
     if vm.config.enable_cloud_config
   }
 
@@ -33,7 +33,7 @@ resource "proxmox_virtual_environment_file" "vm" {
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
-  for_each = local.merged_vms_proxmox
+  for_each = local.vms_merged_proxmox
 
   bios          = "ovmf"
   machine       = "q35"

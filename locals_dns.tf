@@ -1,8 +1,8 @@
 locals {
-  filtered_cloudflare_dns_record_wildcard = merge(
+  dns_filtered_cloudflare_record_wildcard = merge(
     {
       for k, cloudflare_dns_record in cloudflare_dns_record.dns : k => cloudflare_dns_record
-      if local.merged_dns[k].wildcard
+      if local.dns_merged[k].wildcard
     },
     {
       for k, cloudflare_dns_record in cloudflare_dns_record.internal_ipv4 : "${k}-internal" => cloudflare_dns_record
@@ -12,7 +12,7 @@ locals {
     cloudflare_dns_record.vm_oci_ipv4
   )
 
-  merged_dns = merge([
+  dns_merged = merge([
     for zone, records in var.dns : {
       for i, record in records : "${record.name == "@" ? "" : "${record.name}."}${zone}-${lower(record.type)}-${i}" => merge(
         {

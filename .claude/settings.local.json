@@ -17,7 +17,10 @@
       "Bash(true)",
       "WebFetch(domain:registry.terraform.io)",
       "Bash(tofu validate:*)",
-      "Bash(tofu plan:*)"
+      "Bash(tofu plan:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(diff:*)"
     ],
     "deny": []
   }

@@ -42,7 +42,7 @@ resource "cloudflare_dns_record" "dns" {
 }
 
 resource "cloudflare_dns_record" "internal_ipv4" {
-  for_each = local.filtered_tailscale_devices
+  for_each = local.tailscale_filtered_devices
 
   content = each.value.private_ipv4
   name    = each.value.fqdn_internal
@@ -52,7 +52,7 @@ resource "cloudflare_dns_record" "internal_ipv4" {
 }
 
 resource "cloudflare_dns_record" "internal_ipv6" {
-  for_each = local.filtered_tailscale_devices
+  for_each = local.tailscale_filtered_devices
 
   content = each.value.private_ipv6
   name    = each.value.fqdn_internal
@@ -89,7 +89,7 @@ resource "cloudflare_dns_record" "router" {
 
 resource "cloudflare_dns_record" "vm_ipv4" {
   for_each = {
-    for k, vm in local.merged_vms : k => vm
+    for k, vm in local.vms_merged : k => vm
     if length(vm.networks) > 0
   }
 
@@ -102,7 +102,7 @@ resource "cloudflare_dns_record" "vm_ipv4" {
 
 resource "cloudflare_dns_record" "vm_ipv6" {
   for_each = {
-    for k, vm in local.merged_vms : k => vm
+    for k, vm in local.vms_merged : k => vm
     if length(vm.networks) > 0
   }
 
@@ -117,7 +117,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv4" {
   for_each = data.oci_core_vnic.vm
 
   content = each.value.public_ip_address
-  name    = local.merged_vms_oci[each.key].fqdn_external
+  name    = local.vms_merged_oci[each.key].fqdn_external
   ttl     = 1
   type    = "A"
   zone_id = cloudflare_zone.zone[var.default.domain_external].id
@@ -127,7 +127,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv6" {
   for_each = data.oci_core_vnic.vm
 
   content = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
-  name    = local.merged_vms_oci[each.key].fqdn_external
+  name    = local.vms_merged_oci[each.key].fqdn_external
   ttl     = 1
   type    = "AAAA"
   zone_id = cloudflare_zone.zone[var.default.domain_external].id

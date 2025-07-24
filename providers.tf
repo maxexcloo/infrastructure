@@ -25,7 +25,7 @@ provider "onepassword" {
 }
 
 provider "proxmox" {
-  for_each = var.terraform.proxmox
+  for_each = nonsensitive(var.terraform.proxmox)
 
   alias    = "by_host"
   endpoint = "https://${each.value.host}:${each.value.port}"

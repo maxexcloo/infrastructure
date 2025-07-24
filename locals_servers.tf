@@ -2,14 +2,14 @@ locals {
   servers_filtered_all = merge(
     local.servers_merged_routers,
     local.servers_merged,
-    local.merged_vms,
-    local.merged_vms_oci,
-    local.merged_vms_proxmox
+    local.vms_merged,
+    local.vms_merged_oci,
+    local.vms_merged_proxmox
   )
 
   servers_filtered_noncloud = merge(
     local.servers_merged,
-    local.merged_vms_proxmox
+    local.vms_merged_proxmox
   )
 
   servers_merged_devices = {

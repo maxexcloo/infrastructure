@@ -1,127 +1,167 @@
 # Infrastructure
-OpenTofu configuration for personal infrastructure.
 
-## Code Quality Assessment
+OpenTofu configuration for managing personal infrastructure including virtual machines, networking, DNS, and physical device management.
 
-This document outlines the current state of the OpenTofu configuration against the CLAUDE.md specifications and identifies areas requiring attention.
+## Overview
 
-## Current Compliance Status
+This project manages core infrastructure for personal computing environment with features including:
 
-### ❌ Critical Issues
+- **Virtual Machine Management**: Oracle Cloud Infrastructure (OCI) and Proxmox VE instances
+- **DNS Management**: Cloudflare DNS with automated record creation for all services
+- **Network Infrastructure**: Tailscale mesh networking with device management
+- **Storage**: Backblaze B2 buckets for backup and data storage
+- **Device Management**: Physical servers, routers, and IoT devices
+- **Security**: 1Password integration for secret management and credential storage
+- **Monitoring**: Integrated with external monitoring and alerting systems
+- **Cloud Tunnels**: Cloudflare tunnels for secure external access
 
-#### 1. Missing Trailing Newlines
-- **Issue**: All 17 .tf files missing required trailing newlines
-- **Impact**: Code quality standard violation
-- **Files Affected**: All .tf and .tfvars files
-- **Fix Required**: Add trailing newline to each file
+## Architecture
 
-#### 2. Data Source Consolidation
-- **Issue**: 9 data sources scattered across 6 different files
-- **Impact**: Increased API calls, poor organization
-- **Current**: Data sources in cloudflare.tf, oci.tf, b2.tf, tailscale.tf, onepassword.tf, github.tf
-- **Required**: All data sources consolidated in data.tf
+### File Structure
 
-#### 3. Locals Organization
-- **Issue**: Single 357-line locals.tf file instead of functional split
-- **Impact**: Poor maintainability
-- **Required**: Split into locals_*.tf files by function
-- **Suggested Split**:
-  - locals_dns.tf (DNS record processing)
-  - locals_servers.tf (Server/device merging)
-  - locals_output.tf (Output formatting)
-  - locals_tailscale.tf (Tailscale configuration)
-  - locals_vms.tf (VM configurations)
+```
+├── data.tf                  # All data sources
+├── locals_*.tf              # All locals
+│   ├── locals_dns.tf        # DNS record processing
+│   ├── locals_output.tf     # Output formatting
+│   ├── locals_servers.tf    # Server/device merging
+│   ├── locals_tailscale.tf  # Tailscale configuration
+│   └── locals_vms.tf        # VM configurations
+├── variables.tf             # Variable definitions
+├── outputs.tf               # Output definitions
+├── providers.tf             # Provider configurations
+├── terraform.tf             # Terraform configuration and provider versions
+├── *.tf                     # Resource files (alphabetically sorted)
+└── terraform.tfvars         # Instance values
+```
 
-### ⚠️ Minor Issues
+### Infrastructure Components
 
-#### 1. Sorting Violations
-- **cloudflare.tf**: `lifecycle` block positioned incorrectly in cloudflare_account_token.server
-- **proxmox.tf**: Missing `for_each` at top with blank line, improper key grouping
-- **locals.tf**: Missing blank lines between local definitions
-- **outputs.tf**: Contains misplaced resource block (should be in separate .tf file)
+Infrastructure is defined in `terraform.tfvars` with the following structure:
 
-#### 2. Missing Variable Specifications
-- **variables.tf**: All variables missing type and description attributes
-- **Impact**: Reduced error handling and documentation
+```hcl
+servers = {
+  "server-name" = {
+    dns_name        = "hostname"
+    dns_zone        = "example.com"
+    enable_dns      = true
+    enable_tailscale = true
+    # ... other configuration
+  }
+}
 
-### ✅ Compliant Areas
+vms_oci = {
+  "vm-name" = {
+    # OCI-specific configuration
+  }
+}
 
-- Variables properly consolidated in variables.tf
-- Outputs properly consolidated in outputs.tf (except for one misplaced resource)
-- Individual resource files organized by provider
-- OpenTofu validation passes successfully
-- Configuration is syntactically correct
+vms_proxmox = {
+  "vm-name" = {
+    # Proxmox-specific configuration
+  }
+}
+```
 
-## Testing Results
+### Platforms
+
+- **OCI**: Oracle Cloud Infrastructure virtual machines with networking
+- **Proxmox**: Self-hosted virtualization platform for local VMs
+- **Physical**: Physical servers, routers, and network devices
+- **Cloud Services**: DNS, storage, tunnels, and monitoring integrations
+
+## Usage
+
+### Prerequisites
+
+1. OpenTofu >= 1.8
+2. Terraform Cloud workspace configured
+3. Provider credentials configured in `terraform.tfvars`
+
+### Commands
 
 ```bash
-tofu fmt     # ✅ Completed successfully
-tofu validate # ✅ Configuration is valid
-tofu plan    # ✅ Plan generated (shows 1 minor change to tailscale_acl)
+# Initialize the workspace
+tofu init
+
+# Format, validate, and plan changes (always review before applying)
+tofu fmt && tofu validate
+
+# Apply changes
+tofu apply
+
+# View outputs
+tofu output
 ```
 
-## Code Smells and Complexity Issues
+### Adding New Infrastructure
 
-### 1. File Size Concerns
-- **locals.tf**: 357 lines - should be split into functional modules
-- **cloudflare.tf**: 174 lines - could benefit from data source extraction
-- **proxmox.tf**: 155 lines - complex nested structures
+1. Add infrastructure configuration to `terraform.tfvars`:
+   ```hcl
+   servers = {
+     "new-server" = {
+       dns_name        = "server"
+       dns_zone        = "example.com"
+       enable_dns      = true
+       enable_tailscale = true
+       description     = "New Server"
+     }
+   }
+   ```
 
-### 2. Unused/Inconsistent Code
-- **outputs.tf**: Contains resource definition instead of just outputs
-- **Mixed responsibilities**: Data sources mixed with resources in provider files
+2. Create server-specific resource file (e.g., `server.tf`) if needed
 
-### 3. Complexity Indicators
-- Deep nesting in VM configuration blocks
-- Complex conditional logic in locals that could be simplified
-- Multiple resource types mixed in single files
+3. Plan and apply changes
 
-## Recommendations
+### Virtual Machine Management
 
-### Immediate Actions (Critical)
-1. Create  directory structure
-2. Add trailing newlines to all files
-3. Consolidate data sources into data.tf
-4. Split locals.tf into functional locals_*.tf files
+VM configurations support multiple platforms:
 
-### Medium Priority
-1. Fix sorting violations in cloudflare.tf and proxmox.tf
-2. Move resource from outputs.tf to appropriate file
-3. Add type and description to all variables
-4. Add blank lines between locals definitions
+- **OCI VMs**: Defined in `vms_oci` with Oracle Cloud-specific settings
+- **Proxmox VMs**: Defined in `vms_proxmox` with local virtualization settings
+- **Networking**: Automatic Tailscale integration and DNS record creation
+- **Storage**: B2 bucket provisioning for backup and data storage
 
-### Future Improvements
-1. Consider breaking down large resource files
-2. Implement consistent naming conventions
-3. Add validation rules to variables
-4. Review and simplify complex locals logic
+## Security
 
-## File Organization Target State
+- **Sensitive variables**: All provider credentials are marked as sensitive
+- **Secret management**: Passwords and API keys generated and stored in 1Password
+- **Network security**: Tailscale provides zero-trust network access
+- **State encryption**: Terraform state stored securely in Terraform Cloud
+- **Access control**: Infrastructure access limited to authorized devices only
 
-```
+## Monitoring
 
-├── data.tf                  # All 9 data sources consolidated
-├── locals_dns.tf           # DNS record processing
-├── locals_servers.tf       # Server/device merging
-├── locals_output.tf        # Output formatting
-├── locals_tailscale.tf     # Tailscale configuration
-├── locals_vms.tf          # VM configurations
-├── variables.tf            # All variables with types/descriptions
-├── outputs.tf              # Outputs only (move resource elsewhere)
-├── providers.tf            # Provider configurations
-├── terraform.tf            # Terraform settings
-├── b2.tf                   # Resources only
-├── cloudflare.tf           # Resources only (data moved to data.tf)
-├── github.tf               # Resources only (data moved to data.tf)
-├── htpasswd.tf            # Resources only
-├── oci.tf                  # Resources only (data moved to data.tf)
-├── onepassword.tf          # Resources only (data moved to data.tf)
-├── proxmox.tf              # Resources only
-├── random.tf               # Resources only
-├── resend.tf               # Resources only
-├── sftpgo.tf               # Resources only
-├── tailscale.tf            # Resources only (data moved to data.tf)
-└── terraform.tfvars        # Instance values
-```
+- **DNS Health**: Automated monitoring of DNS record propagation
+- **VM Status**: Health checks for all virtual machine instances
+- **Network Connectivity**: Tailscale connectivity monitoring
+- **Resource Usage**: Cloud resource utilization tracking
 
-**Note**: As per CLAUDE.md instructions, this analysis suggests organizational changes but does not make major apply changes without user approval.
+## Troubleshooting
+
+### Common Issues
+
+1. **Provider authentication errors**: Verify credentials in `terraform.tfvars`
+2. **VM provisioning failures**: Check cloud provider quotas and limits
+3. **DNS propagation delays**: Cloudflare changes may take time to propagate
+4. **Tailscale connectivity**: Verify device authentication and network policies
+5. **Resource conflicts**: Check for naming collisions across infrastructure
+
+### Validation
+
+Run `tofu fmt && tofu validate && tofu plan` to format, validate configuration syntax, and preview changes before applying.
+
+## Contributing
+
+When modifying this configuration:
+
+1. Always run `tofu fmt && tofu validate && tofu plan` before applying changes
+2. Follow the CLAUDE.md code quality rules:
+   - Recursive alphabetical sorting of all keys
+   - count/for_each at top with blank line after
+   - Simple values (single-line strings, numbers, bools, null) before complex values (arrays, multiline strings, objects, maps)
+   - No comments - code should be self-explanatory
+   - Trailing newlines in all files
+3. Test changes in a separate workspace when possible
+4. Update documentation for new features or significant changes
+5. Follow the existing naming conventions and file organization

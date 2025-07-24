@@ -1,5 +1,5 @@
 locals {
-  filtered_tailscale_devices = {
+  tailscale_filtered_devices = {
     for k, server in local.servers_filtered_all : k => {
       fqdn_external = server.fqdn_external
       fqdn_internal = server.fqdn_internal
@@ -9,7 +9,7 @@ locals {
     if length([for device in data.tailscale_devices.default.devices : device if element(split(".", device.name), 0) == k]) > 0
   }
 
-  merged_tags_tailscale = [
+  tailscale_merged_tags = [
     for tag in var.tags : "tag:${tag}"
   ]
 }

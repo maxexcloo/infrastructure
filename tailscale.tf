@@ -8,14 +8,14 @@ resource "tailscale_acl" "default" {
       }
     ]
     autoApprovers = {
-      exitNode = local.merged_tags_tailscale
+      exitNode = local.tailscale_merged_tags
       routes = {
-        "0.0.0.0/0" = local.merged_tags_tailscale
-        "::/0"      = local.merged_tags_tailscale
+        "0.0.0.0/0" = local.tailscale_merged_tags
+        "::/0"      = local.tailscale_merged_tags
       }
     }
     tagOwners = {
-      for tag in local.merged_tags_tailscale : tag => [var.default.email]
+      for tag in local.tailscale_merged_tags : tag => [var.default.email]
     }
   })
 }
