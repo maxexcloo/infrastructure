@@ -42,6 +42,13 @@ resource "proxmox_virtual_environment_vm" "vm" {
   provider      = proxmox.by_host[each.value.parent]
   scsi_hardware = "virtio-scsi-single"
 
+  lifecycle {
+    ignore_changes = [
+      disk,
+      initialization
+    ]
+  }
+
   cpu {
     cores = each.value.config.cpus
     type  = "host"
@@ -61,13 +68,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
   efi_disk {
     datastore_id = "local-zfs"
     type         = "4m"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      disk,
-      initialization
-    ]
   }
 
   memory {
