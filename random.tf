@@ -1,5 +1,5 @@
 resource "random_password" "b2" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   length  = 6
   special = false
@@ -7,14 +7,14 @@ resource "random_password" "b2" {
 }
 
 resource "random_password" "secret_hash" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   length  = 24
   special = false
 }
 
 resource "random_password" "sftpgo" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   length  = 24
   special = false

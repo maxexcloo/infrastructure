@@ -9,7 +9,7 @@ locals {
   }
 
   output_cloud_config = {
-    for k, server in local.filtered_servers_all : k => templatefile(
+    for k, server in local.servers_filtered_all : k => templatefile(
       "templates/cloud_config/cloud_config.yaml",
       {
         init_commands = local.output_init_commands[k]
@@ -34,7 +34,7 @@ locals {
   }
 
   output_init_commands = {
-    for k, server in local.filtered_servers_all : k => concat(
+    for k, server in local.servers_filtered_all : k => concat(
       [
         "sysctl --system"
       ],

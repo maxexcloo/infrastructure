@@ -74,7 +74,7 @@ locals {
   })
 
   merged_vms_proxmox = merge([
-    for server in local.merged_servers : {
+    for server in local.servers_merged : {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
         {
           flags    = []

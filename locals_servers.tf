@@ -1,18 +1,18 @@
 locals {
-  filtered_servers_all = merge(
-    local.merged_routers,
-    local.merged_servers,
+  servers_filtered_all = merge(
+    local.servers_merged_routers,
+    local.servers_merged,
     local.merged_vms,
     local.merged_vms_oci,
     local.merged_vms_proxmox
   )
 
-  filtered_servers_noncloud = merge(
-    local.merged_servers,
+  servers_filtered_noncloud = merge(
+    local.servers_merged,
     local.merged_vms_proxmox
   )
 
-  merged_devices = {
+  servers_merged_devices = {
     for device in var.devices : device.name => merge(
       {
         port     = 22
@@ -22,7 +22,7 @@ locals {
     )
   }
 
-  merged_routers = {
+  servers_merged_routers = {
     for router in var.routers : router.location => merge(
       {
         flags        = []
@@ -57,8 +57,8 @@ locals {
     )
   }
 
-  merged_servers = merge([
-    for router in local.merged_routers : {
+  servers_merged = merge([
+    for router in local.servers_merged_routers : {
       for server in var.servers : "${router.location}-${server.name}" => merge(
         {
           flags    = []

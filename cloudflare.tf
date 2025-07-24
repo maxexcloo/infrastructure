@@ -1,5 +1,5 @@
 resource "cloudflare_account_token" "server" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   account_id = var.terraform.cloudflare.account_id
   name       = each.key
@@ -31,7 +31,7 @@ resource "cloudflare_account_token" "server" {
 }
 
 resource "cloudflare_dns_record" "dns" {
-  for_each = local.merged_dns
+  for_each = local.dns_merged
 
   content  = each.value.content
   name     = each.value.name == "@" ? each.value.zone : "${each.value.name}.${each.value.zone}"
@@ -63,7 +63,7 @@ resource "cloudflare_dns_record" "internal_ipv6" {
 
 resource "cloudflare_dns_record" "noncloud" {
   for_each = {
-    for k, server in local.filtered_servers_noncloud : k => server
+    for k, server in local.servers_filtered_noncloud : k => server
     if length(server.networks) > 0
   }
 
@@ -76,7 +76,7 @@ resource "cloudflare_dns_record" "noncloud" {
 
 resource "cloudflare_dns_record" "router" {
   for_each = {
-    for k, router in local.merged_routers : k => router
+    for k, router in local.servers_merged_routers : k => router
     if length(router.networks) > 0
   }
 
@@ -134,7 +134,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv6" {
 }
 
 resource "cloudflare_dns_record" "wildcard" {
-  for_each = local.filtered_cloudflare_dns_record_wildcard
+  for_each = local.dns_filtered_cloudflare_record_wildcard
 
   content = each.value.name
   name    = "*.${each.value.name}"
@@ -144,7 +144,7 @@ resource "cloudflare_dns_record" "wildcard" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "server" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   account_id = var.terraform.cloudflare.account_id
   config_src = "cloudflare"

@@ -21,7 +21,7 @@ resource "tailscale_acl" "default" {
 }
 
 resource "tailscale_tailnet_key" "server" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   description   = "${each.value.tag}-${each.key}"
   preauthorized = true

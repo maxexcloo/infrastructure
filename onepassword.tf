@@ -1,5 +1,5 @@
 resource "onepassword_item" "server" {
-  for_each = local.filtered_servers_all
+  for_each = local.servers_filtered_all
 
   category = "login"
   title    = "${each.key} (${each.value.title})"
