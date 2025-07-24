@@ -62,15 +62,3 @@ output "tailscale_tailnet_keys" {
   sensitive = true
   value     = local.output_tailscale_tailnet_keys
 }
-
-resource "local_file" "ssh_config" {
-  filename = "../../.ssh/config"
-
-  content = templatefile(
-    "templates/ssh/config",
-    {
-      devices = local.merged_devices
-      servers = local.filtered_servers_all
-    }
-  )
-}
