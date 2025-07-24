@@ -1,21 +1,3 @@
-data "oci_core_vnic" "vm" {
-  for_each = data.oci_core_vnic_attachments.vm
-
-  vnic_id = element(each.value.vnic_attachments, 0).vnic_id
-}
-
-data "oci_core_vnic_attachments" "vm" {
-  for_each = oci_core_instance.vm
-
-  compartment_id = var.terraform.oci.tenancy_ocid
-  instance_id    = each.value.id
-}
-
-data "oci_identity_availability_domain" "au" {
-  ad_number      = 1
-  compartment_id = var.terraform.oci.tenancy_ocid
-}
-
 resource "oci_core_default_dhcp_options" "au" {
   compartment_id             = var.terraform.oci.tenancy_ocid
   display_name               = "${var.terraform.oci.location}.${var.default.domain_external}"

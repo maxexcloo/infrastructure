@@ -1,5 +1,3 @@
-data "b2_account_info" "default" {}
-
 resource "b2_application_key" "server" {
   for_each = b2_bucket.server
 

@@ -1,7 +1,3 @@
-data "onepassword_vault" "default" {
-  name = var.terraform.onepassword.vault
-}
-
 resource "onepassword_item" "server" {
   for_each = local.filtered_servers_all
 

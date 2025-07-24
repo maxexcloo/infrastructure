@@ -1,14 +1,3 @@
-data "cloudflare_account_api_token_permission_groups_list" "default" {
-  account_id = var.terraform.cloudflare.account_id
-}
-
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "server" {
-  for_each = cloudflare_zero_trust_tunnel_cloudflared.server
-
-  account_id = var.terraform.cloudflare.account_id
-  tunnel_id  = each.value.id
-}
-
 resource "cloudflare_account_token" "server" {
   for_each = local.filtered_servers_all
 
