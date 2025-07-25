@@ -7,6 +7,8 @@ variable "default" {
     email           = string
     name            = string
     organisation    = string
+    server_config   = any
+    user_config     = any
   })
   default = {
     domain_external = "excloo.net"
@@ -15,6 +17,22 @@ variable "default" {
     email           = "max@excloo.com"
     name            = "Max Schaefer"
     organisation    = "excloo"
+    server_config = {
+      enable_cloud_config      = false
+      enable_ssh_password_auth = false
+      locale                   = "en_US"
+      packages                 = ["curl", "sudo"]
+      ssh_port                 = 22
+      timezone                 = "UTC"
+    }
+    user_config = {
+      docker_path = "/var/lib/docker"
+      fullname    = ""
+      groups      = ["docker", "sudo"]
+      paths       = []
+      shell       = "/bin/bash"
+      username    = "root"
+    }
   }
 }
 
@@ -64,18 +82,25 @@ variable "servers" {
     ])
     error_message = "Server configurations cannot be null or empty."
   }
-}
-
-variable "tags" {
-  default     = {}
-  description = "Common tags to apply to all infrastructure resources"
-  type        = map(string)
 
   validation {
     condition = alltrue([
-      for k, v in var.tags : can(regex("^[a-zA-Z][a-zA-Z0-9_-]*$", k))
+      for k, v in var.servers : can(regex("^[a-z][a-z0-9-]*$", try(v.name, k)))
     ])
-    error_message = "Tag keys must start with a letter and contain only alphanumeric characters, underscores, and hyphens."
+    error_message = "Server names must contain only lowercase letters, numbers, and hyphens, starting with a letter."
+  }
+}
+
+variable "tags" {
+  default     = []
+  description = "Common tags to apply to all infrastructure resources"
+  type        = list(string)
+
+  validation {
+    condition = alltrue([
+      for tag in var.tags : can(regex("^[a-zA-Z][a-zA-Z0-9_-]*$", tag))
+    ])
+    error_message = "Tags must start with a letter and contain only alphanumeric characters, underscores, and hyphens."
   }
 }
 
