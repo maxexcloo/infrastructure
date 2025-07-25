@@ -32,7 +32,8 @@ This project manages core infrastructure for personal computing environment with
 ├── providers.tf             # Provider configurations
 ├── terraform.tf             # Terraform configuration and provider versions
 ├── *.tf                     # Resource files (alphabetically sorted)
-└── terraform.tfvars         # Instance values
+├── terraform.tfvars         # Instance values (see terraform.tfvars.sample)
+└── terraform.tfvars.sample  # Example configuration template
 ```
 
 ### Infrastructure Components
@@ -76,7 +77,7 @@ vms_proxmox = {
 
 1. OpenTofu >= 1.8
 2. Terraform Cloud workspace configured
-3. Provider credentials configured in `terraform.tfvars`
+3. Provider credentials configured in `terraform.tfvars` (see `terraform.tfvars.sample` for example configuration)
 
 ### Commands
 
@@ -94,20 +95,28 @@ tofu apply
 tofu output
 ```
 
+### Getting Started
+
+1. Copy the sample configuration file:
+   ```bash
+   cp terraform.tfvars.sample terraform.tfvars
+   ```
+
+2. Update `terraform.tfvars` with your actual configuration values:
+   - Replace all example values with your real credentials and settings
+   - Configure your domains, servers, and infrastructure components
+   - See the sample file for complete examples of all supported configurations
+
+3. Initialize and apply:
+   ```bash
+   tofu init
+   tofu plan
+   tofu apply
+   ```
+
 ### Adding New Infrastructure
 
-1. Add infrastructure configuration to `terraform.tfvars`:
-   ```hcl
-   servers = {
-     "new-server" = {
-       dns_name        = "server"
-       dns_zone        = "example.com"
-       enable_dns      = true
-       enable_tailscale = true
-       description     = "New Server"
-     }
-   }
-   ```
+1. Add infrastructure configuration to `terraform.tfvars` (reference `terraform.tfvars.sample` for examples)
 
 2. Create server-specific resource file (e.g., `server.tf`) if needed
 
@@ -141,7 +150,7 @@ VM configurations support multiple platforms:
 
 ### Common Issues
 
-1. **Provider authentication errors**: Verify credentials in `terraform.tfvars`
+1. **Provider authentication errors**: Verify credentials in `terraform.tfvars` (use `terraform.tfvars.sample` as reference)
 2. **VM provisioning failures**: Check cloud provider quotas and limits
 3. **DNS propagation delays**: Cloudflare changes may take time to propagate
 4. **Tailscale connectivity**: Verify device authentication and network policies
