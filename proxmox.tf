@@ -1,6 +1,6 @@
 resource "proxmox_virtual_environment_download_file" "vm" {
   for_each = {
-    for k, vm in local.vms_merged_proxmox : k => vm
+    for k, vm in local.vms_proxmox : k => vm
     if vm.config.boot_disk_image_url != ""
   }
 
@@ -17,14 +17,14 @@ resource "proxmox_virtual_environment_download_file" "vm" {
 
 resource "proxmox_virtual_environment_file" "vm" {
   for_each = {
-    for k, vm in local.vms_merged_proxmox : k => vm
+    for k, vm in local.vms_proxmox : k => vm
     if vm.config.enable_cloud_config
   }
 
   content_type = "snippets"
   datastore_id = "local"
-  provider     = proxmox.by_host[each.value.parent]
   node_name    = each.value.parent
+  provider     = proxmox.by_host[each.value.parent]
 
   source_raw {
     data      = local.output_cloud_config[each.key]
@@ -33,7 +33,7 @@ resource "proxmox_virtual_environment_file" "vm" {
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
-  for_each = local.vms_merged_proxmox
+  for_each = local.vms_proxmox
 
   bios          = "ovmf"
   machine       = "q35"
@@ -41,13 +41,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
   node_name     = each.value.parent
   provider      = proxmox.by_host[each.value.parent]
   scsi_hardware = "virtio-scsi-single"
-
-  lifecycle {
-    ignore_changes = [
-      disk,
-      initialization
-    ]
-  }
 
   cpu {
     cores = each.value.config.cpus
@@ -68,6 +61,13 @@ resource "proxmox_virtual_environment_vm" "vm" {
   efi_disk {
     datastore_id = "local-zfs"
     type         = "4m"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      disk,
+      initialization
+    ]
   }
 
   memory {

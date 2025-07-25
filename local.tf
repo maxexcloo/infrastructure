@@ -4,7 +4,7 @@ resource "local_file" "ssh_config" {
   content = templatefile(
     "templates/ssh/config",
     {
-      devices = local.devices
+      devices = local.servers_devices
       servers = local.servers
     }
   )

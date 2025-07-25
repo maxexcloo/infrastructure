@@ -67,7 +67,7 @@ resource "cloudflare_dns_record" "noncloud" {
     if length(server.networks) > 0
   }
 
-  content = element(each.value.networks, 0).public_address
+  content = each.value.networks[0].public_address
   name    = each.value.fqdn_external
   ttl     = 1
   type    = "CNAME"
@@ -76,11 +76,11 @@ resource "cloudflare_dns_record" "noncloud" {
 
 resource "cloudflare_dns_record" "router" {
   for_each = {
-    for k, router in local.routers : k => router
+    for k, router in local.servers_routers : k => router
     if length(router.networks) > 0
   }
 
-  content = element(each.value.networks, 0).public_address
+  content = each.value.networks[0].public_address
   name    = each.value.fqdn_external
   ttl     = 1
   type    = "CNAME"
@@ -89,11 +89,11 @@ resource "cloudflare_dns_record" "router" {
 
 resource "cloudflare_dns_record" "vm_ipv4" {
   for_each = {
-    for k, vm in local.vms : k => vm
+    for k, vm in local.vms_vms : k => vm
     if length(vm.networks) > 0
   }
 
-  content = element(each.value.networks, 0).public_ipv4
+  content = each.value.networks[0].public_ipv4
   name    = each.value.fqdn_external
   ttl     = 1
   type    = "A"
@@ -102,11 +102,11 @@ resource "cloudflare_dns_record" "vm_ipv4" {
 
 resource "cloudflare_dns_record" "vm_ipv6" {
   for_each = {
-    for k, vm in local.vms : k => vm
+    for k, vm in local.vms_vms : k => vm
     if length(vm.networks) > 0
   }
 
-  content = element(each.value.networks, 0).public_ipv6
+  content = each.value.networks[0].public_ipv6
   name    = each.value.fqdn_external
   ttl     = 1
   type    = "AAAA"
@@ -126,7 +126,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv4" {
 resource "cloudflare_dns_record" "vm_oci_ipv6" {
   for_each = data.oci_core_vnic.vm
 
-  content = element(data.oci_core_vnic.vm[each.key].ipv6addresses, 0)
+  content = data.oci_core_vnic.vm[each.key].ipv6addresses[0]
   name    = local.vms_oci[each.key].fqdn_external
   ttl     = 1
   type    = "AAAA"
@@ -134,7 +134,7 @@ resource "cloudflare_dns_record" "vm_oci_ipv6" {
 }
 
 resource "cloudflare_dns_record" "wildcard" {
-  for_each = local.dns_filtered_cloudflare_record_wildcard
+  for_each = local.dns_cloudflare_record_wildcard
 
   content = each.value.name
   name    = "*.${each.value.name}"

@@ -1,5 +1,5 @@
 locals {
-  vms = merge({
+  vms_vms = merge({
     for vm in var.vms : "${vm.location}-${vm.name}" => merge(
       {
         flags        = []

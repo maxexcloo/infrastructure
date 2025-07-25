@@ -34,6 +34,7 @@
 **In `locals_*.tf` files:**
 - Add a blank line between each local definition
 - Sort all locals alphabetically by name
+- **All locals must start with the filename prefix** (e.g., `locals_dns.tf` → all locals start with `dns_`)
 
 ## Sorting Rules
 **ALWAYS sort alphabetically and recursively by:**

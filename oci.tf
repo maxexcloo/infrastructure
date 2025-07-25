@@ -57,38 +57,38 @@ resource "oci_core_default_security_list" "au" {
   }
 
   dynamic "ingress_security_rules" {
-    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_merged_oci : vm.config.ingress_ports]))
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_oci : vm.config.ingress_ports]))
 
     content {
       protocol  = 6
-      source    = element(ingress_security_rules.value, 0)
+      source    = ingress_security_rules.value[0]
       stateless = false
 
       tcp_options {
-        max = element(ingress_security_rules.value, 1)
-        min = element(ingress_security_rules.value, 1)
+        max = ingress_security_rules.value[1]
+        min = ingress_security_rules.value[1]
       }
     }
   }
 
   dynamic "ingress_security_rules" {
-    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_merged_oci : vm.config.ingress_ports]))
+    for_each = setproduct(["::/0", "0.0.0.0/0"], flatten([for vm in local.vms_oci : vm.config.ingress_ports]))
 
     content {
       protocol  = 17
-      source    = element(ingress_security_rules.value, 0)
+      source    = ingress_security_rules.value[0]
       stateless = false
 
       udp_options {
-        max = element(ingress_security_rules.value, 1)
-        min = element(ingress_security_rules.value, 1)
+        max = ingress_security_rules.value[1]
+        min = ingress_security_rules.value[1]
       }
     }
   }
 }
 
 resource "oci_core_instance" "vm" {
-  for_each = local.vms_merged_oci
+  for_each = local.vms_oci
 
   availability_domain = data.oci_identity_availability_domain.au.name
   compartment_id      = var.terraform.oci.tenancy_ocid
@@ -137,7 +137,7 @@ resource "oci_core_subnet" "au" {
   compartment_id = var.terraform.oci.tenancy_ocid
   display_name   = "${var.terraform.oci.location}.${var.default.domain_external}"
   dns_label      = var.terraform.oci.location
-  ipv6cidr_block = replace(element(oci_core_vcn.au.ipv6cidr_blocks, 0), "/56", "/64")
+  ipv6cidr_block = replace(oci_core_vcn.au.ipv6cidr_blocks[0], "/56", "/64")
   vcn_id         = oci_core_vcn.au.id
 }
 

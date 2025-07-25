@@ -15,11 +15,10 @@ data "github_user" "default" {
   username = var.terraform.github.username
 }
 
-
 data "oci_core_vnic" "vm" {
   for_each = data.oci_core_vnic_attachments.vm
 
-  vnic_id = element(each.value.vnic_attachments, 0).vnic_id
+  vnic_id = each.value.vnic_attachments[0].vnic_id
 }
 
 data "oci_core_vnic_attachments" "vm" {
