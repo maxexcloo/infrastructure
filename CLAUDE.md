@@ -7,6 +7,7 @@
 - **Use OpenTofu >= 1.8** for latest features and stability
 - Add validation rules to variables for better error handling
 - Consolidate data sources to minimize API calls
+- Consolidate defaults in `var.default` structure to avoid duplicate locals
 - Extract complex conditional logic to computed locals
 - Mark sensitive values appropriately
 - Pre-compute expensive operations in locals

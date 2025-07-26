@@ -1,49 +1,11 @@
 locals {
-  vms_vms = merge({
-    for vm in var.vms : "${vm.location}-${vm.name}" => merge(
-      {
-        flags        = []
-        location     = "cloud"
-        parent_flags = ["cloud"]
-        parent_name  = "cloud"
-        services     = []
-        tag          = "vm"
-      },
-      vm,
-      {
-        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
-        fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
-        title         = try(vm.title, title(vm.name))
-        config = merge(
-          var.default.server_config,
-          try(vm.config, {})
-        )
-        networks = [
-          for network in try(vm.networks, [{}]) : merge(
-            {
-              public_ipv4 = ""
-              public_ipv6 = ""
-            },
-            network
-          )
-        ]
-        user = merge(
-          var.default.user_config,
-          try(vm.user, {})
-        )
-      }
-    )
-  })
-
   vms_oci = merge({
     for vm in var.vms_oci : "${vm.location}-${vm.name}" => merge(
+      var.default.vm_config.base,
       {
-        flags        = []
         location     = "cloud"
         parent_flags = ["cloud"]
         parent_name  = "oci"
-        services     = []
-        tag          = "vm"
       },
       vm,
       {
@@ -52,14 +14,7 @@ locals {
         title         = try(vm.title, title(vm.name))
         config = merge(
           var.default.server_config,
-          {
-            boot_disk_image_id = ""
-            boot_disk_size     = 128
-            cpus               = 4
-            ingress_ports      = [22, 80, 443]
-            memory             = 8
-            shape              = "VM.Standard.A1.Flex"
-          },
+          var.default.vm_config.oci,
           try(vm.config, {})
         )
         networks = [
@@ -76,11 +31,7 @@ locals {
   vms_proxmox = merge([
     for server in local.servers_physical : {
       for vm in var.vms_proxmox : "${server.location}-${server.name}-${vm.name}" => merge(
-        {
-          flags    = []
-          services = []
-          tag      = "vm"
-        },
+        var.default.vm_config.base,
         vm,
         {
           fqdn_external = "${vm.name}.${server.name}.${server.location}.${var.default.domain_external}"
@@ -92,15 +43,7 @@ locals {
           title         = "${server.title} ${try(vm.title, title(vm.name))}"
           config = merge(
             var.default.server_config,
-            {
-              boot_disk_image_compression_algorithm = null
-              boot_disk_image_url                   = ""
-              boot_disk_size                        = 128
-              cpus                                  = 4
-              enable_serial                         = false
-              memory                                = 8
-              operating_system                      = "l26"
-            },
+            var.default.vm_config.proxmox,
             try(vm.config, {}),
             {
               packages = concat(["qemu-guest-agent"], try(vm.config.packages, []), var.default.server_config.packages)
@@ -108,28 +51,22 @@ locals {
           )
           hostpci = [
             for hostpci in try(vm.hostpci, {}) : merge(
-              {
-                pcie = true
-                xvga = false
-              },
+              var.default.vm_config.proxmox_hostpci,
               hostpci
             )
           ]
           networks = [
             for network in try(vm.networks, [{}]) : merge(
+              var.default.vm_config.proxmox_network,
               {
-                firewall       = true
                 public_address = cloudflare_dns_record.router[server.location].name
-                vlan_id        = null
               },
               network
             )
           ]
           usb = [
             for usb in try(vm.usb, {}) : merge(
-              {
-                usb3 = true
-              },
+              var.default.vm_config.proxmox_usb,
               usb
             )
           ]
@@ -142,4 +79,35 @@ locals {
       if vm.parent == server.name
     }
   ]...)
+
+  vms_vms = merge({
+    for vm in var.vms : "${vm.location}-${vm.name}" => merge(
+      var.default.vm_config.base,
+      {
+        location     = "cloud"
+        parent_flags = ["cloud"]
+        parent_name  = "cloud"
+      },
+      vm,
+      {
+        fqdn_external = "${vm.name}.${vm.location}.${var.default.domain_external}"
+        fqdn_internal = "${vm.name}.${vm.location}.${var.default.domain_internal}"
+        title         = try(vm.title, title(vm.name))
+        config = merge(
+          var.default.server_config,
+          try(vm.config, {})
+        )
+        networks = [
+          for network in try(vm.networks, [{}]) : merge(
+            var.default.vm_config.network,
+            network
+          )
+        ]
+        user = merge(
+          var.default.user_config,
+          try(vm.user, {})
+        )
+      }
+    )
+  })
 }

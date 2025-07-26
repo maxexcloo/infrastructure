@@ -9,6 +9,7 @@ variable "default" {
     organisation    = string
     server_config   = any
     user_config     = any
+    vm_config       = any
   })
   default = {
     domain_external = "excloo.net"
@@ -33,6 +34,45 @@ variable "default" {
       shell       = "/bin/bash"
       username    = "root"
     }
+    vm_config = {
+      base = {
+        flags    = []
+        services = []
+        tag      = "vm"
+      }
+      network = {
+        public_ipv4 = ""
+        public_ipv6 = ""
+      }
+      oci = {
+        boot_disk_image_id = ""
+        boot_disk_size     = 128
+        cpus               = 4
+        ingress_ports      = [22, 80, 443]
+        memory             = 8
+        shape              = "VM.Standard.A1.Flex"
+      }
+      proxmox = {
+        boot_disk_image_compression_algorithm = null
+        boot_disk_image_url                   = ""
+        boot_disk_size                        = 128
+        cpus                                  = 4
+        enable_serial                         = false
+        memory                                = 8
+        operating_system                      = "l26"
+      }
+      proxmox_hostpci = {
+        pcie = true
+        xvga = false
+      }
+      proxmox_network = {
+        firewall = true
+        vlan_id  = null
+      }
+      proxmox_usb = {
+        usb3 = true
+      }
+    }
   }
 }
 
@@ -45,6 +85,13 @@ variable "devices" {
       for k, v in var.devices : v != null && v != {}
     ])
     error_message = "Device configurations cannot be null or empty."
+  }
+
+  validation {
+    condition = alltrue([
+      for device in var.devices : can(regex("^[a-z][a-z0-9-]*$", device.name))
+    ])
+    error_message = "Device names must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens."
   }
 }
 

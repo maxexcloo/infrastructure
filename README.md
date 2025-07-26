@@ -41,27 +41,56 @@ This project manages core infrastructure for personal computing environment with
 Infrastructure is defined in `terraform.tfvars` with the following structure:
 
 ```hcl
-servers = {
-  "server-name" = {
-    dns_name        = "hostname"
-    dns_zone        = "example.com"
-    enable_dns      = true
-    enable_tailscale = true
-    # ... other configuration
+# Physical servers and routers
+routers = [
+  {
+    flags    = ["homepage", "unifi"]
+    location = "au"
+    networks = [{ public_address = "example.com" }]
   }
-}
+]
 
-vms_oci = {
-  "vm-name" = {
-    # OCI-specific configuration
+servers = [
+  {
+    flags  = ["docker", "homepage"] 
+    name   = "server-name"
+    parent = "router-location"
+    title  = "Display Name"
   }
-}
+]
 
-vms_proxmox = {
-  "vm-name" = {
-    # Proxmox-specific configuration
+# Virtual machines  
+vms = [
+  {
+    location = "cloud"
+    name     = "vm-name"
+    # Generic VM configuration
   }
-}
+]
+
+vms_oci = [
+  {
+    location = "au"
+    name     = "vm-name"  
+    config = {
+      cpus   = 4
+      memory = 8
+      # OCI-specific configuration
+    }
+  }
+]
+
+vms_proxmox = [
+  {
+    name   = "vm-name"
+    parent = "physical-server-name"
+    config = {
+      cpus   = 2
+      memory = 4
+      # Proxmox-specific configuration  
+    }
+  }
+]
 ```
 
 ### Platforms
@@ -124,10 +153,23 @@ tofu output
 
 VM configurations support multiple platforms:
 
+- **Default Configuration**: VM defaults are centralized in `var.default.vm_config` structure
 - **Networking**: Automatic Tailscale integration and DNS record creation
 - **OCI VMs**: Defined in `vms_oci` with Oracle Cloud-specific settings
 - **Proxmox VMs**: Defined in `vms_proxmox` with local virtualization settings
 - **Storage**: B2 bucket provisioning for backup and data storage
+
+#### VM Configuration Defaults
+
+All VM defaults are stored in `var.default.vm_config`:
+
+- `base`: Common VM settings (flags, services, tag)
+- `network`: Network defaults (public_ipv4, public_ipv6)
+- `oci`: OCI-specific defaults (boot_disk_size, cpus, memory, shape, etc.)
+- `proxmox`: Proxmox VM defaults (boot_disk_size, cpus, memory, operating_system, etc.)
+- `proxmox_hostpci`: PCI device passthrough defaults
+- `proxmox_network`: Network configuration for Proxmox VMs
+- `proxmox_usb`: USB device passthrough defaults
 
 ## Monitoring
 
