@@ -1,5 +1,20 @@
 # CLAUDE.md - OpenTofu Project Rules
 
+## Rules
+- ALL files end with trailing newline
+- Consolidate defaults in `var.default` structure
+- Locals in `locals_*.tf` files must start with filename prefix
+- No comments - code is self-explanatory
+- Run `tofu fmt` after every change
+- Sort everything alphabetically and recursively
+- Use `type = any` for complex nested structures
+
+## Sorting
+**Key order within blocks:**
+1. `count` and `for_each` (with blank line after)
+2. Simple values (strings, numbers, bools, null)  
+3. Complex values (arrays, objects, maps)
+
 ## Structure
 ```
 ├── data.tf                  # All data sources
@@ -11,21 +26,6 @@
 ├── *.tf                     # Resource files
 └── terraform.tfvars         # Instance values
 ```
-
-## Rules
-- ALL files end with trailing newline
-- No comments - code is self-explanatory
-- Run `tofu fmt` after every change
-- Sort everything alphabetically and recursively
-- Use `type = any` for complex nested structures
-- Consolidate defaults in `var.default` structure
-- Locals in `locals_*.tf` files must start with filename prefix
-
-## Sorting
-**Key order within blocks:**
-1. `count` and `for_each` (with blank line after)
-2. Simple values (strings, numbers, bools, null)  
-3. Complex values (arrays, objects, maps)
 
 ## Workflow
 ```bash

@@ -12,6 +12,13 @@ Manages cloud and physical infrastructure with:
 - **Storage**: Backblaze B2 buckets for backup
 - **VMs**: Oracle Cloud Infrastructure and Proxmox instances
 
+## Security
+
+- All credentials marked sensitive
+- Network access via Tailscale zero-trust
+- Secrets managed in 1Password
+- State stored in Terraform Cloud
+
 ## Structure
 
 ```
@@ -25,23 +32,18 @@ Manages cloud and physical infrastructure with:
 └── terraform.tfvars         # Instance values
 ```
 
+## Troubleshooting
+
+Common issues:
+
+1. **Authentication errors**: Check `terraform.tfvars` credentials
+2. **DNS delays**: Cloudflare changes take time to propagate
+3. **Resource conflicts**: Check for naming collisions
+4. **VM failures**: Verify cloud provider quotas
+
+Run `tofu validate` to check configuration syntax.
+
 ## Usage
-
-### Setup
-
-1. Copy configuration template:
-   ```bash
-   cp terraform.tfvars.sample terraform.tfvars
-   ```
-
-2. Update `terraform.tfvars` with your values
-
-3. Initialize and apply:
-   ```bash
-   tofu init
-   tofu plan
-   tofu apply
-   ```
 
 ### Configuration
 
@@ -65,26 +67,42 @@ servers = [
 
 vms_oci = [
   {
-    location = "au"
-    name     = "vm-name"  
     config = {
       cpus   = 4
       memory = 8
     }
+    location = "au"
+    name     = "vm-name"  
   }
 ]
 
 vms_proxmox = [
   {
-    name   = "vm-name"
-    parent = "physical-server-name"
     config = {
       cpus   = 2
       memory = 4
     }
+    name   = "vm-name"
+    parent = "physical-server-name"
   }
 ]
 ```
+
+### Setup
+
+1. Copy configuration template:
+   ```bash
+   cp terraform.tfvars.sample terraform.tfvars
+   ```
+
+2. Update `terraform.tfvars` with your values
+
+3. Initialize and apply:
+   ```bash
+   tofu init
+   tofu plan
+   tofu apply
+   ```
 
 ### Workflow
 
@@ -92,21 +110,3 @@ vms_proxmox = [
 tofu fmt && tofu validate && tofu plan
 tofu apply
 ```
-
-## Security
-
-- Network access via Tailscale zero-trust
-- Secrets managed in 1Password
-- State stored in Terraform Cloud
-- All credentials marked sensitive
-
-## Troubleshooting
-
-Common issues:
-
-1. **Authentication errors**: Check `terraform.tfvars` credentials
-2. **DNS delays**: Cloudflare changes take time to propagate
-3. **Resource conflicts**: Check for naming collisions
-4. **VM failures**: Verify cloud provider quotas
-
-Run `tofu validate` to check configuration syntax.
