@@ -6,20 +6,21 @@ OpenTofu configuration for managing personal infrastructure including virtual ma
 
 This project manages core infrastructure for personal computing environment with features including:
 
-- **Virtual Machine Management**: Oracle Cloud Infrastructure (OCI) and Proxmox VE instances
-- **DNS Management**: Cloudflare DNS with automated record creation for all services
-- **Network Infrastructure**: Tailscale mesh networking with device management
-- **Storage**: Backblaze B2 buckets for backup and data storage
-- **Device Management**: Physical servers, routers, and IoT devices
-- **Security**: 1Password integration for secret management and credential storage
-- **Monitoring**: Integrated with external monitoring and alerting systems
 - **Cloud Tunnels**: Cloudflare tunnels for secure external access
+- **Device Management**: Physical servers, routers, and IoT devices
+- **DNS Management**: Cloudflare DNS with automated record creation for all services
+- **Monitoring**: Integrated with external monitoring and alerting systems
+- **Network Infrastructure**: Tailscale mesh networking with device management
+- **Security**: 1Password integration for secret management and credential storage
+- **Storage**: Backblaze B2 buckets for backup and data storage
+- **Virtual Machine Management**: Oracle Cloud Infrastructure (OCI) and Proxmox VE instances
 
 ## Architecture
 
 ### File Structure
 
 ```
+├── *.tf                     # Resource files (alphabetically sorted)
 ├── data.tf                  # All data sources
 ├── locals_*.tf              # All locals
 │   ├── locals_dns.tf        # DNS record processing
@@ -27,13 +28,12 @@ This project manages core infrastructure for personal computing environment with
 │   ├── locals_servers.tf    # Server/device merging
 │   ├── locals_tailscale.tf  # Tailscale configuration
 │   └── locals_vms.tf        # VM configurations
-├── variables.tf             # Variable definitions
 ├── outputs.tf               # Output definitions
 ├── providers.tf             # Provider configurations
 ├── terraform.tf             # Terraform configuration and provider versions
-├── *.tf                     # Resource files (alphabetically sorted)
 ├── terraform.tfvars         # Instance values (see terraform.tfvars.sample)
 └── terraform.tfvars.sample  # Example configuration template
+├── variables.tf             # Variable definitions
 ```
 
 ### Infrastructure Components
@@ -66,10 +66,10 @@ vms_proxmox = {
 
 ### Platforms
 
-- **OCI**: Oracle Cloud Infrastructure virtual machines with networking
-- **Proxmox**: Self-hosted virtualization platform for local VMs
-- **Physical**: Physical servers, routers, and network devices
 - **Cloud Services**: DNS, storage, tunnels, and monitoring integrations
+- **OCI**: Oracle Cloud Infrastructure virtual machines with networking
+- **Physical**: Physical servers, routers, and network devices
+- **Proxmox**: Self-hosted virtualization platform for local VMs
 
 ## Usage
 
@@ -118,33 +118,31 @@ tofu output
 
 1. Add infrastructure configuration to `terraform.tfvars` (reference `terraform.tfvars.sample` for examples)
 
-2. Create server-specific resource file (e.g., `server.tf`) if needed
-
-3. Plan and apply changes
+2. Plan and apply changes
 
 ### Virtual Machine Management
 
 VM configurations support multiple platforms:
 
+- **Networking**: Automatic Tailscale integration and DNS record creation
 - **OCI VMs**: Defined in `vms_oci` with Oracle Cloud-specific settings
 - **Proxmox VMs**: Defined in `vms_proxmox` with local virtualization settings
-- **Networking**: Automatic Tailscale integration and DNS record creation
 - **Storage**: B2 bucket provisioning for backup and data storage
-
-## Security
-
-- **Sensitive variables**: All provider credentials are marked as sensitive
-- **Secret management**: Passwords and API keys generated and stored in 1Password
-- **Network security**: Tailscale provides zero-trust network access
-- **State encryption**: Terraform state stored securely in Terraform Cloud
-- **Access control**: Infrastructure access limited to authorized devices only
 
 ## Monitoring
 
 - **DNS Health**: Automated monitoring of DNS record propagation
-- **VM Status**: Health checks for all virtual machine instances
 - **Network Connectivity**: Tailscale connectivity monitoring
 - **Resource Usage**: Cloud resource utilization tracking
+- **VM Status**: Health checks for all virtual machine instances
+
+## Security
+
+- **Access control**: Infrastructure access limited to authorized devices only
+- **Network security**: Tailscale provides zero-trust network access
+- **Secret management**: Passwords and API keys generated and stored in 1Password
+- **Sensitive variables**: All provider credentials are marked as sensitive
+- **State encryption**: Terraform state stored securely in Terraform Cloud
 
 ## Troubleshooting
 

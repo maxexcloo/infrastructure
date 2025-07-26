@@ -2,9 +2,9 @@
 
 ## Code Quality
 - **ALL files must end with trailing newline**
+- **No comments** - code should be self-explanatory
 - **Run `tofu fmt` after every change**
 - **Use OpenTofu >= 1.8** for latest features and stability
-- **No comments** - code should be self-explanatory
 - Add validation rules to variables for better error handling
 - Consolidate data sources to minimize API calls
 - Extract complex conditional logic to computed locals
@@ -32,9 +32,9 @@
 
 ## Locals Formatting
 **In `locals_*.tf` files:**
+- **All locals must start with the filename prefix** (e.g., `locals_dns.tf` → all locals start with `dns_`)
 - Add a blank line between each local definition
 - Sort all locals alphabetically by name
-- **All locals must start with the filename prefix** (e.g., `locals_dns.tf` → all locals start with `dns_`)
 
 ## Sorting Rules
 **ALWAYS sort alphabetically and recursively by:**
