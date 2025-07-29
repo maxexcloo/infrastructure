@@ -65,11 +65,10 @@ tofu apply       # Apply configuration
 ```bash
 # After every change
 tofu fmt && tofu validate && tofu plan
-git add . && git commit -m "Update OpenTofu configuration
+git add . && git commit -m "type: description"
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+# Always commit after verified working changes
+# Keep commits small and focused
 ```
 
 ---
